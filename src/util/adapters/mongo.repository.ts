@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export abstract class RepositoryImpl<T> implements Repository<T> {
+export abstract class MongoRepository<T> implements Repository<T> {
   protected constructor(
     protected readonly elementModel: Model<T>,
     protected readonly type: new (...args: any) => T,

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Repository } from './repository';
-import { RepositoryImpl } from './repository-impl';
+import { MongoRepository } from './mongo.repository';
 import { BaseSchema, extendSchema } from './mongoose.base-schema';
 
 export class Element {
@@ -28,8 +28,8 @@ export const ElementSchema = extendSchema(BaseSchema, {
 
 export type ElementRepository = Repository<Element>;
 
-export class ElementRepositoryImpl
-  extends RepositoryImpl<Element>
+export class MongoElementRepository
+  extends MongoRepository<Element>
   implements ElementRepository
 {
   constructor(

@@ -5,11 +5,11 @@ import {
   deleteAllRecordsFromCollections,
   Element,
   ElementRepository,
-  ElementRepositoryImpl,
   ElementSchema,
   insertTestElement,
+  MongoElementRepository,
   rootMongooseTestModule,
-} from './repository-impl.spec-util';
+} from './mongo.repository.spec-util';
 import { Optional } from 'typescript-optional';
 
 describe('Given a repository instance', () => {
@@ -25,10 +25,10 @@ describe('Given a repository instance', () => {
           { name: Element.name, schema: ElementSchema },
         ]),
       ],
-      providers: [ElementRepositoryImpl],
+      providers: [MongoElementRepository],
     }).compile();
 
-    repository = module.get<ElementRepository>(ElementRepositoryImpl);
+    repository = module.get<ElementRepository>(MongoElementRepository);
   });
 
   beforeEach(async () => {
