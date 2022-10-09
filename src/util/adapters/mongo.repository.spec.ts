@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   closeInMongodConnection,
-  deleteAllRecordsFromCollections,
+  deleteAllElements,
   Element,
   ElementRepository,
   ElementSchema,
-  insertTestElement,
+  insertElement,
   MongoElementRepository,
   rootMongooseTestModule,
 } from './mongo.repository.spec-util';
@@ -36,7 +36,7 @@ describe('Given a repository instance', () => {
       name: 'some name',
       description: 'some description',
     });
-    storedElementId = await insertTestElement(elementToStore);
+    storedElementId = await insertElement(elementToStore);
   });
 
   describe('when finding an element', () => {
@@ -79,7 +79,7 @@ describe('Given a repository instance', () => {
   });
 
   afterEach(async () => {
-    await deleteAllRecordsFromCollections(['elements']);
+    await deleteAllElements();
   });
 
   afterAll(async () => {

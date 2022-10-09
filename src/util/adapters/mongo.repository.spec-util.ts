@@ -10,9 +10,9 @@ import { MongoRepository } from './mongo.repository';
 import { BaseSchema, extendSchema } from './mongoose.base-schema';
 
 export class Element {
-  id?: string;
-  name: string;
-  description: string;
+  readonly id?: string;
+  readonly name: string;
+  readonly description: string;
 
   constructor(element: { id?: string; name: string; description: string }) {
     this.id = element.id;
@@ -59,7 +59,7 @@ export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
     },
   });
 
-export const insertTestElement = async (element: Element) => {
+export const insertElement = async (element: Element) => {
   await mongoose.connect(mongod.getUri());
   await mongoose.connection.useDb(dbName);
   return mongoose.connection.db
@@ -68,15 +68,11 @@ export const insertTestElement = async (element: Element) => {
     .then((result) => result.insertedId.toString());
 };
 
-export const deleteAllRecordsFromCollections = async (
-  collections: string[],
-) => {
+export const deleteAllElements = async () => {
   if (!mongod) return;
   await mongoose.connect(mongod.getUri());
   await mongoose.connection.useDb(dbName);
-  await Promise.all(
-    collections.map((c) => mongoose.connection.db.collection(c).deleteMany({})),
-  );
+  await mongoose.connection.db.collection('elements').deleteMany({});
   return;
 };
 
