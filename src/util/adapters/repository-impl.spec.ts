@@ -15,10 +15,7 @@ import { Optional } from 'typescript-optional';
 describe('Given a repository instance', () => {
   let repository: ElementRepository;
   let storedElementId: string;
-  const element = new Element({
-    name: 'some name',
-    description: 'some description',
-  });
+  let elementToStore: Element;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,7 +32,11 @@ describe('Given a repository instance', () => {
   });
 
   beforeEach(async () => {
-    storedElementId = await insertTestElement(element);
+    elementToStore = new Element({
+      name: 'some name',
+      description: 'some description',
+    });
+    storedElementId = await insertTestElement(elementToStore);
   });
 
   describe('when finding an element', () => {
@@ -68,8 +69,11 @@ describe('Given a repository instance', () => {
     describe('by an existent ID', () => {
       it('then retrieves the element', async () => {
         const element = await repository.findById(storedElementId);
-
-        expect(element).toEqual(element);
+        const storedElement = new Element({
+          ...elementToStore,
+          id: storedElementId,
+        });
+        expect(element.get()).toEqual(storedElement);
       });
     });
   });

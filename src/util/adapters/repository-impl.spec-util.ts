@@ -7,6 +7,7 @@ import {
 import mongoose, { Model } from 'mongoose';
 import { Repository } from './repository';
 import { RepositoryImpl } from './repository-impl';
+import { BaseSchema, extendSchema } from './mongoose.base-schema';
 
 export class Element {
   id?: string;
@@ -20,13 +21,10 @@ export class Element {
   }
 }
 
-export const ElementSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    description: { type: String, required: false },
-  },
-  { timestamps: true },
-);
+export const ElementSchema = extendSchema(BaseSchema, {
+  name: { type: String, required: true },
+  description: { type: String, required: false },
+});
 
 export type ElementRepository = Repository<Element>;
 
