@@ -8,14 +8,14 @@ import mongoose, { Model } from 'mongoose';
 import { Repository } from './repository';
 import { MongoRepository } from './mongo.repository';
 import { BaseSchema, extendSchema } from './mongoose.base-schema';
+import { Entity } from '../domain/Entity';
 
-export class Element {
-  readonly id?: string;
+export class Element extends Entity {
   readonly name: string;
   readonly description: string;
 
   constructor(element: { id?: string; name: string; description: string }) {
-    this.id = element.id;
+    super(element);
     this.name = element.name;
     this.description = element.description;
   }
@@ -66,6 +66,14 @@ export const insertElement = async (element: Element) => {
     .collection('elements')
     .insertOne(element)
     .then((result) => result.insertedId.toString());
+};
+
+export const findElementById = async (id: string) => {
+  await mongoose.connect(mongod.getUri());
+  await mongoose.connection.useDb(dbName);
+  return await mongoose.connection.db
+    .collection('elements')
+    .findOne({ _id: id });
 };
 
 export const deleteAllElements = async () => {
