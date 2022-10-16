@@ -6,7 +6,7 @@ import {
   findBookById,
   insert,
   rootMongooseTestModule,
-} from './util/mongoose.repository.spec-util';
+} from './util/mongo-server';
 import { Optional } from 'typescript-optional';
 import { Book } from './util/book';
 import {
