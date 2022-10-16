@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { Entity } from '../domain/entity';
 
 @Injectable()
-export abstract class MongoRepository<T extends Entity>
+export abstract class MongooseRepository<T extends Entity>
   implements Repository<T>
 {
   protected constructor(
@@ -14,7 +14,7 @@ export abstract class MongoRepository<T extends Entity>
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
-    if (!id) throw new Error('The given element ID must be valid');
+    if (!id) throw new Error('The given ID must be valid');
     const isDeleted = await this.elementModel.findByIdAndDelete(id);
     return !!isDeleted;
   }
@@ -29,7 +29,7 @@ export abstract class MongoRepository<T extends Entity>
   }
 
   async findById(id: string): Promise<Optional<T>> {
-    if (!id) throw new Error('The given element ID must be valid');
+    if (!id) throw new Error('The given ID must be valid');
     const element: T | null = await this.elementModel
       .findById(id)
       .exec()

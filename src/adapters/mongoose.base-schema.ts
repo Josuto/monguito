@@ -5,9 +5,9 @@ export const BaseSchema = new mongoose.Schema(
   {
     timestamps: true,
     toObject: {
-      transform: (doc, ret) => {
-        ret.id = doc.id;
-        delete ret._id;
+      transform: (document, result) => {
+        result.id = document.id;
+        delete result._id;
       },
     },
   },

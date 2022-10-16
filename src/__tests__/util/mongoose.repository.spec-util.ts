@@ -1,20 +1,21 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Element } from '../domain/element';
+import { Book } from './book';
 
-let mongod: MongoMemoryServer;
+let mongoServer: MongoMemoryServer;
 const dbName = 'test';
+const collection = 'books';
 
 export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
-      mongod = await MongoMemoryServer.create({
+      mongoServer = await MongoMemoryServer.create({
         instance: {
           dbName: dbName,
         },
       });
-      const mongoUri = mongod.getUri();
+      const mongoUri = mongoServer.getUri();
       return {
         uri: mongoUri,
         ...options,
@@ -22,32 +23,32 @@ export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
     },
   });
 
-export const insertElement = async (element: Element) => {
-  await mongoose.connect(mongod.getUri());
+export const insert = async (book: Book) => {
+  await mongoose.connect(mongoServer.getUri());
   await mongoose.connection.useDb(dbName);
   return mongoose.connection.db
-    .collection('elements')
-    .insertOne(element)
+    .collection(collection)
+    .insertOne(book)
     .then((result) => result.insertedId.toString());
 };
 
-export const findElementById = async (id: string) => {
-  await mongoose.connect(mongod.getUri());
+export const findBookById = async (id: string) => {
+  await mongoose.connect(mongoServer.getUri());
   await mongoose.connection.useDb(dbName);
   return await mongoose.connection.db
-    .collection('elements')
+    .collection(collection)
     .findOne({ _id: id });
 };
 
-export const deleteAllElements = async () => {
-  if (!mongod) return;
-  await mongoose.connect(mongod.getUri());
+export const deleteAllBooks = async () => {
+  if (!mongoServer) return;
+  await mongoose.connect(mongoServer.getUri());
   await mongoose.connection.useDb(dbName);
-  await mongoose.connection.db.collection('elements').deleteMany({});
+  await mongoose.connection.db.collection(collection).deleteMany({});
   return;
 };
 
-export const closeInMongodConnection = async () => {
+export const closeMongoConnection = async () => {
   await mongoose.disconnect();
-  await mongod?.stop();
+  await mongoServer?.stop();
 };
