@@ -2,7 +2,7 @@ import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { Entity } from '../domain/Entity';
+import { Entity } from '../domain/entity';
 
 @Injectable()
 export abstract class MongoRepository<T extends Entity>

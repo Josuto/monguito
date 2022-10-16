@@ -3,15 +3,17 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   closeInMongodConnection,
   deleteAllElements,
-  Element,
-  ElementRepository,
-  ElementSchema,
   findElementById,
   insertElement,
-  MongoElementRepository,
   rootMongooseTestModule,
 } from './mongo.repository.spec-util';
 import { Optional } from 'typescript-optional';
+import { Element } from '../domain/element';
+import {
+  ElementRepository,
+  ElementSchema,
+  MongoElementRepository,
+} from './element.repository';
 
 describe('Given a repository instance', () => {
   let repository: ElementRepository;

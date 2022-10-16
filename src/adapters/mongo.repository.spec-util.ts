@@ -1,44 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import {
-  InjectModel,
-  MongooseModule,
-  MongooseModuleOptions,
-} from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { Repository } from './repository';
-import { MongoRepository } from './mongo.repository';
-import { BaseSchema, extendSchema } from './mongoose.base-schema';
-import { Entity } from '../domain/Entity';
-
-export class Element extends Entity {
-  readonly name: string;
-  readonly description: string;
-
-  constructor(element: { id?: string; name: string; description: string }) {
-    super(element);
-    this.name = element.name;
-    this.description = element.description;
-  }
-}
-
-export const ElementSchema = extendSchema(BaseSchema, {
-  name: { type: String, required: true },
-  description: { type: String, required: false },
-});
-
-export type ElementRepository = Repository<Element>;
-
-export class MongoElementRepository
-  extends MongoRepository<Element>
-  implements ElementRepository
-{
-  constructor(
-    @InjectModel(Element.name)
-    protected elementModel: Model<Element>,
-  ) {
-    super(elementModel, Element);
-  }
-}
+import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
+import { Element } from '../domain/element';
 
 let mongod: MongoMemoryServer;
 const dbName = 'test';
