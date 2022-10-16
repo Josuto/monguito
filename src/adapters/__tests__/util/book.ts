@@ -1,4 +1,4 @@
-import { Entity } from '../../domain/entity';
+import { Entity } from '../../../domain/entity';
 
 export class Book extends Entity {
   readonly title: string;
