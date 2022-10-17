@@ -1,15 +1,30 @@
 ## Description
 
-Abstract repository implementation in [NestJS](https://github.com/nestjs/nest). Inspired
-in [Spring Data](https://spring.io/projects/spring-data), this abstract repository provides a consistent programming
-model for data access and persistence operations. It is aimed to enable enterprise application developers to easily and
-seamlessly build the database layer. It specifies a ```Repository``` interface that defines several repository common
-methods. ```Repository``` may be implemented by any class that models a concrete repository technology. This project
-includes an implementation for MongoDB using [Mongoose](https://mongoosejs.com/).
+This project consists of an abstract database repository implementation in [NestJS](https://github.com/nestjs/nest).
+Inspired in [Spring Data](https://spring.io/projects/spring-data), an abstract repository provides the base for a
+consistent programming model for data access operations. It is aimed to enable enterprise application developers to
+easily and seamlessly build the database layer.
 
-All the classes composing the abstract repository are included at the ```adapters``` folder. Besides, you may find the
-abstract repository integration tests under the ```__tests__``` folder. Following Clean Code, these tests also represent
-the documentation of the abstract repository API.
+The project specifies a ```Repository``` interface that defines several database repository common methods. The
+interface is meant to be implemented by classes that models a database repository technology e.g., MongoDB or MySQL.
+These classes are a realisation of the Template design pattern. For example, this project includes an implementation for
+MongoDB using [Mongoose](https://mongoosejs.com/) i.e., ```MongooseRepository```. This class is abstract and meant to be
+extended by any number of concrete domain object-specific repository classes.
+
+All the classes composing the abstract repository are included at the ```src/adapters``` folder. Besides, you may find
+the abstract repository integration tests under the ```src/adapters/__tests__``` folder. Following Clean Code, these
+tests also represent the documentation of the abstract repository API.
+
+### Extending the Abstract Repository Logic
+
+The definition of ```Repository``` can be changed to include more methods or even a different set of methods. However,
+due to its abstract nature, these methods should not be specific to any domain object. Thus, if e.g., we were to create
+a repository to enable data access on instances of type ```Book``` from MongoDB, we can create a concrete
+class ```BookRepository``` that extends the abstract class ```MongooseRepository```, which in turn implements
+the ```Repository``` interface. ```BookRepository``` can then specify book specific data access operations
+e.g., ```findByAuthor```. One could also develop a domain object specific repository so that it solely
+implements ```Repository``` (i.e., without extending any abstract repository template), but it is not advised to do so
+since it defeats the purpose of reusing common database logic.
 
 ## Installation
 
