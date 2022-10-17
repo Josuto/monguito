@@ -6,10 +6,10 @@ consistent programming model for data access operations. It is aimed to enable e
 easily and seamlessly build the database layer.
 
 The project specifies a ```Repository``` interface that defines several database repository common methods. The
-interface is meant to be implemented by classes that models a database repository technology e.g., MongoDB or MySQL.
-These classes are a realisation of the Template design pattern. For example, this project includes an implementation for
-MongoDB using [Mongoose](https://mongoosejs.com/) i.e., ```MongooseRepository```. This class is abstract and meant to be
-extended by any number of concrete domain object-specific repository classes.
+interface is meant to be implemented by classes that models a database repository technology e.g., MongoDB or MySQL. For
+example, this project includes an implementation for MongoDB using [Mongoose](https://mongoosejs.com/)
+i.e., ```MongooseRepository```. This class is abstract and meant to be a template to be extended by any number of
+concrete domain object-specific repository classes.
 
 All the classes composing the abstract repository are included at the ```src/adapters``` folder. Besides, you may find
 the abstract repository integration tests under the ```src/adapters/__tests__``` folder. Following Clean Code, these
