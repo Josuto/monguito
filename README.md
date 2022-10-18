@@ -1,9 +1,9 @@
 ## Description
 
-This project consists of an abstract database repository implementation in [NestJS](https://github.com/nestjs/nest).
-Inspired in [Spring Data](https://spring.io/projects/spring-data), an abstract repository provides the base for a
-consistent programming model for data access operations. It is aimed to enable enterprise application developers to
-easily and seamlessly build the database layer.
+This project consists of a lightweight abstract database repository implementation
+in [NestJS](https://github.com/nestjs/nest). The intent is to provide a simple base for a consistent programming model
+to perform data access operations. It is aimed to enable enterprise application developers to easily and seamlessly
+build their database layer.
 
 The project specifies a ```Repository``` interface that defines several common database access methods. The interface is
 meant to be implemented by classes that models a database repository technology e.g., MongoDB or MySQL. This project
@@ -14,6 +14,22 @@ object-specific repository classes.
 All the classes composing the abstract repository are included at the ```src/adapters``` folder. Besides, you may find
 the abstract repository integration tests under the ```src/adapters/__tests__``` folder. Following Clean Code, these
 tests also represent the documentation of the abstract repository API.
+
+### Motivation
+
+The main goal of this project is to provide a simple methodology to build database technology and domain model agnostic
+database repository logic that can be used at any enterprise application development process. Its main advantages,
+compared to other successful state-of-the-art NodeJS-based database access solutions such as
+[TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/) are:
+
+- the resulting database repository logic is simpler and more lightweight
+- following Uncle Bob's advice on not marrying any external dependencies (Clean Architecture), it does not expect domain
+  objects to specify fields with database technology-required decorators. Instead, developers are encouraged to create
+  other database-related artefacts (such as Mongoose schemas) that will prevent leaking database implementation details
+  into their domain model
+- any ```Repository``` implementation can organically be injected as done with any other service in any NestJS project
+- the abstract repositories can easily be extended to define complex queries, since it is not coupled to any concrete
+  database technology
 
 ### Extending the Abstract Repository Logic
 
