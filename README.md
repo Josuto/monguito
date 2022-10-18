@@ -14,18 +14,14 @@ tests also represent the documentation of the abstract repository API.
 ### Motivation
 
 The main goal of this project is to provide a simple methodology to build database technology and domain model agnostic
-database repository logic that can be used at any enterprise application development process. Its main advantages,
-compared to other successful state-of-the-art NodeJS-based database access solutions such as
-[TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/) are:
+database repository logic that can be used at any enterprise application development process. Some other other successful state-of-the-art NodeJS-based database access solutions are
+[TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/). There is even some TypeORM integration with NestJS, and integrating Typegoose should be also easy, according to the [documentation](https://docs.nestjs.com/techniques/database). However, a couple of advantages of this project over the aforementioned solutions are:
 
 - the resulting database repository logic is simpler and more lightweight
-- following Uncle Bob's advice on not marrying any external dependencies (Clean Architecture), it does not expect domain
-  objects to specify fields with database technology-required decorators. Instead, developers are encouraged to create
-  other database-related artefacts (such as Mongoose schemas) that will prevent leaking database implementation details
-  into their domain model
-- any `Repository` implementation can organically be injected as done with any other service in any NestJS project
 - the abstract repositories can easily be extended to define complex queries, since it is not coupled to any concrete
   database technology
+
+On another hand, following Uncle Bob's advice on not marrying any external dependencies (Clean Architecture), this approach does not expect domain objects to specify fields with database technology-required decorators. Instead, developers are encouraged to create other database-related artefacts (such as Mongoose schemas) that will prevent leaking database implementation details into their domain model.
 
 ### Extending the Abstract Repository Logic
 
