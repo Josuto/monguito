@@ -1,6 +1,7 @@
+import { Entity } from 'src/domain/entity';
 import { Optional } from 'typescript-optional';
 
-export interface Repository<T> {
+export interface Repository<T extends Entity> {
   findById: (id: string) => Promise<Optional<T>>;
   findAll: () => Promise<T[]>;
   // Inserts given element if it does not specify an ID. Otherwise, updates it
