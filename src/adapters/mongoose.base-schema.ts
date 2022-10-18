@@ -4,6 +4,7 @@ export const BaseSchema = new mongoose.Schema(
   {},
   {
     timestamps: true,
+    // required to deserialize Entity objects
     toObject: {
       transform: (document, result) => {
         result.id = document.id;
