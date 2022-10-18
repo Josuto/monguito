@@ -41,7 +41,8 @@ export abstract class MongooseRepository<T extends Entity>
 
   // An alternative implementation consists of using Mongoose 'save' method. However, since this is
   // an abstract repository implementation, it is not trivial dynamically set the fields to update.
-  // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined.
+  // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined. It's also good
+  // that the latter function is atomic, as 'upsert' is set to false by default.
   async save(element: T): Promise<T> {
     if (!element) throw new Error('The given element must be valid');
     let document;
