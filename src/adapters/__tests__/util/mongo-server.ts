@@ -24,8 +24,7 @@ export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
   });
 
 export const insert = async (book: Book) => {
-  await mongoose.connect(mongoServer.getUri());
-  await mongoose.connection.useDb(dbName);
+  await setupConnection();
   return mongoose.connection.db
     .collection(collection)
     .insertOne(book)
@@ -33,8 +32,7 @@ export const insert = async (book: Book) => {
 };
 
 export const findBookById = async (id: string) => {
-  await mongoose.connect(mongoServer.getUri());
-  await mongoose.connection.useDb(dbName);
+  await setupConnection();
   return await mongoose.connection.db
     .collection(collection)
     .findOne({ _id: id });
@@ -42,8 +40,7 @@ export const findBookById = async (id: string) => {
 
 export const deleteAllBooks = async () => {
   if (!mongoServer) return;
-  await mongoose.connect(mongoServer.getUri());
-  await mongoose.connection.useDb(dbName);
+  await setupConnection();
   await mongoose.connection.db.collection(collection).deleteMany({});
   return;
 };
@@ -51,4 +48,9 @@ export const deleteAllBooks = async () => {
 export const closeMongoConnection = async () => {
   await mongoose.disconnect();
   await mongoServer?.stop();
+};
+
+const setupConnection = async () => {
+  await mongoose.connect(mongoServer.getUri());
+  await mongoose.connection.useDb(dbName);
 };
