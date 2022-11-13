@@ -14,6 +14,7 @@ import {
   BookSchema,
   MongooseBookRepository,
 } from './util/book.repository';
+import { NotFoundException, UniquenessViolationException } from '../exceptions';
 
 describe('Given a repository instance', () => {
   let repository: BookRepository;
@@ -34,8 +35,9 @@ describe('Given a repository instance', () => {
 
   beforeEach(async () => {
     const bookToStore = new Book({
-      title: 'some title',
-      description: 'some description',
+      title: 'The Lord of the Rings',
+      description: 'Best fantasy book ever',
+      isbn: '978-0544003415',
     });
     storedBookId = await insert(bookToStore);
     storedBook = new Book({
@@ -105,12 +107,27 @@ describe('Given a repository instance', () => {
       it('then throws an exception', async () => {
         const bookToUpdate = new Book({
           id: '00007032a61c4eda79230000',
-          title: 'new title',
-          description: 'new description',
+          title: 'From the Earth to the Moon',
+          description: 'Best early sci-fy book',
+          isbn: '978-1521833698',
         });
 
         await expect(repository.save(bookToUpdate)).rejects.toThrowError(
-          'There is no document matching the given ID 00007032a61c4eda79230000',
+          NotFoundException,
+        );
+      });
+    });
+
+    describe('that specifies an ISBN of a stored book', () => {
+      it('then throws a duplicated key exception', async () => {
+        const bookToInsert = new Book({
+          title: 'Dragon Ball, Vol. 1',
+          description: 'First Dragon Ball comic number',
+          isbn: '978-0544003415',
+        });
+
+        await expect(repository.save(bookToInsert)).rejects.toThrowError(
+          UniquenessViolationException,
         );
       });
     });
@@ -118,8 +135,9 @@ describe('Given a repository instance', () => {
     describe('that has not previously been stored', () => {
       it('then inserts the book', async () => {
         const bookToInsert = new Book({
-          title: 'some title',
-          description: 'some description',
+          title: 'Sapiens: A Brief History of Humankind',
+          description: 'Great book about the origins of humankind',
+          isbn: '978-0062316097',
         });
 
         const book = await repository.save(bookToInsert);
@@ -133,8 +151,9 @@ describe('Given a repository instance', () => {
       it('then updates the book', async () => {
         const bookToUpdate = new Book({
           id: storedBook.id,
-          title: 'new title',
-          description: 'new description',
+          title: 'The Lord of the Rings Illustrated',
+          description: 'Illustrated version',
+          isbn: '978-0358653035',
         });
 
         const book = await repository.save(bookToUpdate);

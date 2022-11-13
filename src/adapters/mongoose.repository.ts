@@ -1,8 +1,9 @@
 import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
-import { Model } from 'mongoose';
+import { HydratedDocument, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { Entity } from '../domain/entity';
+import { NotFoundException, UniquenessViolationException } from './exceptions';
 
 @Injectable()
 export abstract class MongooseRepository<T extends Entity>
@@ -47,17 +48,36 @@ export abstract class MongooseRepository<T extends Entity>
     if (!element) throw new Error('The given element must be valid');
     let document;
     if (!element.id) {
-      document = await this.elementModel.create(element);
+      document = await this.insert(element);
     } else {
-      document = await this.elementModel
-        .findByIdAndUpdate(
-          element.id,
-          { ...element },
-          { new: true, runValidators: true },
-        )
-        .exec();
+      document = await this.update(element);
     }
     if (document) return new this.type(document.toObject());
-    throw Error(`There is no document matching the given ID ${element.id}`);
+    throw new NotFoundException(
+      `There is no document matching the given ID ${element.id}`,
+    );
+  }
+
+  private async insert(element: T): Promise<HydratedDocument<T>> {
+    try {
+      return await this.elementModel.create(element);
+    } catch (error) {
+      if (error.message.includes('duplicate key error')) {
+        throw new UniquenessViolationException(
+          `The given element with ID ${element.id} includes a field which value is expected to be unique`,
+        );
+      }
+      throw error;
+    }
+  }
+
+  private async update(element: T): Promise<HydratedDocument<T> | null> {
+    return await this.elementModel
+      .findByIdAndUpdate(
+        element.id,
+        { ...element },
+        { new: true, runValidators: true },
+      )
+      .exec();
   }
 }

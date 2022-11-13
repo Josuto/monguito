@@ -8,6 +8,7 @@ import { BaseSchema, extendSchema } from '../../mongoose.base-schema';
 export const BookSchema = extendSchema(BaseSchema, {
   title: { type: String, required: true },
   description: { type: String, required: false },
+  isbn: { type: String, required: true, unique: true },
 });
 export type BookRepository = Repository<Book>;
 

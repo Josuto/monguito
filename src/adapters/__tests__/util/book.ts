@@ -6,10 +6,17 @@ export class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
+  readonly isbn: string;
 
-  constructor(book: { id?: string; title: string; description: string }) {
+  constructor(book: {
+    id?: string;
+    title: string;
+    description: string;
+    isbn: string;
+  }) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
+    this.isbn = book.isbn;
   }
 }
