@@ -3,7 +3,11 @@ import { Optional } from 'typescript-optional';
 import { HydratedDocument, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { Entity } from '../domain/entity';
-import { NotFoundException, UniquenessViolationException } from './exceptions';
+import {
+  IllegalArgumentException,
+  NotFoundException,
+  UniquenessViolationException,
+} from './exceptions';
 
 @Injectable()
 export abstract class MongooseRepository<T extends Entity>
@@ -15,7 +19,7 @@ export abstract class MongooseRepository<T extends Entity>
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
-    if (!id) throw new Error('The given ID must be valid');
+    if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const isDeleted = await this.elementModel.findByIdAndDelete(id);
     return !!isDeleted;
   }
@@ -30,7 +34,7 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   async findById(id: string): Promise<Optional<T>> {
-    if (!id) throw new Error('The given ID must be valid');
+    if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const element: T | null = await this.elementModel
       .findById(id)
       .exec()
@@ -41,11 +45,12 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   // An alternative implementation consists of using Mongoose 'save' method. However, since this is
-  // an abstract repository implementation, it is not trivial dynamically set the fields to update.
+  // an abstract repository implementation, it is not trivial to dynamically set the fields to update.
   // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined. It's also good
   // that the latter function is atomic, as 'upsert' is set to false by default.
   async save(element: T): Promise<T> {
-    if (!element) throw new Error('The given element must be valid');
+    if (!element)
+      throw new IllegalArgumentException('The given element must be valid');
     let document;
     if (!element.id) {
       document = await this.insert(element);

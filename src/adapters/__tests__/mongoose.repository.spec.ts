@@ -14,7 +14,11 @@ import {
   BookSchema,
   MongooseBookRepository,
 } from './util/book.repository';
-import { NotFoundException, UniquenessViolationException } from '../exceptions';
+import {
+  IllegalArgumentException,
+  NotFoundException,
+  UniquenessViolationException,
+} from '../exceptions';
 
 describe('Given a repository instance', () => {
   let repository: BookRepository;
@@ -51,7 +55,7 @@ describe('Given a repository instance', () => {
       it('then throws an exception', async () => {
         await expect(
           repository.findById(undefined as unknown as string),
-        ).rejects.toThrowError('The given ID must be valid');
+        ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 
@@ -59,7 +63,7 @@ describe('Given a repository instance', () => {
       it('then throws an exception', async () => {
         await expect(
           repository.findById(null as unknown as string),
-        ).rejects.toThrowError('The given ID must be valid');
+        ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 
@@ -169,7 +173,7 @@ describe('Given a repository instance', () => {
       it('then throws an exception', async () => {
         await expect(
           repository.deleteById(undefined as unknown as string),
-        ).rejects.toThrowError('The given ID must be valid');
+        ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 
@@ -177,7 +181,7 @@ describe('Given a repository instance', () => {
       it('then throws an exception', async () => {
         await expect(
           repository.deleteById(undefined as unknown as string),
-        ).rejects.toThrowError('The given ID must be valid');
+        ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 

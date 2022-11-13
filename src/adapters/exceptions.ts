@@ -9,3 +9,9 @@ export class UniquenessViolationException extends Error {
     super(message);
   }
 }
+
+export class IllegalArgumentException extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
