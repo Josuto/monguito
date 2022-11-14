@@ -55,7 +55,7 @@ export abstract class MongooseRepository<T extends Entity>
     }
     if (document) return new this.type(document.toObject());
     throw new NotFoundException(
-      `There is no document matching the given ID ${element.id}. New elements should not specify an ID`,
+      `There is no document matching the given ID ${element.id}. New elements cannot not specify an ID`,
     );
   }
 
