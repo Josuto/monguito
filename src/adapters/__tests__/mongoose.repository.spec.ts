@@ -107,7 +107,7 @@ describe('Given a repository instance', () => {
       });
     });
 
-    describe('that specifies an ID not matching any stored book', () => {
+    describe('that is new but specifies an ID', () => {
       it('then throws an exception', async () => {
         const bookToUpdate = new Book({
           id: '00007032a61c4eda79230000',
@@ -122,8 +122,8 @@ describe('Given a repository instance', () => {
       });
     });
 
-    describe('that specifies an ISBN of a stored book', () => {
-      it('then throws a duplicated key exception', async () => {
+    describe('that specifies the ISBN (unique value) of a stored book', () => {
+      it('then throws an exception', async () => {
         const bookToInsert = new Book({
           title: 'Dragon Ball, Vol. 1',
           description: 'First Dragon Ball comic number',
@@ -136,7 +136,7 @@ describe('Given a repository instance', () => {
       });
     });
 
-    describe('that has not previously been stored', () => {
+    describe('that is new', () => {
       it('then inserts the book', async () => {
         const bookToInsert = new Book({
           title: 'Sapiens: A Brief History of Humankind',
@@ -151,7 +151,7 @@ describe('Given a repository instance', () => {
       });
     });
 
-    describe('that has previously been stored', () => {
+    describe('that is not new', () => {
       it('then updates the book', async () => {
         const bookToUpdate = new Book({
           id: storedBook.id,

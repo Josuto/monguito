@@ -44,10 +44,6 @@ export abstract class MongooseRepository<T extends Entity>
     return Optional.ofNullable(element);
   }
 
-  // An alternative implementation consists of using Mongoose 'save' method. However, since this is
-  // an abstract repository implementation, it is not trivial to dynamically set the fields to update.
-  // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined. It's also good
-  // that the latter function is atomic, as 'upsert' is set to false by default.
   async save(element: T): Promise<T> {
     if (!element)
       throw new IllegalArgumentException('The given element must be valid');
@@ -59,10 +55,14 @@ export abstract class MongooseRepository<T extends Entity>
     }
     if (document) return new this.type(document.toObject());
     throw new NotFoundException(
-      `There is no document matching the given ID ${element.id}`,
+      `There is no document matching the given ID ${element.id}. New elements should not specify an ID`,
     );
   }
 
+  // An alternative implementation consists of using Mongoose 'save' method. However, since this is
+  // an abstract repository implementation, it is not trivial to dynamically set the fields to update.
+  // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined. It's also good
+  // that 'findByIdAndUpdate' is atomic when as 'upsert' is set to false (i.e., its default value).
   private async insert(element: T): Promise<HydratedDocument<T>> {
     try {
       return await this.elementModel.create(element);
