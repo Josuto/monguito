@@ -1,4 +1,4 @@
-import { Entity } from 'src/domain/entity';
+import { Entity } from 'src/entity';
 import { Optional } from 'typescript-optional';
 
 export interface Repository<T extends Entity> {

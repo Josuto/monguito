@@ -6,14 +6,14 @@ import {
   findBookById,
   insert,
   rootMongooseTestModule,
-} from './util/mongo-server';
+} from '../../test-util/mongo-server';
 import { Optional } from 'typescript-optional';
-import { Book } from './util/book';
+import { Book } from '../../test-util/book';
 import {
   BookRepository,
   BookSchema,
   MongooseBookRepository,
-} from './util/book.repository';
+} from '../../test-util/book.repository';
 import {
   IllegalArgumentException,
   NotFoundException,

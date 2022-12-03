@@ -2,12 +2,12 @@ import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
 import { HydratedDocument, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { Entity } from '../domain/entity';
+import { Entity } from '../entity';
 import {
   IllegalArgumentException,
   NotFoundException,
   UniquenessViolationException,
-} from './exceptions';
+} from '../exceptions';
 
 @Injectable()
 export abstract class MongooseRepository<T extends Entity>

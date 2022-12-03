@@ -1,4 +1,4 @@
-import { Entity } from '../../../domain/entity';
+import { Entity } from '../src/entity';
 
 export class Book implements Entity {
   // This field must only be instantiated by the underlying database access technology.
