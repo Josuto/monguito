@@ -20,7 +20,7 @@ import {
   UniquenessViolationException,
 } from '../exceptions';
 
-describe('Given a repository instance', () => {
+describe('Given a concrete repository instance', () => {
   let repository: BookRepository;
   let storedBook: Book;
   let storedBookId: string;

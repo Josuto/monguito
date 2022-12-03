@@ -10,9 +10,9 @@ interface, which defines several domain model agnostic common database access me
 implementation for MongoDB with Mongoose i.e., `MongooseRepository`. This class is an abstract template to be extended
 by concrete domain object-specific repository classes.
 
-All the classes composing the abstract repository are included at the `src/adapters` folder. Besides, you may find the
-abstract repository integration tests under the `src/adapters/__tests__` folder. Following Clean Code, these tests also
-represent the documentation of the abstract repository API.
+All the classes composing the generic repository are located under the `src/repository` folder, including the unit tests
+that validate the logic of the generic repository implementation. These tests also represent the documentation for the
+generic repository.
 
 ### Motivation
 
