@@ -18,9 +18,9 @@ tests that validate the repository. These tests also represent the documentation
 The main goal of this project is to provide a simple methodology to build technology and domain model agnostic database
 repository logic that can be used at any NestJS enterprise application development process. Some other successful
 state-of-the-art NodeJS-based database access solutions are
-[TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/). There is even some TypeORM
-integration with NestJS, and integrating Typegoose should be also easy, according to
-the [documentation](https://docs.nestjs.com/techniques/database).
+[TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/). There is even
+some [TypeORM integration with NestJS](https://docs.nestjs.com/techniques/database), and integrating Typegoose should be
+also pretty straight forward according to such documentation.
 
 However, the approach presented in this project presents a simpler and more lightweight database repository logic than
 these other alternatives. On another hand, following Uncle Bob's advice on not marrying any external dependencies (Clean
