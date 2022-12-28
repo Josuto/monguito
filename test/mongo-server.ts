@@ -1,11 +1,10 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Book } from './book';
+import { Entity } from '../src/entity';
 
 let mongoServer: MongoMemoryServer;
 const dbName = 'test';
-const collection = 'books';
 
 export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
   MongooseModule.forRootAsync({
@@ -23,22 +22,22 @@ export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
     },
   });
 
-export const insert = async (book: Book) => {
+export const insert = async (entity: Entity, collection: string) => {
   await setupConnection();
   return mongoose.connection.db
     .collection(collection)
-    .insertOne(book)
+    .insertOne(entity)
     .then((result) => result.insertedId.toString());
 };
 
-export const findBookById = async (id: string) => {
+export const findById = async (id: string, collection: string) => {
   await setupConnection();
   return await mongoose.connection.db
     .collection(collection)
     .findOne({ _id: id });
 };
 
-export const deleteAllBooks = async () => {
+export const deleteAll = async (collection: string) => {
   if (!mongoServer) return;
   await setupConnection();
   await mongoose.connection.db.collection(collection).deleteMany({});

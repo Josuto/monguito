@@ -32,9 +32,9 @@ details into their domain model.
 
 The definition of `Repository` can be changed to include more methods or even a different set of methods. However, due
 to its generic nature, these methods should not be specific to any domain object. Thus, if e.g., we were to create a
-repository to enable data access on instances of type `Book` from MongoDB, we can create a concrete
-class `BookRepository` that extends the abstract class `MongooseRepository`, which in turn implements the `Repository`
-interface. `BookRepository` can then specify book specific data access operations e.g., `findByAuthor`.
+repository to enable data access on instances of type `Author` from MongoDB, we can create a concrete
+class `AuthorRepository` that extends the abstract class `MongooseRepository`, which in turn implements the `Repository`
+interface. `AuthorRepository` can then specify book specific data access operations e.g., `findByAuthor`.
 
 Extending the repository to provide an implementation
 for [MongoDB Node Driver](https://www.mongodb.com/docs/drivers/node/current/) or even for another database technology

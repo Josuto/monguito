@@ -1,6 +1,6 @@
 import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
-import { HydratedDocument, Model } from 'mongoose';
+import mongoose, { HydratedDocument, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { Entity } from '../entity';
 import {
@@ -9,13 +9,19 @@ import {
   UniquenessViolationException,
 } from '../exceptions';
 
+type Constructor<T> = new (...args: any) => T;
+
+export interface ConstructorMap<T> {
+  [index: string]: Constructor<T>;
+}
+
 @Injectable()
 export abstract class MongooseRepository<T extends Entity>
   implements Repository<T>
 {
   protected constructor(
     protected readonly elementModel: Model<T>,
-    protected readonly type: new (...args: any) => T,
+    protected readonly elementConstructor: ConstructorMap<T> | Constructor<T>,
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
@@ -24,27 +30,27 @@ export abstract class MongooseRepository<T extends Entity>
     return !!isDeleted;
   }
 
-  async findAll(): Promise<T[]> {
+  async findAll<S extends T>(): Promise<S[]> {
     return this.elementModel
       .find()
       .exec()
       .then((documents) =>
-        documents.map((document) => new this.type(document.toObject())),
+        documents.map((document) => this.instantiateFrom(document)),
       );
   }
 
-  async findById(id: string): Promise<Optional<T>> {
+  async findById<S extends T>(id: string): Promise<Optional<S>> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const element: T | null = await this.elementModel
+    const element: S | null = await this.elementModel
       .findById(id)
       .exec()
       .then((document) =>
-        document ? new this.type(document.toObject()) : null,
+        document ? (this.instantiateFrom(document) as S) : null,
       );
     return Optional.ofNullable(element);
   }
 
-  async save(element: T): Promise<T> {
+  async save<S extends T>(element: S): Promise<S> {
     if (!element)
       throw new IllegalArgumentException('The given element must be valid');
     let document;
@@ -53,19 +59,26 @@ export abstract class MongooseRepository<T extends Entity>
     } else {
       document = await this.update(element);
     }
-    if (document) return new this.type(document.toObject());
+    if (document) return this.instantiateFrom(document) as S;
     throw new NotFoundException(
       `There is no document matching the given ID ${element.id}. New elements cannot not specify an ID`,
     );
   }
 
-  // An alternative implementation consists of using Mongoose 'save' method. However, since this is
-  // an abstract repository implementation, it is not trivial to dynamically set the fields to update.
-  // 'findByIdAndUpdate' with 'upsert: true' does not work if element.id is undefined. It's also good
-  // that 'findByIdAndUpdate' is atomic when as 'upsert' is set to false (i.e., its default value).
-  private async insert(element: T): Promise<HydratedDocument<T>> {
+  private instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
+    let elemClass;
+    const elemType = document.get('__type');
+    if (elemType) {
+      elemClass = (this.elementConstructor as ConstructorMap<T>)[elemType];
+    } else {
+      elemClass = this.elementConstructor as Constructor<T>;
+    }
+    return new elemClass(document.toObject()) as S;
+  }
+
+  private async insert<S extends T>(element: S): Promise<HydratedDocument<S>> {
     try {
-      return await this.elementModel.create(element);
+      return (await this.elementModel.create(element)) as HydratedDocument<S>;
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
         throw new UniquenessViolationException(
@@ -76,13 +89,39 @@ export abstract class MongooseRepository<T extends Entity>
     }
   }
 
-  private async update(element: T): Promise<HydratedDocument<T> | null> {
-    return await this.elementModel
-      .findByIdAndUpdate(
-        element.id,
-        { ...element },
-        { new: true, runValidators: true },
-      )
-      .exec();
+  private async update<S extends T>(
+    element: S,
+  ): Promise<HydratedDocument<S> | null> {
+    let updateModel;
+    if (this.elementModel.discriminators) {
+      updateModel = this.createUpdateModelForPolymorphicEntity(element);
+    } else {
+      updateModel = await this.createUpdateModelForPlainEntity(element);
+    }
+    if (updateModel) {
+      updateModel.isNew = false;
+      return (await updateModel.save()) as HydratedDocument<S>;
+    }
+    return null;
+  }
+
+  private createUpdateModelForPolymorphicEntity<S extends T>(element: S) {
+    const discriminator =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.elementModel.discriminators![element['__type']!];
+    return new discriminator({
+      ...element,
+      _id: new mongoose.Types.ObjectId(element.id),
+    });
+  }
+
+  private async createUpdateModelForPlainEntity<S extends T>(element: S) {
+    const updateModel = await this.elementModel.findById(element.id);
+    if (updateModel) {
+      updateModel.overwrite({ ...element });
+      return updateModel;
+    }
+    return null;
   }
 }
