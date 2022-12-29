@@ -5,6 +5,7 @@ import { Entity } from '../src/entity';
 
 let mongoServer: MongoMemoryServer;
 const dbName = 'test';
+mongoose.set('strictQuery', false);
 
 export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
   MongooseModule.forRootAsync({

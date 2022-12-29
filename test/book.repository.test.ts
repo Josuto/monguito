@@ -13,7 +13,7 @@ import {
   rootMongooseTestModule,
 } from './mongo-server';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AudioBook, Book, PaperBook } from './book';
+import { AudioBook, Book, PaperBook, VideoBook } from './book';
 
 describe('Given an instance of book repository', () => {
   let repository: BookRepository;
@@ -70,9 +70,7 @@ describe('Given an instance of book repository', () => {
       it('then retrieves the book', async () => {
         const book = await repository.findById(storedPaperBook.id!);
         expect(book.isPresent()).toBe(true);
-        expect(book.get().title).toBe(storedPaperBook.title);
-        expect(book.get().description).toBe(storedPaperBook.description);
-        expect((book.get() as PaperBook).edition).toBe(storedPaperBook.edition);
+        expect(book.get()).toEqual(storedPaperBook);
       });
     });
   });
@@ -81,18 +79,38 @@ describe('Given an instance of book repository', () => {
     it('then retrieves all the existent books', async () => {
       const books = await repository.findAll();
       expect(books.length).toBe(2);
-      expect(books[0].title).toBe(storedPaperBook.title);
-      expect(books[0].description).toBe(storedPaperBook.description);
-      expect((books[0] as PaperBook).edition).toBe(storedPaperBook.edition);
-      expect(books[1].title).toBe(storedAudioBook.title);
-      expect(books[1].description).toBe(storedAudioBook.description);
-      expect((books[1] as AudioBook).hostingPlatforms).toEqual(
-        storedAudioBook.hostingPlatforms,
-      );
+      expect(books).toEqual([storedPaperBook, storedAudioBook]);
     });
   });
 
   describe('when saving a book', () => {
+    describe('which type is not specified as a book discriminator', () => {
+      describe('that is new', () => {
+        it('throws an exception', async () => {
+          const bookToInsert = new VideoBook({
+            title: 'How to deal with ants at home?',
+            description:
+              'Shows several strategies to avoid having ants at home',
+            format: 'AVI',
+          });
+          await expect(repository.save(bookToInsert)).rejects.toThrowError();
+        });
+      });
+
+      describe('that is not new', () => {
+        it('throws an exception', async () => {
+          const bookToUpdate = new VideoBook({
+            id: storedAudioBook.id,
+            title: 'How to deal with ants at home?',
+            description:
+              'Shows several strategies to avoid having ants at home',
+            format: 'AVI',
+          });
+          await expect(repository.save(bookToUpdate)).rejects.toThrowError();
+        });
+      });
+    });
+
     describe('that is new', () => {
       it('then inserts the book', async () => {
         const bookToInsert = new PaperBook({
