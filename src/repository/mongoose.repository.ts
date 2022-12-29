@@ -6,6 +6,7 @@ import { Entity } from '../entity';
 import {
   IllegalArgumentException,
   NotFoundException,
+  UndefinedConstructorException,
   UniquenessViolationException,
 } from '../exceptions';
 
@@ -21,7 +22,7 @@ export abstract class MongooseRepository<T extends Entity>
 {
   protected constructor(
     protected readonly elementModel: Model<T>,
-    protected readonly elementConstructor: ConstructorMap<T> | Constructor<T>,
+    protected readonly elementConstructor: ConstructorMap<T>,
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
@@ -66,14 +67,15 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   private instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
-    let elemClass;
-    const elemType = document.get('__type');
-    if (elemType) {
-      elemClass = (this.elementConstructor as ConstructorMap<T>)[elemType];
-    } else {
-      elemClass = this.elementConstructor as Constructor<T>;
+    const __type = document.get('__type');
+    const elemType = __type ? __type : 'Default';
+    const elemClass = this.elementConstructor[elemType];
+    if (elemClass) {
+      return new elemClass(document.toObject()) as S;
     }
-    return new elemClass(document.toObject()) as S;
+    throw new UndefinedConstructorException(
+      `There is no registered instance constructor for the document with ID ${document.id}`,
+    );
   }
 
   private async insert<S extends T>(element: S): Promise<HydratedDocument<S>> {
@@ -110,7 +112,8 @@ export abstract class MongooseRepository<T extends Entity>
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.elementModel.discriminators![element['__type']!];
-    return new discriminator({
+    const elemConstructor = discriminator ? discriminator : this.elementModel;
+    return new elemConstructor({
       ...element,
       _id: new mongoose.Types.ObjectId(element.id),
     });

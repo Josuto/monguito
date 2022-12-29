@@ -15,3 +15,9 @@ export class IllegalArgumentException extends Error {
     super(message);
   }
 }
+
+export class UndefinedConstructorException extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}

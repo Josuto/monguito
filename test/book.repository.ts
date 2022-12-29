@@ -35,6 +35,6 @@ export class MongooseBookRepository
     @InjectModel(Book.name)
     private readonly bookModel: Model<Book>,
   ) {
-    super(bookModel, { Paper: PaperBook, Audio: AudioBook });
+    super(bookModel, { Default: Book, Paper: PaperBook, Audio: AudioBook });
   }
 }

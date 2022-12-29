@@ -1,15 +1,11 @@
 import { Entity, PolymorphicEntity } from '../src/entity';
 
-export abstract class Book implements Entity {
+export class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
 
-  protected constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-  }) {
+  constructor(book: { id?: string; title: string; description: string }) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;

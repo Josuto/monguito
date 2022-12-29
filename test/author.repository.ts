@@ -28,6 +28,6 @@ export class MongooseAuthorRepository
     @InjectModel(Author.name)
     private readonly authorModel: Model<Author>,
   ) {
-    super(authorModel, Author);
+    super(authorModel, { Default: Author });
   }
 }
