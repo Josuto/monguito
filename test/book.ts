@@ -14,8 +14,24 @@ export class Book implements Entity {
 
 type BookType = 'Paper' | 'Audio' | 'Video';
 
-export class PaperBook extends Book implements PolymorphicEntity {
+export abstract class PolymorphicBook
+  extends Book
+  implements PolymorphicEntity
+{
   readonly __type: BookType;
+
+  protected constructor(book: {
+    id?: string;
+    title: string;
+    description: string;
+    __type: BookType;
+  }) {
+    super(book);
+    this.__type = book.__type;
+  }
+}
+
+export class PaperBook extends PolymorphicBook {
   readonly edition: number;
 
   constructor(paperBook: {
@@ -24,14 +40,12 @@ export class PaperBook extends Book implements PolymorphicEntity {
     description: string;
     edition: number;
   }) {
-    super(paperBook);
-    this.__type = 'Paper';
+    super({ ...paperBook, __type: 'Paper' });
     this.edition = paperBook.edition;
   }
 }
 
-export class AudioBook extends Book implements PolymorphicEntity {
-  readonly __type: BookType;
+export class AudioBook extends PolymorphicBook {
   readonly hostingPlatforms: string[];
 
   constructor(audioBook: {
@@ -40,24 +54,21 @@ export class AudioBook extends Book implements PolymorphicEntity {
     description: string;
     hostingPlatforms: string[];
   }) {
-    super(audioBook);
-    this.__type = 'Audio';
+    super({ ...audioBook, __type: 'Audio' });
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }
 
-export class VideoBook extends Book implements PolymorphicEntity {
-  readonly __type: BookType;
+export class VideoBook extends PolymorphicBook {
   readonly format: string;
 
-  constructor(audioBook: {
+  constructor(videoBook: {
     id?: string;
     title: string;
     description: string;
     format: string;
   }) {
-    super(audioBook);
-    this.__type = 'Video';
-    this.format = audioBook.format;
+    super({ ...videoBook, __type: 'Video' });
+    this.format = videoBook.format;
   }
 }
