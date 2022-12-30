@@ -1,6 +1,6 @@
 import {
+  BaseSchema,
   extendSchema,
-  PolymorphicSchema,
 } from '../src/repository/mongoose.base-schema';
 import { Repository } from '../src/repository/repository';
 import { AudioBook, Book, PaperBook } from './book';
@@ -9,7 +9,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 export const BookSchema = extendSchema(
-  PolymorphicSchema,
+  BaseSchema,
   {
     title: { type: String, required: true },
     description: { type: String, required: false },

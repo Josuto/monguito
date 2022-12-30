@@ -18,16 +18,16 @@ export abstract class PolymorphicBook
   extends Book
   implements PolymorphicEntity
 {
-  readonly __type: BookType;
+  readonly __t: BookType;
 
   protected constructor(book: {
     id?: string;
     title: string;
     description: string;
-    __type: BookType;
+    type: BookType;
   }) {
     super(book);
-    this.__type = book.__type;
+    this.__t = book.type;
   }
 }
 
@@ -40,7 +40,7 @@ export class PaperBook extends PolymorphicBook {
     description: string;
     edition: number;
   }) {
-    super({ ...paperBook, __type: 'Paper' });
+    super({ ...paperBook, type: 'Paper' });
     this.edition = paperBook.edition;
   }
 }
@@ -54,7 +54,7 @@ export class AudioBook extends PolymorphicBook {
     description: string;
     hostingPlatforms: string[];
   }) {
-    super({ ...audioBook, __type: 'Audio' });
+    super({ ...audioBook, type: 'Audio' });
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }
@@ -68,7 +68,7 @@ export class VideoBook extends PolymorphicBook {
     description: string;
     format: string;
   }) {
-    super({ ...videoBook, __type: 'Video' });
+    super({ ...videoBook, type: 'Video' });
     this.format = videoBook.format;
   }
 }

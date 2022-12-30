@@ -67,8 +67,8 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   private instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
-    const __type = document.get('__type');
-    const elemType = __type ? __type : 'Default';
+    const storedType = document.get('__t');
+    const elemType = storedType ? storedType : 'Default';
     const elemClass = this.elementConstructor[elemType];
     if (elemClass) {
       return new elemClass(document.toObject()) as S;
@@ -111,7 +111,7 @@ export abstract class MongooseRepository<T extends Entity>
     const discriminator =
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.elementModel.discriminators![element['__type']!];
+      this.elementModel.discriminators![element['__t']!];
     const elemConstructor = discriminator ? discriminator : this.elementModel;
     return new elemConstructor({
       ...element,

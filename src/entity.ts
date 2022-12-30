@@ -11,5 +11,5 @@ export interface AuditableEntity extends Entity {
 }
 
 export interface PolymorphicEntity extends Entity {
-  __type: string;
+  __t: string;
 }

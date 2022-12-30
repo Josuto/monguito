@@ -13,12 +13,6 @@ export const BaseSchema = new mongoose.Schema(
   },
 );
 
-export const PolymorphicSchema = extendSchema(
-  BaseSchema,
-  {},
-  { discriminatorKey: '__type' },
-);
-
 export function extendSchema(Schema: any, definition: any, options?: any) {
   return new mongoose.Schema(
     { ...Schema.obj, ...definition },
