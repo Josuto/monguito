@@ -1,6 +1,6 @@
 import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
-import mongoose, { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { Entity } from '../entity';
 import {
@@ -22,7 +22,7 @@ export abstract class MongooseRepository<T extends Entity>
 {
   protected constructor(
     protected readonly elementModel: Model<T>,
-    protected readonly elementConstructor: ConstructorMap<T>,
+    protected readonly elementConstructorMap: ConstructorMap<T>,
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
@@ -67,11 +67,11 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   private instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
-    const storedType = document.get('__t');
-    const elemType = storedType ? storedType : 'Default';
-    const elemClass = this.elementConstructor[elemType];
-    if (elemClass) {
-      return new elemClass(document.toObject()) as S;
+    let discriminatorType = document.get('__t');
+    discriminatorType = discriminatorType ? discriminatorType : 'Default';
+    const elementConstructor = this.elementConstructorMap[discriminatorType];
+    if (elementConstructor) {
+      return new elementConstructor(document.toObject()) as S;
     }
     throw new UndefinedConstructorException(
       `There is no registered instance constructor for the document with ID ${document.id}`,
@@ -94,36 +94,11 @@ export abstract class MongooseRepository<T extends Entity>
   private async update<S extends T>(
     element: S,
   ): Promise<HydratedDocument<S> | null> {
-    let updateModel;
-    if (this.elementModel.discriminators) {
-      updateModel = this.createUpdateModelForPolymorphicEntity(element);
-    } else {
-      updateModel = await this.createUpdateModelForPlainEntity(element);
-    }
-    if (updateModel) {
-      updateModel.isNew = false;
-      return (await updateModel.save()) as HydratedDocument<S>;
-    }
-    return null;
-  }
-
-  private createUpdateModelForPolymorphicEntity<S extends T>(element: S) {
-    const discriminator =
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this.elementModel.discriminators![element['__t']!];
-    const elemConstructor = discriminator ? discriminator : this.elementModel;
-    return new elemConstructor({
-      ...element,
-      _id: new mongoose.Types.ObjectId(element.id),
-    });
-  }
-
-  private async createUpdateModelForPlainEntity<S extends T>(element: S) {
-    const updateModel = await this.elementModel.findById(element.id);
-    if (updateModel) {
-      updateModel.overwrite({ ...element });
-      return updateModel;
+    const document = await this.elementModel.findById(element.id);
+    if (document) {
+      document.overwrite({ ...element });
+      document.isNew = false;
+      return (await document.save()) as HydratedDocument<S>;
     }
     return null;
   }
