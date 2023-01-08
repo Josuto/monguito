@@ -1,12 +1,9 @@
-import { MongooseRepository } from '../src/repository/mongoose.repository';
+import { MongooseRepository } from '../repository/mongoose.repository';
 import { Author } from './author';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Repository } from '../src/repository/repository';
-import {
-  BaseSchema,
-  extendSchema,
-} from '../src/repository/mongoose.base-schema';
+import { Repository } from '../repository/repository';
+import { BaseSchema, extendSchema } from '../repository/mongoose.base-schema';
 
 export const AuthorSchema = extendSchema(
   BaseSchema,

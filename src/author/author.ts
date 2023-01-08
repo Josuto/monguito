@@ -1,4 +1,4 @@
-import { Entity } from '../src/entity';
+import { Entity } from '../entity';
 
 export class Author implements Entity {
   // This field must only be instantiated by the underlying database access technology.

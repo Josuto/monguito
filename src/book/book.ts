@@ -1,4 +1,4 @@
-import { Entity, PolymorphicEntity } from '../src/entity';
+import { Entity, PolymorphicEntity } from '../entity';
 
 export class Book implements Entity {
   readonly id?: string;

@@ -1,10 +1,7 @@
-import {
-  BaseSchema,
-  extendSchema,
-} from '../src/repository/mongoose.base-schema';
-import { Repository } from '../src/repository/repository';
+import { BaseSchema, extendSchema } from '../repository/mongoose.base-schema';
+import { Repository } from '../repository/repository';
 import { AudioBook, Book, PaperBook } from './book';
-import { MongooseRepository } from '../src/repository/mongoose.repository';
+import { MongooseRepository } from '../repository/mongoose.repository';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -25,7 +22,9 @@ export const AudioBookSchema = extendSchema(BookSchema, {
   hostingPlatforms: { type: [{ type: String }], required: true },
 });
 
-export type BookRepository = Repository<Book>;
+export interface BookRepository extends Repository<Book> {
+  findByTitle: <T extends Book>(title: string) => Promise<T[]>;
+}
 
 export class MongooseBookRepository
   extends MongooseRepository<Book>
@@ -36,5 +35,12 @@ export class MongooseBookRepository
     private readonly bookModel: Model<Book>,
   ) {
     super(bookModel, { Default: Book, Paper: PaperBook, Audio: AudioBook });
+  }
+
+  async findByTitle<T extends Book>(title: string): Promise<T[]> {
+    return this.bookModel
+      .find({ title: title })
+      .exec()
+      .then((books) => books.map((book) => this.instantiateFrom(book)));
   }
 }

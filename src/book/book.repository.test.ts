@@ -11,7 +11,7 @@ import {
   deleteAll,
   insert,
   rootMongooseTestModule,
-} from './mongo-server';
+} from '../../test/mongo-server';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AudioBook, Book, PaperBook, VideoBook } from './book';
 

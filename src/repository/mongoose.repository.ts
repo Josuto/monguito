@@ -21,8 +21,8 @@ export abstract class MongooseRepository<T extends Entity>
   implements Repository<T>
 {
   protected constructor(
-    protected readonly elementModel: Model<T>,
-    protected readonly elementConstructorMap: ConstructorMap<T>,
+    private readonly elementModel: Model<T>,
+    private readonly elementConstructorMap: ConstructorMap<T>,
   ) {}
 
   async deleteById(id: string): Promise<boolean> {
@@ -66,7 +66,7 @@ export abstract class MongooseRepository<T extends Entity>
     );
   }
 
-  private instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
+  protected instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
     let discriminatorType = document.get('__t');
     discriminatorType = discriminatorType ? discriminatorType : 'Default';
     const elementConstructor = this.elementConstructorMap[discriminatorType];

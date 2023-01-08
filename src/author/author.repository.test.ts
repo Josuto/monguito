@@ -6,7 +6,7 @@ import {
   findById,
   insert,
   rootMongooseTestModule,
-} from './mongo-server';
+} from '../../test/mongo-server';
 import { Optional } from 'typescript-optional';
 import { Author } from './author';
 import {
@@ -18,7 +18,7 @@ import {
   IllegalArgumentException,
   NotFoundException,
   UniquenessViolationException,
-} from '../src/exceptions';
+} from '../exceptions';
 
 describe('Given an instance of author repository', () => {
   let repository: AuthorRepository;
