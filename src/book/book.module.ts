@@ -6,6 +6,7 @@ import { Book } from './book';
 import {
   AudioBookSchema,
   BookSchema,
+  MongooseBookRepository,
   PaperBookSchema,
 } from './book.repository';
 
@@ -22,7 +23,13 @@ import {
       },
     ]),
   ],
-  providers: [BookService],
+  providers: [
+    {
+      provide: 'BOOK_REPOSITORY',
+      useClass: MongooseBookRepository,
+    },
+    BookService,
+  ],
   controllers: [BookController],
 })
 export class BookModule {}
