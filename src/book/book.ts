@@ -1,4 +1,5 @@
 import { Entity, PolymorphicEntity } from '../entity';
+import { Exclude } from 'class-transformer';
 
 export class Book implements Entity {
   readonly id?: string;
@@ -18,6 +19,7 @@ export abstract class PolymorphicBook
   extends Book
   implements PolymorphicEntity
 {
+  @Exclude()
   readonly __t: BookType;
 
   protected constructor(book: {

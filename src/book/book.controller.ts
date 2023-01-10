@@ -1,20 +1,24 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Book } from './book';
 import { BookService } from './book.service';
-import { CreateBookDto, CreatePaperBookDto } from './create-book.dto';
+import { CreateBookDto, deserialiseBook } from './create-book.dto';
 
 @Controller('books')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Post()
+  @UseInterceptors(ClassSerializerInterceptor)
   async create(
     @Body({
-      transform: (plainBook) => {
-        if (plainBook.edition) {
-          return new CreatePaperBookDto(plainBook);
-        } else return new CreateBookDto(plainBook);
-      },
+      transform: (plainBook) => deserialiseBook(plainBook),
     })
     createBookDto: CreateBookDto,
   ): Promise<Book> {
@@ -22,6 +26,7 @@ export class BookController {
   }
 
   @Get()
+  @UseInterceptors(ClassSerializerInterceptor)
   async findAll<T extends Book>(): Promise<T[]> {
     return this.bookService.findAll();
   }
