@@ -1,6 +1,6 @@
 import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, UpdateQuery } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { Entity } from '../entity';
 import {
@@ -17,7 +17,7 @@ export interface ConstructorMap<T> {
 }
 
 @Injectable()
-export abstract class MongooseRepository<T extends Entity>
+export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
   protected constructor(
@@ -51,14 +51,16 @@ export abstract class MongooseRepository<T extends Entity>
     return Optional.ofNullable(element);
   }
 
-  async save<S extends T>(element: S): Promise<S> {
+  async save<S extends T>(
+    element: S | ({ id: string } & Partial<S>),
+  ): Promise<S> {
     if (!element)
       throw new IllegalArgumentException('The given element must be valid');
     let document;
     if (!element.id) {
-      document = await this.insert(element);
+      document = await this.insert(<S>element);
     } else {
-      document = await this.update(element);
+      document = await this.update(<{ id: string } & Partial<S>>element);
     }
     if (document) return this.instantiateFrom(document) as S;
     throw new NotFoundException(
@@ -92,14 +94,23 @@ export abstract class MongooseRepository<T extends Entity>
   }
 
   private async update<S extends T>(
-    element: S,
+    element: { id: string } & Partial<S>,
   ): Promise<HydratedDocument<S> | null> {
     const document = await this.elementModel.findById(element.id);
     if (document) {
-      document.overwrite({ ...element });
+      this.setElementPropertiesIntoDocument(element, document);
       document.isNew = false;
       return (await document.save()) as HydratedDocument<S>;
     }
     return null;
+  }
+
+  private setElementPropertiesIntoDocument<S extends T>(
+    element: { id: string } & Partial<S>,
+    document: HydratedDocument<T>,
+  ): void {
+    Object.keys(element).map((key) => {
+      if (document[key]) document.set(key, element[key]);
+    });
   }
 }
