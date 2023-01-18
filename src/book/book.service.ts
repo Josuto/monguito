@@ -11,12 +11,10 @@ export class BookService {
   ) {}
 
   async create(createBookDto: CreateBookDto): Promise<Book> {
-    console.log('createBookDto', createBookDto);
     return this.bookRepository.save(createBookDto.toBook());
   }
 
   async update(updateBookDto: UpdateBookDto): Promise<Book> {
-    console.log('updateBookDto', updateBookDto);
     return this.bookRepository.save(updateBookDto);
   }
 
