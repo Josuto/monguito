@@ -48,6 +48,7 @@
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-no-only-or-skip-tests": "^2.6.2",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.3",
     "jest": "28.1.3",

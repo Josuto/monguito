@@ -2870,6 +2870,11 @@ eslint-config-prettier@^8.3.0:
   resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.5.0.tgz#5a81680ec934beca02c7b1a61cf8ca34b66feab1"
   integrity sha512-obmWKLUNCnhtQRKc+tmnYuQl0pFU1ibYJQ5BGhTVB08bHe9wC8qUeG7c08dj9XX+AuPj1YSGSQIHl1pnDHZR0Q==
 
+eslint-plugin-no-only-or-skip-tests@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-no-only-or-skip-tests/-/eslint-plugin-no-only-or-skip-tests-2.6.2.tgz#7da51ba180d9b5b64ad691b0413226a2794446b6"
+  integrity sha512-Kmqekk+J1MUcRo4vzmz8fN/JmTU13HWL+pzBGSGFGbTQQrgz7DYzLTlt0fhdQWJ5hy9/e8994tdsKsOilIrOlw==
+
 eslint-plugin-prettier@^4.0.0:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-4.2.1.tgz#651cbb88b1dab98bfd42f017a12fa6b2d993f94b"
