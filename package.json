@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "format": "prettier --write \\\\\\\"src/**/*.ts\\\\\\\" \\\\\\\"test/**/*.ts\\\\\\\"",
+    "format": "prettier --write \\\\\\\\\\\\\\\"src/**/*.ts\\\\\\\\\\\\\\\" \\\\\\\\\\\\\\\"test-util/**/*.ts\\\\\\\\\\\\\\\"",
     "start": "nest start",
     "start:dev": "yarn start:db && nest start --watch",
     "start:debug": "yarn start:db && nest start --debug --watch",
@@ -19,7 +19,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config test/jest-e2e.json",
+    "test:e2e": "jest --config test-util/jest-e2e.json",
     "prepare": "husky install"
   },
   "dependencies": {
