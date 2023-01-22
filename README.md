@@ -182,7 +182,7 @@ export const PaperBookSchema = extendSchema(BookSchema, {
 });
 ```
 
-### Inversion of Control
+### Dependency Inversion
 
 Another interesting detail from `BookModule` is that it specifies a provider instantiated using
 the `MongooseBookRepository` class. However, we should _depend on abstractions, not
