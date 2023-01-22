@@ -1,14 +1,15 @@
 # Description
 
-This project is a lightweight implementation of the Repository pattern for [NestJS](https://github.com/nestjs/nest). It
-is intended to provide NestJS applications with a layer of abstraction to decouple domain and persistence logic. The
-main component is the parameterized `Repository` interface, which defines several database technology-agnostic CRUD
-operations.
+This project is a lightweight implementation of
+the [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) pattern
+for [NestJS](https://github.com/nestjs/nest). It is intended to provide NestJS applications with a layer of abstraction
+to decouple domain and persistence logic. The main component is the parameterized `Repository` interface, which defines
+several database technology-agnostic CRUD operations.
 
 Moreover, the project includes a [Mongoose](https://mongoosejs.com/) based MongoDB repository abstract implementation
 aimed to release developers from having to write boilerplate code for the database access operations specified
 at `Repository`. This implementation is realised in the `MongooseRepository` abstract class, a generic template that
-concrete domain object-specific repository classes can extend from. Thus, developers can benefit from the already
+custom domain object-specific repository classes can extend from. Thus, developers can benefit from the already
 implemented MongoDB CRUD operations logic and focus in writing the repository logic pertaining to their own domain.
 
 The repository infrastructure has been designed to enable data access operations both for _plain_ and _polymorphic_ data
@@ -33,7 +34,7 @@ them to directly execute any domain logic they may specify.
 Finally, the current implementation of the Mongoose-based MongoDB abstract repository has been fully validated in
 the `book.repository.test.ts` file.
 
-## Example of a Concrete Repository Implementation
+## Example of a Custom Repository Implementation
 
 `BookRepository` is an interface that extends `Repository` with a data access operation required in the domain of `Book`
 handling. Here is the definition for `BookRepository`:
@@ -44,8 +45,8 @@ export interface BookRepository extends Repository<Book> {
 }
 ```
 
-The class `MongooseBookRepository` is a concrete repository for the domain object `Book` that
-extends `MongooseRepository` and implements `BookRepository`. Here is the definition for `MongooseBookRepository`:
+The class `MongooseBookRepository` is a custom repository for the domain object `Book` that extends `MongooseRepository`
+and implements `BookRepository`. Here is the definition for `MongooseBookRepository`:
 
 ```typescript
 export class MongooseBookRepository
@@ -68,8 +69,8 @@ export class MongooseBookRepository
 ```
 
 The constructor of the class invokes that of `MongooseRepository` with a map that specifies all the book supertype and
-subtypes (i.e., the domain object type hierarchy) to be handled by the concrete repository. This implementation detail
-is required to enable repository `find` and `save` methods to retrieve instances of the pertaining (sub)type of `Book`
+subtypes (i.e., the domain object type hierarchy) to be handled by the custom repository. This implementation detail is
+required to enable repository `find` and `save` methods to retrieve instances of the pertaining (sub)type of `Book`
 . `MongooseRepository` exposes the protected method `instantiateFrom` in charge of performing such instantiation. This
 implementation detail may feel verbose, but it is required since JavaScript does not provide any reflection API as other
 languages such as Java do to enable the repository data access operations to instantiate persisted objects to their
@@ -147,7 +148,38 @@ export abstract class PolymorphicBook
 ```
 
 Thus, book subtypes (e.g., `PaperBook` or `AudioBook`) actually inherit from `PolymorphicBook` instead of `Book`.
-Further implementation details can be found at the `book.ts` file and the `MongooseRepository` class.
+Further implementation details on this topic can be found at the `book.ts` file and the `MongooseRepository` class.
+
+#### Entity and PolymorphicEntity
+
+As a final note on domain objects: `MongooseRepository` expects the input type parameter to implement the `Entity`
+interface. Inspired in the _Entity_ concept from Domain-Driven Design, this interface models domain any object that is
+to be identified by an `id`. Therefore, persistable domain objects must implement `Entity` and specify a field `id`
+which value is to be populated by Mongoose as part of most data access operations. Similarly, `PolymorphicEntity` is an
+extension of `Entity` that specifies the aforementioned `__t` discriminator field for polymorphic data structures.
+
+### Utilities to Define Custom Schemas
+
+This project includes a couple of utilities to specify custom domain object Mongoose schemas in the
+file `mongoose.base-schema.ts` file. Developers are encouraged to use `BaseSchema` as the base for their schema
+definitions. The `extendSchema` function allows developers to create domain object schemas that inherit
+from `BaseSchema` or any other schema. This is specially convenient when defining schemas for polymorphic data
+structures. The following example depicts the definition of `BookSchema` and the sub-schema `PaperBookSchema`:
+
+```typescript
+export const BookSchema = extendSchema(
+  BaseSchema,
+  {
+    title: {type: String, required: true},
+    description: {type: String, required: false},
+  },
+  {timestamps: true},
+);
+
+export const PaperBookSchema = extendSchema(BookSchema, {
+  edition: {type: Number, required: true, min: 1},
+});
+```
 
 ### Inversion of Control
 
@@ -185,7 +217,11 @@ The application requires a running instance of MongoDB. It includes a `docker-co
 MongoDB instance, assuming that Docker Desktop is running.
 
 ```bash
+# run the NestJS application as well as the MongoDB Docker container
 $ yarn start:dev
+
+# run the NestJS application with no MongoDB Docker container
+$ yarn start 
 ```
 
 ## Run Repository Validation
@@ -197,6 +233,10 @@ $ yarn test
 # run integration tests with coverage
 $ yarn test:cov
 ```
+
+## Contributors
+
+Special thanks to Alexander Peiker and Sergi Torres for all the insightful conversations on this topic.
 
 ## Stay in touch
 
