@@ -26,10 +26,11 @@ suitable for the development of uncomplicated NestJS applications.
 Another advantage and an important feature of this abstract repository approach is that all the `find` methods return
 an `Optional` of a given domain object type instead of objects of a type defined by the underlying ORM/ODM or database
 driver (e.g., `Document` in the case of Mongoose). Similarly, the `save` operation returns an instance of the given
-domain object type. This way no database logic is leaked into the corresponding domain model, as advised in the Clean
-Architecture book from Uncle Bob, among other many other sources of good software development practices. Furthermore, it
-saves developers from having to instantiate domain objects from the outcomes of the data access operations and enables
-them to directly execute any domain logic they may specify.
+domain object type. This way no database logic is leaked into the corresponding domain model, as advised
+in [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html), among other many
+other sources of good software development practices. Furthermore, it saves developers from having to instantiate domain
+objects from the outcomes of the data access operations and enables them to directly execute any domain logic they may
+specify.
 
 Finally, the current implementation of the Mongoose-based MongoDB abstract repository has been fully validated in
 the `book.repository.test.ts` file.
