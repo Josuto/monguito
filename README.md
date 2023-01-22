@@ -185,7 +185,9 @@ export const PaperBookSchema = extendSchema(BookSchema, {
 ### Inversion of Control
 
 Another interesting detail from `BookModule` is that it specifies a provider instantiated using
-the `MongooseBookRepository` class. However, this provider can be injected in a service component as follows:
+the `MongooseBookRepository` class. However, we should _depend on abstractions, not
+implementations_ ([Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle)).
+Hence, this provider can be injected in a service component as follows:
 
 ```typescript
 export class BookService {
@@ -195,9 +197,6 @@ export class BookService {
   }
 }
 ```
-
-Here the constructor input parameter is of type `BookRepository`, thus
-achieving [Inversion of Control](https://en.wikipedia.org/wiki/Inversion_of_control).
 
 ## Abstract Repository for other Database Technologies
 
