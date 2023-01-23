@@ -29,7 +29,11 @@ objects from the outcomes of the data access operations and enables them to dire
 specify.
 
 Compared to other existing database integration alternatives (e.g., [TypeORM](https://typeorm.io/)
-or [Typegoose](https://typegoose.github.io/typegoose/)), this approach is simpler and more lightweight.
+or [Typegoose](https://typegoose.github.io/typegoose/)), this approach is simpler and more lightweight. Additionally,
+TypeORM has mainly been developed for relational databases
+and [presents several limitations compared to Mongoose](https://eliezer.medium.com/typeorm-mongodb-review-8855903228b1).
+Typegoose, on another hand, is yet another Mongoose wrapper that provides TypeScript typing to Mongoose schemas and
+models, but it implements the [Active Record](https://en.wikipedia.org/wiki/Active_record_pattern) pattern.
 
 Finally, the current implementation of the Mongoose-based MongoDB abstract repository has been fully validated in
 the `book.repository.test.ts` file.
