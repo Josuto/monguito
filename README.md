@@ -111,9 +111,25 @@ export class BookModule {
 }
 ```
 
+### Repository Injection
+
+An interesting detail from `BookModule` is that it specifies a provider instantiated using the `MongooseBookRepository`
+class. However, we should _depend on abstractions, not
+implementations_ ([Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle)).
+Hence, this provider can be injected in a service component as follows:
+
+```typescript
+export class BookService {
+  constructor(
+    @Inject('BOOK_REPOSITORY') private readonly bookRepository: BookRepository,
+  ) {
+  }
+}
+```
+
 ### Implementation of the Polymorphic Pattern
 
-An interesting detail from `BookModule` is that the implementation of the book repository uses
+Another interesting detail from `BookModule` is that the implementation of the book repository uses
 Mongoose [schemas](https://mongoosejs.com/docs/guide.html) instead of domain class decorators to (once more)
 decouple database logic from the book domain model. Mongoose stores and retrieves polymorphic data structures
 using [discriminators](http://thecodebarbarian.com/2015/07/24/guide-to-mongoose-discriminators). A discriminator
@@ -180,22 +196,6 @@ export const BookSchema = extendSchema(
 export const PaperBookSchema = extendSchema(BookSchema, {
   edition: {type: Number, required: true, min: 1},
 });
-```
-
-### Dependency Inversion
-
-Another interesting detail from `BookModule` is that it specifies a provider instantiated using
-the `MongooseBookRepository` class. However, we should _depend on abstractions, not
-implementations_ ([Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle)).
-Hence, this provider can be injected in a service component as follows:
-
-```typescript
-export class BookService {
-  constructor(
-    @Inject('BOOK_REPOSITORY') private readonly bookRepository: BookRepository,
-  ) {
-  }
-}
 ```
 
 ## Abstract Repository for other Database Technologies
