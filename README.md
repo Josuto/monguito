@@ -83,9 +83,10 @@ required to enable repository `find` and `save` methods to retrieve instances of
 . `MongooseRepository` exposes the protected method `instantiateFrom` in charge of performing such instantiation. This
 implementation detail may feel verbose, but it is required since JavaScript does not provide any reflection API as other
 languages such as Java do to enable the repository data access operations to instantiate persisted objects to their
-correct domain types.
+correct domain types. Some future remediation could consist of registering such a map of domain object hierarchy
+somewhere more suitable e.g., as part of the `BookModule` imports.
 
-Finally, the `default` type is always meant to be the supertype i.e., `Book` in the example above.
+Finally, the `Default` type is always meant to be the domain object supertype i.e., `Book` in the example above.
 
 ## NestJS Application Example
 
