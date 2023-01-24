@@ -35,8 +35,10 @@ and [presents several limitations compared to Mongoose](https://eliezer.medium.c
 Typegoose, on another hand, is yet another Mongoose wrapper that provides TypeScript typing to Mongoose schemas and
 models, but it implements the [Active Record](https://en.wikipedia.org/wiki/Active_record_pattern) pattern. It could be
 interesting to base the abstract repository on Typegoose in the future, although it would add a new abstraction layer,
-thus complicating the current solution. All considered, leveraging the abstract repository with new required Mongoose
-features may be a better idea.
+thus complicating the current solution. Considering that Mongoose is currently the most mature ODM for MongoDB in NodeJS
+applications, leveraging the abstract repository with new required Mongoose features (
+e.g., [implementing various types of relationships between documents belonging to different collections](https://www.bezkoder.com/mongoose-one-to-many-relationship/))
+may be a better idea.
 
 Finally, the current implementation of the Mongoose-based MongoDB abstract repository has been fully validated in
 the `book.repository.test.ts` file.
