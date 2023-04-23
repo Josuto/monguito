@@ -1,3 +1,6 @@
+![Code size](https://img.shields.io/github/languages/code-size/josuto/nestjs-abstract-repository)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+
 This is a lightweight implementation of an abstract
 and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [repository](https://www.martinfowler.com/eaaCatalog/repository.html)
 for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](https://www.mongodb.com/). Its
