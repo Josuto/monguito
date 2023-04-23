@@ -4,7 +4,8 @@ for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](htt
 main goal is help developers to focus on writing custom database access operations in a fast, easy, and structured
 manner, thus allowing them to properly decouple domain and persistence logic.
 
-__TL;DR__: To directly see a working example, you jump directly to the [Cut to the Chase](#cut-to-the-chase) section.
+__TL;DR__: To directly see a working example, you can jump directly to the [Cut to the Chase](#cut-to-the-chase)
+section.
 
 # Main Contents
 
