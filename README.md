@@ -1,16 +1,15 @@
-The goal of this project is help [NestJS](https://github.com/nestjs/nest) developers to focus on writing custom database
-access operations in a fast, easy, and structured manner, thus allowing them to properly decouple domain and persistence
-logic.
+This is a lightweight implementation of
+the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [Repository](https://www.martinfowler.com/eaaCatalog/repository.html)
+patterns for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](https://www.mongodb.com/). Its
+main goal is help developers to focus on writing custom database access operations in a fast, easy, and structured
+manner, thus allowing them to properly decouple domain and persistence logic.
 
-__TL;DR__: To directly see a working example, you jump directly to the [Cut to the Chase](#cut-to-the-chase) section,
-although I would recommend you to later come back to the introductory section.
+__TL;DR__: To directly see a working example, you jump directly to the [Cut to the Chase](#cut-to-the-chase) section.
 
 # Abstract and Polymorphic Repository
 
-This project is a lightweight implementation of
-the [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) pattern for NestJS, currently focused
-on [MongoDB](https://www.mongodb.com/). Its main component is the generic `Repository` interface, which defines the most
-basic database technology-agnostic CRUD operations. Here is the current definition of this interface:
+The generic `Repository` interface is the main component of the abstract repository infrastructure. This interface
+defines the most basic database technology-agnostic CRUD operations. Here is its current definition:
 
 ```typescript
 export interface Repository<T extends Entity> {
@@ -23,10 +22,9 @@ export interface Repository<T extends Entity> {
 
 Inspired in the _Entity_ concept
 from [Domain-Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design), `Entity` is an interface that is to be
-implemented by any domain object to persist in a database. Interfaces are non-intrusive data structures that allow
-developers to specify inheritance relations between domain objects of their interest. `Entity` defines an `id` field
-that all domain objects must define. `T` generically refers to a domain object type that implements `Entity`, and `S`
-generically refers to a subtype of such a domain object type. This is to enable data access operations over
+implemented by any domain object to persist in a database. The interface defines an `id` field that all domain objects
+must define. `T` generically refers to a domain object type that implements `Entity`, and `S` generically refers to a
+subtype of such a domain object type. This is to enable data access operations over
 subtyping-based [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) data structures.
 An example of a polymorphic data structure is a `Book` class that is a supertype for a `PaperBook` and `AudioBook`
 subclasses. Following the example, a key benefit of this approach is any client of `Repository` or any custom repository
@@ -34,8 +32,8 @@ build on top of it is able to store and retrieve book instances of the expected 
 be a mix of instances of `Book`, `PaperBook`, and `AudioBook`.
 
 The magic of the polymorphism actually happens at `MongooseRepository`, a [Mongoose](https://mongoosejs.com/)-based
-_abstract_ repository class that implements `Repository`. `MongooseRepository` is a generic template that custom domain
-object-specific repository classes can extend from, thus releasing developers from having to write boilerplate code
+abstract repository class that implements `Repository`. `MongooseRepository` is a generic template that any custom
+domain object-specific repository class can extend from, thus releasing developers from having to write boilerplate code
 for the operations specified at `Repository`. This way, developers can benefit from the already implemented MongoDB CRUD
 operations logic and focus on writing the repository logic pertaining to their own domain.
 
@@ -287,4 +285,4 @@ for all the insightful conversations on this topic.
 
 # License
 
-This project is [MIT licensed](LICENSE).
+This project is [MIT licensed](LICENSE)._
