@@ -1,10 +1,18 @@
-This is a lightweight implementation of
-a [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [Repository](https://www.martinfowler.com/eaaCatalog/repository.html)
+This is a lightweight implementation of an abstract
+and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [repository](https://www.martinfowler.com/eaaCatalog/repository.html)
 for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](https://www.mongodb.com/). Its
 main goal is help developers to focus on writing custom database access operations in a fast, easy, and structured
 manner, thus allowing them to properly decouple domain and persistence logic.
 
 __TL;DR__: To directly see a working example, you jump directly to the [Cut to the Chase](#cut-to-the-chase) section.
+
+# Table of Contents
+
+- [Abstract and Polymorphic Repository](#abstract-and-polymorphic-repository)
+- [Cut to the Chase](#cut-to-the-chase)
+- [Comparison to other Alternatives](#comparison-to-other-alternatives)
+- [Abstract Repository for other Database Technologies](#abstract-repository-for-other-database-technologies)
+- [Running the Example Application](#running-the-example-application)
 
 # Abstract and Polymorphic Repository
 
