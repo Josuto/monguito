@@ -1,6 +1,6 @@
 This is a lightweight implementation of
-the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [Repository](https://www.martinfowler.com/eaaCatalog/repository.html)
-patterns for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](https://www.mongodb.com/). Its
+a [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [Repository](https://www.martinfowler.com/eaaCatalog/repository.html)
+for [NestJS](https://github.com/nestjs/nest), currently focused on [MongoDB](https://www.mongodb.com/). Its
 main goal is help developers to focus on writing custom database access operations in a fast, easy, and structured
 manner, thus allowing them to properly decouple domain and persistence logic.
 
