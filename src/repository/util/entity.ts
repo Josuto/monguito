@@ -4,12 +4,6 @@ export interface Entity {
   id?: string;
 }
 
-export interface AuditableEntity extends Entity {
-  createdAt?: Date;
-  updatedAt?: Date;
-  version?: number;
-}
-
 export interface PolymorphicEntity extends Entity {
   __t: string;
 }

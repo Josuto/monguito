@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Entity } from '../src/entity';
+import { Entity } from '../src/repository/util/entity';
 
 let mongoServer: MongoMemoryServer;
 const dbName = 'test';

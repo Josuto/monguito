@@ -2,13 +2,13 @@ import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
 import { HydratedDocument, Model, UpdateQuery } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { Entity } from '../entity';
+import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
   NotFoundException,
   UndefinedConstructorException,
   UniquenessViolationException,
-} from '../exceptions';
+} from './util/exceptions';
 
 type Constructor<T> = new (...args: any) => T;
 
@@ -70,7 +70,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   protected instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
     let discriminatorType = document.get('__t');
-    discriminatorType = discriminatorType ? discriminatorType : 'Default';
+    discriminatorType = discriminatorType ?? 'Default';
     const elementConstructor = this.elementConstructorMap[discriminatorType];
     if (elementConstructor) {
       return new elementConstructor(document.toObject()) as S;

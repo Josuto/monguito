@@ -15,7 +15,10 @@ import {
 } from '../../test-util/mongo-server';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AudioBook, Book, PaperBook, VideoBook } from './book';
-import { IllegalArgumentException, NotFoundException } from '../exceptions';
+import {
+  IllegalArgumentException,
+  NotFoundException,
+} from '../repository/util/exceptions';
 import { Optional } from 'typescript-optional';
 
 describe('Given an instance of book repository', () => {

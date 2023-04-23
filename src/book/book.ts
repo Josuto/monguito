@@ -1,4 +1,4 @@
-import { Entity, PolymorphicEntity } from '../entity';
+import { Entity, PolymorphicEntity } from '../repository/util/entity';
 import { Exclude } from 'class-transformer';
 
 export class Book implements Entity {
