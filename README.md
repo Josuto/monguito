@@ -1,4 +1,5 @@
 ![Code size](https://img.shields.io/github/languages/code-size/josuto/nestjs-abstract-repository)
+[![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
 This is a lightweight implementation of an abstract
