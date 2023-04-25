@@ -1,13 +1,41 @@
 {
   "name": "nestjs-abstract-repository",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "version": "1.0.1",
+  "description": "Lightweight abstract and polymorphic MongoDB repository implementation in NestJS.",
+  "author": {
+    "name": "Josu Martinez",
+    "email": "josu.martinez@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josuto/nestjs-abstract-repository.git"
+  },
+  "keywords": [
+    "nest",
+    "nestjs",
+    "nest.js",
+    "repository",
+    "abstract repository",
+    "generic repository",
+    "custom repository",
+    "repository pattern",
+    "polymorphic",
+    "polymorphic repository",
+    "polymorphic pattern",
+    "mongo",
+    "mongodb",
+    "mongoose",
+    "mongoosejs",
+    "mongoose.js"
+  ],
+  "files": [
+    "src/repository"
+  ],
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
+    "build:repo": "yarn prebuild && nest build --path tsconfig.repo.build.json",
     "format": "prettier --write \\\\\\\\\\\\\\\"src/**/*.ts\\\\\\\\\\\\\\\" \\\\\\\\\\\\\\\"test-util/**/*.ts\\\\\\\\\\\\\\\"",
     "start": "nest start",
     "start:dev": "yarn start:db && nest start --watch",
@@ -24,19 +52,14 @@
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
+    "mongoose": "^6.6.5",
+    "typescript-optional": "^3.0.0-alpha.3"
+  },
+  "devDependencies": {
     "@nestjs/core": "^9.0.0",
     "@nestjs/mapped-types": "^1.2.0",
     "@nestjs/mongoose": "^9.2.0",
     "@nestjs/platform-express": "^9.0.0",
-    "class-transformer": "^0.5.1",
-    "mongodb-memory-server": "^8.9.3",
-    "mongoose": "^6.6.5",
-    "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.2",
-    "rxjs": "^7.2.0",
-    "typescript-optional": "^3.0.0-alpha.3"
-  },
-  "devDependencies": {
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
@@ -46,14 +69,19 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "class-transformer": "^0.5.1",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-no-only-or-skip-tests": "^2.6.2",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.3",
     "jest": "28.1.3",
+    "mongodb-memory-server": "^8.9.3",
     "lint-staged": "^13.1.0",
     "prettier": "^2.3.2",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.2.0",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",
     "ts-jest": "28.0.8",

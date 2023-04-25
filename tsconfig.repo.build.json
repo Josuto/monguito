@@ -5,6 +5,9 @@
     "test-util",
     "dist",
     "coverage",
-    "**/*test.ts"
+    "**/*test.ts",
+    "src/book",
+    "src/app.module.ts",
+    "src/main.ts"
   ]
 }

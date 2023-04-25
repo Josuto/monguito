@@ -1,7 +1,6 @@
 import { Repository } from './repository';
 import { Optional } from 'typescript-optional';
 import { HydratedDocument, Model, UpdateQuery } from 'mongoose';
-import { Injectable } from '@nestjs/common';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -12,11 +11,10 @@ import {
 
 type Constructor<T> = new (...args: any) => T;
 
-export interface ConstructorMap<T> {
+interface ConstructorMap<T> {
   [index: string]: Constructor<T>;
 }
 
-@Injectable()
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {

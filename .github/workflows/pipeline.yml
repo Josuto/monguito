@@ -17,6 +17,6 @@ jobs:
       - name: Install dependencies 💾
         run: yarn install
       - name: Build project 🔧
-        run: yarn build
+        run: yarn build:repo
       - name: Run tests 🧪
         run: yarn test
