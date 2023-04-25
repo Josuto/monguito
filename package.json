@@ -51,11 +51,11 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@nestjs/common": "^9.0.0",
     "mongoose": "^6.6.5",
     "typescript-optional": "^3.0.0-alpha.3"
   },
   "devDependencies": {
+    "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/mapped-types": "^1.2.0",
     "@nestjs/mongoose": "^9.2.0",
