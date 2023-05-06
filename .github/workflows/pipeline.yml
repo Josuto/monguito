@@ -20,19 +20,9 @@ jobs:
         run: yarn build
       - name: Run Tests 🧪
         run: yarn test
-  nestjs-mongoose-example:
-    runs-on: ubuntu-latest
-    name: NestJS Mongoose Example Validation
-    steps:
-      - name: Code Checkout 🛎️
-        uses: actions/checkout@v3
-      - name: Setup Node 🕸️
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install Dependencies 💾
+      - name: Install NestJS-Mongoose Example Dependencies 💾
         run: |
           cd ./examples/nestjs-mongoose-book-manager
           yarn install
-      - name: Run Tests 🧪
+      - name: Run NestJS-Mongoose Example Tests 🧪
         run: yarn test
