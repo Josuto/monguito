@@ -25,4 +25,6 @@ jobs:
           cd ./examples/nestjs-mongoose-book-manager
           yarn install
       - name: Run NestJS-Mongoose Example Tests 🧪
-        run: yarn test
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn test
