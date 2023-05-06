@@ -339,4 +339,4 @@ for helping me with the creation of the NPM library related to this project.
 
 # License
 
-This project is [MIT licensed](LICENSE)._
+This project is [MIT licensed](LICENSE).

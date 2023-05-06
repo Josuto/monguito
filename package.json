@@ -63,6 +63,10 @@
     "mongoose": ">= 6.0.0",
     "typescript-optional": ">= 3.0.0-alpha.3"
   },
+  "dependencies": {
+    "mongoose": "^6.6.5",
+    "typescript-optional": "^3.0.0-alpha.3"
+  },
   "devDependencies": {
     "@types/jest": "29.2.4",
     "@types/node": "18.11.18",
@@ -76,12 +80,10 @@
     "jest": "^29.5.0",
     "microbundle": "^0.15.1",
     "mongodb-memory-server": "^8.12.2",
-    "mongoose": "^6.6.5",
     "lint-staged": "^13.1.0",
     "prettier": "^2.8.8",
     "ts-jest": "29.0.3",
     "ts-node": "^10.0.0",
-    "typescript": "^4.7.4",
-    "typescript-optional": "^3.0.0-alpha.3"
+    "typescript": "^4.7.4"
   }
 }
