@@ -1,7 +1,7 @@
 {
-  "name": "nestjs-abstract-repository",
-  "version": "1.0.1",
-  "description": "Lightweight abstract and polymorphic MongoDB repository implementation in NestJS.",
+  "name": "node-abstract-repository",
+  "version": "0.1.0",
+  "description": "Node.js lightweight abstract and polymorphic MongoDB repository implementation.",
   "author": {
     "name": "Josu Martinez",
     "email": "josu.martinez@gmail.com"
@@ -9,9 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/josuto/nestjs-abstract-repository.git"
+    "url": "https://github.com/josuto/node-abstract-repository.git"
   },
   "keywords": [
+    "node",
+    "nodejs",
+    "node.js",
     "nest",
     "nestjs",
     "nest.js",
@@ -21,6 +24,7 @@
     "custom repository",
     "repository pattern",
     "polymorphic",
+    "polymorphism",
     "polymorphic repository",
     "polymorphic pattern",
     "mongo",
@@ -29,65 +33,55 @@
     "mongoosejs",
     "mongoose.js"
   ],
+  "type": "module",
+  "source": "./src/index.ts",
+  "exports": {
+    "require": "./dist/repo.cjs",
+    "default": "./dist/repo.modern.js"
+  },
+  "main": "./dist/repo.cjs",
+  "module": "./dist/repo.module.js",
+  "unpkg": "./dist/repo.umd.js",
   "files": [
-    "src/repository"
+    "dist"
   ],
+  "types": "./dist/index.d.ts",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
-    "build:repo": "yarn prebuild && nest build --path tsconfig.repo.build.json",
-    "format": "prettier --write \\\\\\\\\\\\\\\"src/**/*.ts\\\\\\\\\\\\\\\" \\\\\\\\\\\\\\\"test-util/**/*.ts\\\\\\\\\\\\\\\"",
-    "start": "nest start",
-    "start:dev": "yarn start:db && nest start --watch",
-    "start:debug": "yarn start:db && nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "start:db": "docker-compose up -d",
+    "build": "microbundle",
+    "build:dev": "microbundle watch",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config test-util/jest-e2e.json",
+    "test:e2e": "jest --config examples/nestjs-mongoose-book-manager/test-util/jest-e2e.json",
     "prepare": "husky install"
   },
-  "dependencies": {
-    "mongoose": "^6.6.5",
-    "typescript-optional": "^3.0.0-alpha.3"
+  "peerDependencies": {
+    "mongoose": ">= 6.0.0",
+    "typescript-optional": ">= 3.0.0-alpha.3"
   },
   "devDependencies": {
-    "@nestjs/common": "^9.0.0",
-    "@nestjs/core": "^9.0.0",
-    "@nestjs/mapped-types": "^1.2.0",
-    "@nestjs/mongoose": "^9.2.0",
-    "@nestjs/platform-express": "^9.0.0",
-    "@nestjs/cli": "^9.0.0",
-    "@nestjs/schematics": "^9.0.0",
-    "@nestjs/testing": "^9.0.0",
-    "@types/express": "^4.17.13",
-    "@types/jest": "28.1.8",
-    "@types/node": "^16.0.0",
-    "@types/supertest": "^2.0.11",
+    "@types/jest": "29.2.4",
+    "@types/node": "18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "class-transformer": "^0.5.1",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-no-only-or-skip-tests": "^2.6.2",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^8.0.3",
-    "jest": "28.1.3",
-    "mongodb-memory-server": "^8.9.3",
+    "jest": "^29.5.0",
+    "microbundle": "^0.15.1",
+    "mongodb-memory-server": "^8.12.2",
+    "mongoose": "^6.6.5",
     "lint-staged": "^13.1.0",
-    "prettier": "^2.3.2",
-    "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.2",
-    "rxjs": "^7.2.0",
-    "source-map-support": "^0.5.20",
-    "supertest": "^6.1.3",
-    "ts-jest": "28.0.8",
-    "ts-loader": "^9.2.3",
+    "prettier": "^2.8.8",
+    "ts-jest": "29.0.3",
     "ts-node": "^10.0.0",
-    "tsconfig-paths": "4.1.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "typescript-optional": "^3.0.0-alpha.3"
   }
 }

@@ -1,27 +1,10 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Entity } from '../src/repository/util/entity';
+import { Entity } from '../../src';
 
-let mongoServer: MongoMemoryServer;
 const dbName = 'test';
+let mongoServer: MongoMemoryServer;
 mongoose.set('strictQuery', false);
-
-export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
-  MongooseModule.forRootAsync({
-    useFactory: async () => {
-      mongoServer = await MongoMemoryServer.create({
-        instance: {
-          dbName: dbName,
-        },
-      });
-      const mongoUri = mongoServer.getUri();
-      return {
-        uri: mongoUri,
-        ...options,
-      };
-    },
-  });
 
 export const insert = async (entity: Entity, collection: string) => {
   await setupConnection();
@@ -51,6 +34,13 @@ export const closeMongoConnection = async () => {
 };
 
 const setupConnection = async () => {
+  if (!mongoServer) {
+    mongoServer = await MongoMemoryServer.create({
+      instance: {
+        dbName: dbName,
+      },
+    });
+  }
   await mongoose.connect(mongoServer.getUri());
   await mongoose.connection.useDb(dbName);
 };

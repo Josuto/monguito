@@ -1,51 +1,35 @@
 import {
   AudioBookSchema,
-  BookRepository,
   BookSchema,
   MongooseBookRepository,
   PaperBookSchema,
 } from './book.repository';
-import { Test, TestingModule } from '@nestjs/testing';
+import { Repository } from '../src';
 import {
   closeMongoConnection,
   deleteAll,
   findById,
   insert,
-  rootMongooseTestModule,
-} from '../../test-util/mongo-server';
-import { MongooseModule } from '@nestjs/mongoose';
+} from './util/mongo-server';
 import { AudioBook, Book, PaperBook, VideoBook } from './book';
 import {
   IllegalArgumentException,
   NotFoundException,
-} from '../repository/util/exceptions';
+} from '../src/util/exceptions';
 import { Optional } from 'typescript-optional';
+import mongoose from 'mongoose';
 
 describe('Given an instance of book repository', () => {
-  let repository: BookRepository;
+  let repository: Repository<Book>;
   let storedBook: Book;
   let storedPaperBook: PaperBook;
   let storedAudioBook: AudioBook;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        rootMongooseTestModule(),
-        MongooseModule.forFeature([
-          {
-            name: Book.name,
-            schema: BookSchema,
-            discriminators: [
-              { name: 'Paper', schema: PaperBookSchema },
-              { name: 'Audio', schema: AudioBookSchema },
-            ],
-          },
-        ]),
-      ],
-      providers: [MongooseBookRepository],
-    }).compile();
-
-    repository = module.get<BookRepository>(MongooseBookRepository);
+    const BookModel = mongoose.model(Book.name, BookSchema);
+    BookModel.discriminator('Paper', PaperBookSchema);
+    BookModel.discriminator('Audio', AudioBookSchema);
+    repository = new MongooseBookRepository(BookModel);
   });
 
   beforeEach(async () => {
@@ -274,6 +258,7 @@ describe('Given an instance of book repository', () => {
                 title: 'Don Quixote',
                 description: 'Important classic in Spanish literature',
                 hostingPlatforms: ['Spotify'],
+                format: 'mp3',
               });
 
               const book = await repository.save(bookToUpdate);
@@ -283,6 +268,7 @@ describe('Given an instance of book repository', () => {
               expect(book.hostingPlatforms).toEqual(
                 bookToUpdate.hostingPlatforms,
               );
+              expect(book.format).toEqual(bookToUpdate.format);
             });
           });
         });

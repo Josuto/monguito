@@ -4,6 +4,6 @@ services:
   mongodb:
     image: mongo:latest
     environment:
-      - MONGODB_DATABASE="nestjs-abstract-repository"
+      - MONGODB_DATABASE="book-repository"
     ports:
       - "27016:27017"

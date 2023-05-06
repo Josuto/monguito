@@ -4,9 +4,9 @@ on:
     branches:
       - main
 jobs:
-  run-tests:
+  build:
     runs-on: ubuntu-latest
-    name: Build + Test
+    name: Build
     steps:
       - name: Code Checkout 🛎️
         uses: actions/checkout@v3
@@ -17,6 +17,18 @@ jobs:
       - name: Install dependencies 💾
         run: yarn install
       - name: Build project 🔧
-        run: yarn build:repo
+        run: yarn build
+  test-library:
+    runs-on: ubuntu-latest
+    name: Test Library
+    steps:
       - name: Run tests 🧪
         run: yarn test
+  test-examples:
+    runs-on: ubuntu-latest
+    name: Test Examples
+    steps:
+      - name: Run tests 🧪
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn test

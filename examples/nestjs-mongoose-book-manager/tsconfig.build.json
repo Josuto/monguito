@@ -2,12 +2,8 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "node_modules",
-    "test-util",
     "dist",
     "coverage",
-    "**/*test.ts",
-    "src/book",
-    "src/app.module.ts",
-    "src/main.ts"
+    "**/*test.ts"
   ]
 }

@@ -1,13 +1,13 @@
-import { Repository } from './repository/repository.js';
-import { MongooseRepository } from './repository/mongoose.repository.js';
-import { BaseSchema, extendSchema } from './repository/mongoose.base-schema.js';
-import { Entity, PolymorphicEntity } from './repository/util/entity.js';
+import { Repository } from './repository';
+import { MongooseRepository } from './mongoose.repository';
+import { BaseSchema, extendSchema } from './util/schema';
+import { Entity, PolymorphicEntity } from './util/entity';
 import {
   IllegalArgumentException,
   NotFoundException,
   UndefinedConstructorException,
   UniquenessViolationException,
-} from './repository/util/exceptions.js';
+} from './util/exceptions';
 
 export {
   Repository,

@@ -94,21 +94,14 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   private async update<S extends T>(
     element: { id: string } & Partial<S>,
   ): Promise<HydratedDocument<S> | null> {
-    const document = await this.elementModel.findById(element.id);
+    const document = await this.elementModel.findById<HydratedDocument<S>>(
+      element.id,
+    );
     if (document) {
-      this.setElementPropertiesIntoDocument(element, document);
+      document.set(element);
       document.isNew = false;
       return (await document.save()) as HydratedDocument<S>;
     }
     return null;
-  }
-
-  private setElementPropertiesIntoDocument<S extends T>(
-    element: { id: string } & Partial<S>,
-    document: HydratedDocument<T>,
-  ): void {
-    Object.keys(element).map((key) => {
-      if (document[key]) document.set(key, element[key]);
-    });
   }
 }

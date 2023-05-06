@@ -5,5 +5,5 @@ export interface Entity {
 }
 
 export interface PolymorphicEntity extends Entity {
-  __t: string;
+  __t?: string;
 }

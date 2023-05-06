@@ -4,9 +4,7 @@ import { BookModule } from './book/book.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb://localhost:27016/nestjs-abstract-repository',
-    ),
+    MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
     BookModule,
   ],
 })

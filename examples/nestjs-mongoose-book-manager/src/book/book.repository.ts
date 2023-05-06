@@ -1,7 +1,10 @@
-import { BaseSchema, extendSchema } from '../repository/mongoose.base-schema';
-import { Repository } from '../repository/repository';
+import {
+  BaseSchema,
+  extendSchema,
+  MongooseRepository,
+  Repository,
+} from 'node-abstract-repository';
 import { AudioBook, Book, PaperBook } from './book';
-import { MongooseRepository } from '../repository/mongoose.repository';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
