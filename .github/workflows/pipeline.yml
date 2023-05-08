@@ -5,15 +5,19 @@ on:
       - main
 jobs:
   library:
-    runs-on: ubuntu-latest
     name: Library Validation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        node-version: [ 16.x, 18.x ]
     steps:
       - name: Code Checkout 🛎️
         uses: actions/checkout@v3
-      - name: Setup Node 🕸️
+      - name: Setup Node ${{ matrix.node-version }} 🕸️
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: ${{ matrix.node-version }}
       - name: Install Dependencies 💾
         run: yarn install
       - name: Build Project 🔧

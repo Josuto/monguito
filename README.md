@@ -2,11 +2,12 @@
 [![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/node-abstract-repository/actions/workflows/pipeline.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
-This is a lightweight implementation of an abstract
-and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) [repository](https://www.martinfowler.com/eaaCatalog/repository.html)
-for [Node.js](https://nodejs.org/), currently focused on [MongoDB](https://www.mongodb.com/). Its
-main goal is help developers to focus on writing custom database access operations in a fast, easy, and structured
-manner, thus allowing them to properly decouple domain and persistence logic.
+This is a lightweight and type-safe implementation of an abstract
+and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) 
+[repository](https://www.martinfowler.com/eaaCatalog/repository.html)
+for [Node.js](https://nodejs.org/), currently focused on [MongoDB](https://www.mongodb.com/). It helps developers focus 
+on writing custom database access operations in a fast, easy, and structured manner, thus allowing them to properly 
+decouple domain and persistence logic.
 
 # Main Contents
 
