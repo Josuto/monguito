@@ -19,7 +19,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies 💾
-        run: yarn install
+        run: | 
+          yarn install
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn install
       - name: Build Project 🔧
         run: yarn build
       - name: Run Tests 🧪
