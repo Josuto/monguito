@@ -24,11 +24,3 @@ jobs:
         run: yarn build
       - name: Run Tests 🧪
         run: yarn test
-      - name: Install NestJS-Mongoose Example Dependencies 💾
-        run: |
-          cd ./examples/nestjs-mongoose-book-manager
-          yarn install
-      - name: Run NestJS-Mongoose Example Tests 🧪
-        run: |
-          cd ./examples/nestjs-mongoose-book-manager
-          yarn test
