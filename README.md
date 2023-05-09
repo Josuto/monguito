@@ -1,6 +1,9 @@
 ![Code size](https://img.shields.io/github/languages/code-size/josuto/node-abstract-repository)
+![Min code size](https://img.shields.io/bundlephobia/minzip/node-abstract-repository)
 [![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/node-abstract-repository/actions/workflows/pipeline.yml)
+[![NPM](https://img.shields.io/npm/v/node-abstract-repository)](https://www.npmjs.com/package/node-abstract-repository)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+[![Twitter](https://img.shields.io/twitter/follow/elkartech?style=social)](https://twitter.com/elkartech)
 
 This is a lightweight and type-safe implementation of an abstract
 and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) 
@@ -12,7 +15,7 @@ decouple domain and persistence logic.
 # Main Contents
 
 - [Cut to the Chase](#cut-to-the-chase)
-- [Enabling Subtyping-based Domain Object Persistence](#enabling-subtyping-based-domain-object-persistence)
+- [Enabling Polymorphic Domain Object Persistence](#enabling-polymorphic-domain-object-persistence)
 - [Write your Own Repository Interface](#write-your-own-repository-interface)
 - [Cool, but do you Have any Working Examples?](#cool-but-do-you-have-any-working-examples)
 - [Some Important Implementation Details](#some-important-implementation-details)
@@ -52,7 +55,7 @@ of `Book` as well as instances of its subtypes, decoupling your domain from the 
 
 But how is subtyping supported? Keep on reading.
 
-# Enabling Subtyping-based Domain Object Persistence
+# Enabling Polymorphic Domain Object Persistence
 
 The goal of this section is to explain how to persist instances of a domain object type and its subtypes (aka
 _polymorphic types_) into the same collection, as well as how to enable their retrieval (instead of retrieving Mongoose
@@ -245,9 +248,9 @@ export class PaperBook extends PolymorphicBook {
 This way no abstract repository logic is leaked into the definition of `Book`, although its subtypes definitions require
 to extend `PolymorphicBook`.
 
-A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (
-e.g., `Book`), and `S` refers to a subtype of such a domain object type (e.g., `PaperBook` or `AudioBook`). This is to
-enable data access operations over subtyping-based (polymorphic) data structures.
+A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (e.g., 
+`Book`), and `S` refers to a subtype of such a domain object type (e.g., `PaperBook` or `AudioBook`). This is to
+enable data access operations over polymorphic data structures.
 
 # Utilities to Define Custom Schemas
 
