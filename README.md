@@ -6,10 +6,10 @@
 [![Twitter](https://img.shields.io/twitter/follow/elkartech?style=social)](https://twitter.com/elkartech)
 
 This is a lightweight and type-safe implementation of an abstract
-and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) 
+and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/)
 [repository](https://www.martinfowler.com/eaaCatalog/repository.html)
-for [Node.js](https://nodejs.org/), currently focused on [MongoDB](https://www.mongodb.com/). It helps developers focus 
-on writing custom database access operations in a fast, easy, and structured manner, thus allowing them to properly 
+for [Node.js](https://nodejs.org/), currently focused on [MongoDB](https://www.mongodb.com/). It helps developers focus
+on writing custom database access operations in a fast, easy, and structured manner, thus allowing them to properly
 decouple domain and persistence logic.
 
 # Main Contents
@@ -35,22 +35,24 @@ persistable instances of `Book`:
 export class MongooseBookRepository
   extends MongooseRepository<Book> {
   constructor(private readonly bookModel: Model<Book>) {
-    super(bookModel, { Default: Book, Paper: PaperBook, Audio: AudioBook });
+    super(bookModel, {Default: Book, Paper: PaperBook, Audio: AudioBook});
   }
 
   // Here a custom database operation example 
-  async findByTitle<T extends Book>(title: string): Promise<T[]> {
+  async findByIsbn<T extends Book>(isbn: string): Promise<Optional<T>> {
+    if (!isbn)
+      throw new IllegalArgumentException('The given ISBN must be valid');
     return this.bookModel
-      .find({ title: title })
+      .findOne({isbn: isbn})
       .exec()
-      .then((books) => books.map((book) => this.instantiateFrom(book)));
+      .then((book) => Optional.ofNullable(this.instantiateFrom(book) as T));
   }
 }
 ```
 
 And that's it! `MongooseRepository` is a generic template class that implements several basic CRUD operations
 (e.g., `findById`, `findAll`, `save`, and `deleteById`). `MongooseBookRepository` is a custom repository that inherits
-all that logic and adds its own (i.e., `findByTitle`). Moreover, `MongooseBookRepository` is able to handle instances
+all that logic and adds its own (i.e., `findByIsbn`). Moreover, `MongooseBookRepository` is able to handle instances
 of `Book` as well as instances of its subtypes, decoupling your domain from the persistence logic.
 
 But how is subtyping supported? Keep on reading.
@@ -65,7 +67,7 @@ by this abstract repository infrastructure.
 Before jumping into this topic, there is an important concept that requires attention: The
 Mongoose [`Model`](https://mongoosejs.com/docs/models.html) type. An alternative way of realising `MongooseRepository`
 is as a wrapper of Mongoose `Model`; the CRUD functions defined at `MongooseRepository` and (possibly) any custom
-repository use those defined at `Model`. This is the case of `findByTitle` function defined at `MongooseBookRepository`
+repository use those defined at `Model`. This is the case of `findByIsbn` function defined at `MongooseBookRepository`
 in the previous code sample. For that reason, when creating any new instance of a custom repository, we must pass a
 reference to a `Model`.
 
@@ -126,7 +128,7 @@ export class PaperBook extends Book {
     description: string;
     edition: number;
   }) {
-    super({ ...paperBook, type: 'Paper' });
+    super({...paperBook, type: 'Paper'});
     this.edition = paperBook.edition;
   }
 }
@@ -141,7 +143,7 @@ abstractions, not implementations_. To do so, you simply need to add one extra a
 
 ```typescript
 export interface BookRepository extends Repository<Book> {
-  findByTitle: <T extends Book>(title: string) => Promise<T[]>;
+  findByIsbn: <T extends Book>(isbn: string) => Promise<Optional<T>>;
 }
 ```
 
@@ -239,7 +241,7 @@ export class PaperBook extends PolymorphicBook {
     description: string;
     edition: number;
   }) {
-    super({ ...paperBook, type: 'Paper' });
+    super({...paperBook, type: 'Paper'});
     this.edition = paperBook.edition;
   }
 }
@@ -248,7 +250,7 @@ export class PaperBook extends PolymorphicBook {
 This way no abstract repository logic is leaked into the definition of `Book`, although its subtypes definitions require
 to extend `PolymorphicBook`.
 
-A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (e.g., 
+A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (e.g.,
 `Book`), and `S` refers to a subtype of such a domain object type (e.g., `PaperBook` or `AudioBook`). This is to
 enable data access operations over polymorphic data structures.
 
@@ -264,14 +266,14 @@ sub-schema `PaperBookSchema`:
 export const BookSchema = extendSchema(
   BaseSchema,
   {
-    title: { type: String, required: true },
-    description: { type: String, required: false },
+    title: {type: String, required: true},
+    description: {type: String, required: false},
   },
-  { timestamps: true },
+  {timestamps: true},
 );
 
 export const PaperBookSchema = extendSchema(BookSchema, {
-  edition: { type: Number, required: true, min: 1 },
+  edition: {type: Number, required: true, min: 1},
 });
 ```
 

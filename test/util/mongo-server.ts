@@ -4,7 +4,6 @@ import { Entity } from '../../src';
 
 const dbName = 'test';
 let mongoServer: MongoMemoryServer;
-mongoose.set('strictQuery', false);
 
 export const insert = async (entity: Entity, collection: string) => {
   await setupConnection();
