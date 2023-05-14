@@ -212,8 +212,8 @@ beforeAll(async () => {
 });
 ```
 
-You may want to read [this part](../../README.md#write-your-own-repository-interface) of the `node-abstract-repository`
-README for further details on the `BookRepository` interface.
+You may want to read [this section](../../README.md#write-your-own-repository-interface) of
+the `node-abstract-repository` README for further details on the `BookRepository` interface.
 
 Moreover, you may want to use
 the [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server) to validate your
