@@ -1,17 +1,17 @@
 import {
   AudioBookSchema,
+  BookRepository,
   BookSchema,
   MongooseBookRepository,
   PaperBookSchema,
 } from './book.repository';
-import { Repository } from '../src';
 import {
   closeMongoConnection,
   deleteAll,
   findById,
   insert,
 } from './util/mongo-server';
-import { AudioBook, Book, PaperBook, VideoBook } from './book';
+import { AudioBook, Book, ElectronicBook, PaperBook } from './book';
 import {
   IllegalArgumentException,
   NotFoundException,
@@ -20,7 +20,7 @@ import { Optional } from 'typescript-optional';
 import mongoose from 'mongoose';
 
 describe('Given an instance of book repository', () => {
-  let repository: Repository<Book>;
+  let bookRepository: BookRepository;
   let storedBook: Book;
   let storedPaperBook: PaperBook;
   let storedAudioBook: AudioBook;
@@ -29,7 +29,7 @@ describe('Given an instance of book repository', () => {
     const BookModel = mongoose.model(Book.name, BookSchema);
     BookModel.discriminator('Paper', PaperBookSchema);
     BookModel.discriminator('Audio', AudioBookSchema);
-    repository = new MongooseBookRepository(BookModel);
+    bookRepository = new MongooseBookRepository(BookModel);
   });
 
   beforeEach(async () => {
@@ -37,6 +37,7 @@ describe('Given an instance of book repository', () => {
       title: 'Accelerate',
       description:
         'Building and Scaling High Performing Technology Organizations',
+      isbn: '1942788339',
     });
     const storedBookId = await insert(bookToStore, 'books');
     storedBook = new Book({
@@ -48,6 +49,7 @@ describe('Given an instance of book repository', () => {
       title: 'Effective Java',
       description: 'Great book on the Java programming language',
       edition: 3,
+      isbn: '0134685997',
     });
     const storedPaperBookId = await insert(paperBookToStore, 'books');
     storedPaperBook = new PaperBook({
@@ -59,6 +61,7 @@ describe('Given an instance of book repository', () => {
       title: 'The Sandman',
       description: 'Fantastic fantasy audio book',
       hostingPlatforms: ['Audible'],
+      isbn: '5573899870',
     });
     const storedAudioBookId = await insert(audioBookToStore, 'books');
     storedAudioBook = new AudioBook({
@@ -67,11 +70,11 @@ describe('Given an instance of book repository', () => {
     });
   });
 
-  describe('when finding a book', () => {
+  describe('when finding a book by ID', () => {
     describe('by an undefined ID', () => {
       it('then throws an exception', async () => {
         await expect(
-          repository.findById(undefined as unknown as string),
+          bookRepository.findById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
       });
     });
@@ -79,30 +82,63 @@ describe('Given an instance of book repository', () => {
     describe('by a null ID', () => {
       it('then throws an exception', async () => {
         await expect(
-          repository.findById(null as unknown as string),
+          bookRepository.findById(null as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 
     describe('by the ID of a nonexistent book', () => {
       it('then retrieves an empty book', async () => {
-        const book = await repository.findById('000000000000000000000001');
+        const book = await bookRepository.findById('000000000000000000000001');
         expect(book).toEqual(Optional.empty());
       });
     });
 
     describe('by the ID of an existent book', () => {
       it('then retrieves the book', async () => {
-        const book = await repository.findById(storedPaperBook.id!);
+        const book = await bookRepository.findById(storedPaperBook.id!);
         expect(book.isPresent()).toBe(true);
         expect(book.get()).toEqual(storedPaperBook);
       });
     });
   });
 
+  describe('when finding a book by a custom field search value', () => {
+    describe('and the search value is undefined', () => {
+      it('then throws an error', async () => {
+        await expect(
+          bookRepository.findByIsbn(undefined as unknown as string),
+        ).rejects.toThrowError();
+      });
+    });
+
+    describe('and the search value is null', () => {
+      it('then throws an error', async () => {
+        await expect(
+          bookRepository.findByIsbn(null as unknown as string),
+        ).rejects.toThrowError();
+      });
+    });
+
+    describe('and there is no book matching the given search value', () => {
+      it('then returns an empty book', async () => {
+        const book = await bookRepository.findByIsbn('0000000000');
+        expect(book).toEqual(Optional.empty());
+      });
+    });
+
+    describe('and there is one book matching the given search value', () => {
+      it('then returns a book matching the given search value', async () => {
+        const book = await bookRepository.findByIsbn(storedBook.isbn);
+        expect(book.isPresent()).toBe(true);
+        expect(book.get()).toEqual(storedBook);
+      });
+    });
+  });
+
   describe('when finding all books', () => {
     it('then retrieves all the existent books', async () => {
-      const books = await repository.findAll();
+      const books = await bookRepository.findAll();
       expect(books.length).toBe(3);
       expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
     });
@@ -110,29 +146,14 @@ describe('Given an instance of book repository', () => {
 
   describe('when saving a book', () => {
     describe('that has not been registered as a Mongoose discriminator', () => {
-      describe('that is new', () => {
-        it('throws an exception', async () => {
-          const bookToInsert = new VideoBook({
-            title: 'How to deal with ants at home?',
-            description:
-              'Shows several strategies to avoid having ants at home',
-            format: 'AVI',
-          });
-          await expect(repository.save(bookToInsert)).rejects.toThrowError();
+      it('throws an exception', async () => {
+        const bookToInsert = new ElectronicBook({
+          title: 'How to deal with ants at home?',
+          description: 'Shows several strategies to avoid having ants at home',
+          extension: 'epub',
+          isbn: '6875234013',
         });
-      });
-
-      describe('that is not new', () => {
-        it('throws an exception', async () => {
-          const bookToUpdate = new VideoBook({
-            id: storedAudioBook.id,
-            title: 'How to deal with ants at home?',
-            description:
-              'Shows several strategies to avoid having ants at home',
-            format: 'AVI',
-          });
-          await expect(repository.save(bookToUpdate)).rejects.toThrowError();
-        });
+        await expect(bookRepository.save(bookToInsert)).rejects.toThrowError();
       });
     });
 
@@ -140,7 +161,7 @@ describe('Given an instance of book repository', () => {
       describe('that is undefined', () => {
         it('then throws an exception', async () => {
           await expect(
-            repository.save(undefined as unknown as Book),
+            bookRepository.save(undefined as unknown as Book),
           ).rejects.toThrowError('The given element must be valid');
         });
       });
@@ -148,7 +169,7 @@ describe('Given an instance of book repository', () => {
       describe('that is null', () => {
         it('then throws an exception', async () => {
           await expect(
-            repository.save(null as unknown as Book),
+            bookRepository.save(null as unknown as Book),
           ).rejects.toThrowError('The given element must be valid');
         });
       });
@@ -162,11 +183,12 @@ describe('Given an instance of book repository', () => {
                 title: 'Continuous Delivery',
                 description:
                   'Reliable Software Releases Through Build, Test, and Deployment Automation',
+                isbn: '9780321601919',
               });
 
-              await expect(repository.save(bookToInsert)).rejects.toThrowError(
-                NotFoundException,
-              );
+              await expect(
+                bookRepository.save(bookToInsert),
+              ).rejects.toThrowError(NotFoundException);
             });
           });
 
@@ -176,9 +198,10 @@ describe('Given an instance of book repository', () => {
                 title: 'Continuous Delivery',
                 description:
                   'Reliable Software Releases Through Build, Test, and Deployment Automation',
+                isbn: '9780321601919',
               });
 
-              const book = await repository.save(bookToInsert);
+              const book = await bookRepository.save(bookToInsert);
               expect(book.id).toBeTruthy();
               expect(book.title).toBe(bookToInsert.title);
               expect(book.description).toBe(bookToInsert.description);
@@ -191,9 +214,10 @@ describe('Given an instance of book repository', () => {
               title: 'Implementing Domain-Driven Design',
               description: 'Describes Domain-Driven Design in depth',
               edition: 1,
+              isbn: '9780321834577',
             });
 
-            const book = await repository.save(bookToInsert);
+            const book = await bookRepository.save(bookToInsert);
             expect(book.id).toBeTruthy();
             expect(book.title).toBe(bookToInsert.title);
             expect(book.description).toBe(bookToInsert.description);
@@ -212,7 +236,7 @@ describe('Given an instance of book repository', () => {
                   'A Novel About IT, DevOps, and Helping Your Business Win',
               } as Book;
 
-              const book = await repository.save(bookToUpdate);
+              const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(storedBook.id);
               expect(book.title).toBe(storedBook.title);
               expect(book.description).toBe(bookToUpdate.description);
@@ -225,9 +249,10 @@ describe('Given an instance of book repository', () => {
                 title: 'The Phoenix Project',
                 description:
                   'A Novel About IT, DevOps, and Helping Your Business Win',
+                isbn: '1942788290',
               });
 
-              const book = await repository.save(bookToUpdate);
+              const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(bookToUpdate.id);
               expect(book.title).toBe(bookToUpdate.title);
               expect(book.description).toBe(bookToUpdate.description);
@@ -242,7 +267,7 @@ describe('Given an instance of book repository', () => {
                 hostingPlatforms: ['Spotify'],
               } as AudioBook;
 
-              const book = await repository.save(bookToUpdate);
+              const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(storedAudioBook.id);
               expect(book.title).toBe(storedAudioBook.title);
               expect(book.description).toBe(storedAudioBook.description);
@@ -259,9 +284,10 @@ describe('Given an instance of book repository', () => {
                 description: 'Important classic in Spanish literature',
                 hostingPlatforms: ['Spotify'],
                 format: 'mp3',
+                isbn: '0142437239',
               });
 
-              const book = await repository.save(bookToUpdate);
+              const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(bookToUpdate.id);
               expect(book.title).toBe(bookToUpdate.title);
               expect(book.description).toBe(bookToUpdate.description);
@@ -280,7 +306,7 @@ describe('Given an instance of book repository', () => {
     describe('by an undefined ID', () => {
       it('then throws an exception', async () => {
         await expect(
-          repository.deleteById(undefined as unknown as string),
+          bookRepository.deleteById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
       });
     });
@@ -288,14 +314,14 @@ describe('Given an instance of book repository', () => {
     describe('by a null ID', () => {
       it('then throws an exception', async () => {
         await expect(
-          repository.deleteById(undefined as unknown as string),
+          bookRepository.deleteById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
       });
     });
 
     describe('by the ID of a nonexistent book', () => {
       it('then returns false', async () => {
-        const isDeleted = await repository.deleteById(
+        const isDeleted = await bookRepository.deleteById(
           '00007032a61c4eda79230000',
         );
         expect(isDeleted).toBe(false);
@@ -304,7 +330,7 @@ describe('Given an instance of book repository', () => {
 
     describe('by the ID of an existent book', () => {
       it('then returns true and the book has been effectively deleted', async () => {
-        const isDeleted = await repository.deleteById(storedBook.id!);
+        const isDeleted = await bookRepository.deleteById(storedBook.id!);
         expect(isDeleted).toBe(true);
         expect(await findById(storedBook.id!, 'books')).toBe(null);
       });

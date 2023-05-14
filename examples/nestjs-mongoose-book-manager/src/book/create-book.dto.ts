@@ -1,4 +1,4 @@
-import { AudioBook, Book, PaperBook, VideoBook } from './book';
+import { AudioBook, Book, PaperBook } from './book';
 
 export class CreateBookDto {
   readonly title: string;
@@ -44,25 +44,10 @@ export class CreateAudioBookDto extends CreateBookDto {
   }
 }
 
-export class CreateVideoBookDto extends CreateBookDto {
-  readonly format: string;
-
-  constructor(dto: { title: string; description: string; format: string }) {
-    super(dto);
-    this.format = dto.format;
-  }
-
-  toBook(): VideoBook {
-    return new VideoBook(this);
-  }
-}
-
 export const deserialiseBookDto = (plainBook: any) => {
   if (plainBook.edition) {
     return new CreatePaperBookDto(plainBook);
   } else if (plainBook.hostingPlatforms) {
     return new CreateAudioBookDto(plainBook);
-  } else if (plainBook.format) {
-    return new CreateVideoBookDto(plainBook);
   } else return new CreateBookDto(plainBook);
 };

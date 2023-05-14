@@ -1,22 +1,25 @@
 import { PolymorphicEntity } from '../src/util/entity';
 
-type BookType = 'Paper' | 'Audio' | 'Video';
+type BookType = 'Paper' | 'Audio' | 'Electronic';
 
 export class Book implements PolymorphicEntity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
+  readonly isbn: string;
   readonly __t?: BookType;
 
   constructor(book: {
     id?: string;
     title: string;
     description: string;
+    isbn: string;
     type?: BookType;
   }) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
+    this.isbn = book.isbn;
     this.__t = book.type;
   }
 }
@@ -28,6 +31,7 @@ export class PaperBook extends Book {
     id?: string;
     title: string;
     description: string;
+    isbn: string;
     edition: number;
   }) {
     super({ ...paperBook, type: 'Paper' });
@@ -43,6 +47,7 @@ export class AudioBook extends Book {
     id?: string;
     title: string;
     description: string;
+    isbn: string;
     hostingPlatforms: string[];
     format?: string;
   }) {
@@ -52,16 +57,17 @@ export class AudioBook extends Book {
   }
 }
 
-export class VideoBook extends Book {
-  readonly format: string;
+export class ElectronicBook extends Book {
+  readonly extension: string;
 
-  constructor(videoBook: {
+  constructor(electronicBook: {
     id?: string;
     title: string;
     description: string;
-    format: string;
+    isbn: string;
+    extension: string;
   }) {
-    super({ ...videoBook, type: 'Video' });
-    this.format = videoBook.format;
+    super({ ...electronicBook, type: 'Electronic' });
+    this.extension = electronicBook.extension;
   }
 }

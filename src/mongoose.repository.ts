@@ -34,19 +34,18 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       .find()
       .exec()
       .then((documents) =>
-        documents.map((document) => this.instantiateFrom(document)),
+        documents.map((document) => this.instantiateFrom(document) as S),
       );
   }
 
   async findById<S extends T>(id: string): Promise<Optional<S>> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const element: S | null = await this.elementModel
+    return this.elementModel
       .findById(id)
       .exec()
       .then((document) =>
-        document ? (this.instantiateFrom(document) as S) : null,
+        Optional.ofNullable(this.instantiateFrom(document) as S),
       );
-    return Optional.ofNullable(element);
   }
 
   async save<S extends T>(
@@ -66,7 +65,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     );
   }
 
-  protected instantiateFrom<S extends T>(document: HydratedDocument<T>): S {
+  protected instantiateFrom<S extends T>(
+    document: HydratedDocument<T> | null,
+  ): S | null {
+    if (!document) return null;
     let discriminatorType = document.get('__t');
     discriminatorType = discriminatorType ?? 'Default';
     const elementConstructor = this.elementConstructorMap[discriminatorType];

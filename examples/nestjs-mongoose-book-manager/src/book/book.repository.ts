@@ -25,25 +25,14 @@ export const AudioBookSchema = extendSchema(BookSchema, {
   hostingPlatforms: { type: [{ type: String }], required: true },
 });
 
-export interface BookRepository extends Repository<Book> {
-  findByTitle: <T extends Book>(title: string) => Promise<T[]>;
-}
-
 export class MongooseBookRepository
   extends MongooseRepository<Book>
-  implements BookRepository
+  implements Repository<Book>
 {
   constructor(
     @InjectModel(Book.name)
     private readonly bookModel: Model<Book>,
   ) {
     super(bookModel, { Default: Book, Paper: PaperBook, Audio: AudioBook });
-  }
-
-  async findByTitle<T extends Book>(title: string): Promise<T[]> {
-    return this.bookModel
-      .find({ title: title })
-      .exec()
-      .then((books) => books.map((book) => this.instantiateFrom(book)));
   }
 }

@@ -60,17 +60,3 @@ export class AudioBook extends PolymorphicBook {
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }
-
-export class VideoBook extends PolymorphicBook {
-  readonly format: string;
-
-  constructor(videoBook: {
-    id?: string;
-    title: string;
-    description: string;
-    format: string;
-  }) {
-    super({ ...videoBook, type: 'Video' });
-    this.format = videoBook.format;
-  }
-}
