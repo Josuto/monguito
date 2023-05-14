@@ -163,11 +163,11 @@ export class MongooseBookRepository
 # Cool, but do you Have any Working Examples?
 
 You may find an example of how to instantiate and use a repository that performs CRUD operations over instances
-of `Book` and its aforementioned subtypes under `test/book.repository.test.ts`; this is a complete set of unit test
-cases for this project.
+of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts); this is a
+complete set of unit test cases for this project.
 
 Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
-`nestjs-book-manager` under the `examples` folder of this project.
+[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager).
 
 # Some Important Implementation Details
 
@@ -289,8 +289,8 @@ $ yarn install
 
 ### Run Repository Validation
 
-The application requires a running instance of MongoDB. It includes a `docker-compose.yml` file that will fire up a
-MongoDB instance, assuming that Docker Desktop is running.
+The application runs an in-memory instance of MongoDB. Its implementation is provided by
+the [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server).
 
 ```bash
 # run integration tests
