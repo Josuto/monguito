@@ -17,7 +17,7 @@ export const findById = async (id: string, collection: string) => {
   await setupConnection();
   return await mongoose.connection.db
     .collection(collection)
-    .findOne({ _id: id });
+    .findOne({ id: id });
 };
 
 export const deleteAll = async (collection: string) => {

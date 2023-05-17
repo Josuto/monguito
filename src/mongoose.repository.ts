@@ -82,7 +82,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private async insert<S extends T>(element: S): Promise<HydratedDocument<S>> {
     try {
-      return (await this.elementModel.create(element)) as HydratedDocument<S>;
+      return (await this.elementModel.create(
+        element,
+      )) as unknown as HydratedDocument<S>;
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
         throw new UniquenessViolationException(
