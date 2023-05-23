@@ -18,11 +18,12 @@ decouple domain and persistence logic.
 - [Enabling Polymorphic Domain Object Persistence](#enabling-polymorphic-domain-object-persistence)
 - [Write your Own Repository Interface](#write-your-own-repository-interface)
 - [Cool, but do you Have any Working Examples?](#cool-but-do-you-have-any-working-examples)
-- [Some Important Implementation Details](#some-important-implementation-details)
 - [Project Validation](#project-validation)
 - [Comparison to other Alternatives](#comparison-to-other-alternatives)
 - [Further Development Steps](#further-development-steps)
 - [Add Support for other Database Technologies](#add-support-for-other-database-technologies)
+- [Legacy: Discriminator Keys on Domain Object Types](#legacy-discriminator-keys-on-domain-object-types)
+- [Contributors](#contributors)
 
 # Cut to the Chase
 
@@ -59,10 +60,10 @@ But how is subtyping supported? Keep on reading.
 
 # Enabling Polymorphic Domain Object Persistence
 
-The goal of this section is to explain how to persist instances of a domain object type and its subtypes (aka
-_polymorphic types_) into the same collection, as well as how to enable their retrieval (instead of retrieving Mongoose
-object types). This is, by the way, the basis to achieve the decoupling of the domain and the persistence logic promoted
-by this abstract repository infrastructure.
+In other words: How can we persist instances of a domain object type and its subtypes (aka _polymorphic types_) into the
+same collection? And as much of an important question: How can we enable their retrieval (instead of retrieving Mongoose
+object types)?. If we answer to these questions properly, we are effectively decoupling of the domain and the
+persistence logic, as promised above.
 
 Before jumping into this topic, there is an important concept that requires attention: The
 Mongoose [`Model`](https://mongoosejs.com/docs/models.html) type. An alternative way of realising `MongooseRepository`
@@ -71,10 +72,10 @@ repository use those defined at `Model`. This is the case of `findByIsbn` functi
 in the previous code sample. For that reason, when creating any new instance of a custom repository, we must pass a
 reference to a `Model`.
 
-Now let's jump into the topic at hand: The second constructor parameter is a map of the polymorphic types that
-the custom repository is able to handle. This map is then used internally to convert any persisted document into the
-corresponding domain object (sub)type. This is exactly what the `instantiateFrom` function defined
-at `MongooseRepository` does.
+Now let's jump into the topic at hand: The second constructor parameter of `MongooseBookRepository` is a map of the
+polymorphic types that the custom repository is able to handle. This map is then used internally to convert any
+persisted document into the corresponding domain object (sub)type. This is exactly what the `instantiateFrom` function
+defined at `MongooseRepository` does.
 
 On another hand, Mongoose handles polymorphic objects
 via [discriminators](https://mongoosejs.com/docs/discriminators.html). Discriminators are
@@ -85,37 +86,40 @@ Here is some sample code to create an instance of `MongooseBookRepository` capab
 and its subtypes:
 
 ```typescript
-const BookModel = mongoose.model('Book', BookSchema);
-BookModel.discriminator('Paper', PaperBookSchema);
-BookModel.discriminator('Audio', AudioBookSchema);
+const BookModel = mongoose.model(Book.name, BookSchema);
+BookModel.discriminator(PaperBook.name, PaperBookSchema);
+BookModel.discriminator(AudioBook.name, AudioBookSchema);
 const bookRepository = new MongooseBookRepository(BookModel);
 ```
 
-Finally, let's pay attention to the domain objects type definition. According to the literature, "the way Mongoose tells
-the difference between the different discriminator models is by the _discriminator key_, which is `__t` by default".
-This discriminator key is an extra property of type `string` to be added in the definition of the domain object
-supertype (`Book` in the example). Any domain object subtype constructor must invoke that of the supertype passing a
-value for `__t` that matches the value used when registering its discriminator. For example, considering the previous
-code sample, the value for `__t` in `PaperBook` must be `Paper`. Here is a possible definition for `Book` and
-its `PaperBook` subtype:
+The `discriminator` function of each domain object type takes two arguments: a _discriminator key_ and a _schema_.
+Regarding the former, it is important to note that it is a `string` value meant to match the domain object type name.
+The latter, on another hand, refers to the Mongoose schema related to the domain object type. You may find the schemas
+for the book domain model at [`book.schema.ts`](test/book.schema.ts). For further information on discriminator keys
+please read the [Legacy: Discriminator Keys on Domain Object Types](#legacy-discriminator-keys-on-domain-object-types)
+section.
+
+Let's now have a look to the domain model definition for the previous example.
+
+## Book Domain Model
 
 ```typescript
-export class Book implements PolymorphicEntity {
+export class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
-  readonly __t?: BookType;
+  readonly isbn: string;
 
   constructor(book: {
     id?: string;
     title: string;
     description: string;
-    type?: BookType;
+    isbn: string;
   }) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
-    this.__t = book.type;
+    this.isbn = book.isbn;
   }
 }
 
@@ -126,13 +130,25 @@ export class PaperBook extends Book {
     id?: string;
     title: string;
     description: string;
+    isbn: string;
     edition: number;
   }) {
-    super({...paperBook, type: 'Paper'});
+    super(paperBook);
     this.edition = paperBook.edition;
   }
 }
 ```
+
+The one thing that may catch your attention is the interface `Entity` that `Book` implements. Inspired in the _Entity_
+concept from [Domain-Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design), `Entity` models any persistable
+domain object type. The interface defines an optional `id` field that all persistable domain objects must define. The
+optional nature of the field is due to the fact that its value is set by Mongoose. Thus, it can safely be `undefined`
+for a domain object instance until such an instance is created (i.e., stored for the first time) in the database.
+
+The fact that `Entity` is an interface instead of an abstract class is no coincidental; JavaScript is a single
+inheritance-based programming language, and it is paramount that any developer designs the domain model at their will.
+But all that being said, you may decide not to use it at all, and that would be just fine. All you need to do is ensure
+that your domain objects specify an optional `id` field.
 
 # Write your Own Repository Interface
 
@@ -160,24 +176,12 @@ export class MongooseBookRepository
 }
 ```
 
-# Cool, but do you Have any Working Examples?
-
-You may find an example of how to instantiate and use a repository that performs CRUD operations over instances
-of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts); this is a
-complete set of unit test cases for this project.
-
-Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
-[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager).
-
-# Some Important Implementation Details
-
-You may want to consider some extra implementation details, specially if you are to extend it to support the creation of
-custom repositories for other database technologies.
-
-## Repository, Entity, and PolymorphicEntity Interfaces
+## The Repository Interface
 
 The main component of this project is the generic `Repository` interface. This interface defines the most basic database
-technology-agnostic CRUD operations. Here is its current definition:
+technology-agnostic CRUD operations. You may need it to inject your custom repository as a dependency (specially in the
+case that you do not need to provide custom operations), and you must implement it if you are to support the creation of
+custom repositories for other database technologies. Here is its current definition:
 
 ```typescript
 export interface Repository<T extends Entity> {
@@ -188,71 +192,18 @@ export interface Repository<T extends Entity> {
 }
 ```
 
-Inspired in the _Entity_ concept
-from [Domain-Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design), `Entity` is an interface that models a
-persistable domain object type. The interface defines an `id` field that all persistable domain objects must define. The
-fact that `Entity` is an interface instead of an abstract class is no coincidental; JavaScript is a single
-inheritance-based programming language, and it is paramount that any developer designs the domain type hierarchy at
-their will.
-
-On another hand, `PolymorphicEntity` models a polymorphic entity. This interface extends `Entity` and specifies an
-optional `__t` property. In the previous example, `Book` is actually a `PolymorphicEntity`, since we are interested in
-also persisting and accessing `Book` subtype domain objects. However, if we were only to store instances of `Book`, we
-could have defined it to implement `Entity` instead.
-
-Considering this difference between `Entity` and `PolymorphicEntity`, consider the following alternative definition for
-the `Book` domain model infrastructure:
-
-```typescript
-export class Book implements Entity {
-  readonly id?: string;
-  readonly title: string;
-  readonly description: string;
-
-  constructor(book: { id?: string; title: string; description: string }) {
-    this.id = book.id;
-    this.title = book.title;
-    this.description = book.description;
-  }
-}
-
-export abstract class PolymorphicBook
-  extends Book
-  implements PolymorphicEntity {
-  readonly __t: BookType;
-
-  protected constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    type: BookType;
-  }) {
-    super(book);
-    this.__t = book.type;
-  }
-}
-
-export class PaperBook extends PolymorphicBook {
-  readonly edition: number;
-
-  constructor(paperBook: {
-    id?: string;
-    title: string;
-    description: string;
-    edition: number;
-  }) {
-    super({...paperBook, type: 'Paper'});
-    this.edition = paperBook.edition;
-  }
-}
-```
-
-This way no abstract repository logic is leaked into the definition of `Book`, although its subtypes definitions require
-to extend `PolymorphicBook`.
-
 A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (e.g.,
 `Book`), and `S` refers to a subtype of such a domain object type (e.g., `PaperBook` or `AudioBook`). This is to
 enable data access operations over polymorphic data structures.
+
+# Cool, but do you Have any Working Examples?
+
+You may find an example of how to instantiate and use a repository that performs CRUD operations over instances
+of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts); this is a
+complete set of unit test cases for this project.
+
+Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
+[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager).
 
 # Utilities to Define Custom Schemas
 
@@ -319,12 +270,13 @@ may be a better idea.
 
 The current priority is on simplifying the definition and usage of the Mongoose abstract repository. In particular:
 
-- Hide the instantiation of the Mongoose `Model` from the creation of any custom repository
-- Remove the need to having to define the map of the supported polymorphic types from the custom repository constructor;
+- ⚒️ Hide the instantiation of the Mongoose `Model` from the creation of any custom repository
+- ⚒️ Remove the need to having to define the map of the supported polymorphic types from the custom repository
+  constructor;
   explore the possibility of introducing
   JavaScript [dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import)
-- Further decouple persistence logic from the definition of domain object types and get rid of the discriminator key if
-  possible
+- ✅ Further decouple persistence logic from the definition of domain object types and get rid of the discriminator key
+  if possible
 
 # Add Support for other Database Technologies
 
@@ -332,6 +284,88 @@ Extending the repository to provide an implementation
 for [MongoDB Node Driver](https://www.mongodb.com/docs/drivers/node/current/) or even for another database technology
 such as MySQL or PostgreSQL is easy. All you need to do is to create an abstract template for the required database
 technology that implements the `Repository` interface and add all the logic required for each of its methods.
+
+# Legacy: Discriminator Keys on Domain Object Types
+
+All versions of this library up to v1.1.0 required the specification of a _discriminator key_ on domain object types
+definition. This is not a requirement anymore, as from v1.1.0 forward discriminator keys are dynamically set by
+the `MongooseRepository` class, thus completely decoupling persistence logic from domain logic. However, this kind of
+domain model definition is still allowed in newer versions for backward compatibility purposes.
+
+But what is a discriminator key and how can it be specified in the domain model? According to the literature, "the way
+Mongoose tells the difference between the different discriminator models is by the discriminator key, which is `__t` by
+default". This discriminator key is an extra property of type `string` to be added in the definition of the domain
+object supertype (`Book` in the example). Any domain object subtype constructor must invoke that of the supertype
+passing a value for `__t` that matches the value used when registering its discriminator. For example, considering the
+previous code sample, the value for `__t` in `PaperBook` is `Paper`. Here is a possible definition for `Book` as
+well as its `PaperBook` and `AuditBook` subtypes:
+
+```typescript
+type BookType = 'Paper' | 'Audio';
+
+export class Book implements PolymorphicEntity {
+  readonly id?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly isbn: string;
+  readonly __t?: BookType;
+
+  constructor(book: {
+    id?: string;
+    title: string;
+    description: string;
+    isbn: string;
+    type?: BookType;
+  }) {
+    this.id = book.id;
+    this.title = book.title;
+    this.description = book.description;
+    this.isbn = book.isbn;
+    this.__t = book.type;
+  }
+}
+
+export class PaperBook extends Book {
+  readonly edition: number;
+
+  constructor(paperBook: {
+    id?: string;
+    title: string;
+    description: string;
+    isbn: string;
+    edition: number;
+  }) {
+    super({...paperBook, type: 'Paper'});
+    this.edition = paperBook.edition;
+  }
+}
+
+export class AudioBook extends Book {
+  readonly hostingPlatforms: string[];
+  readonly format?: string;
+
+  constructor(audioBook: {
+    id?: string;
+    title: string;
+    description: string;
+    isbn: string;
+    hostingPlatforms: string[];
+  }) {
+    super({...audioBook, type: 'Audio'});
+    this.hostingPlatforms = audioBook.hostingPlatforms;
+  }
+}
+```
+
+`PolymorphicEntity` models a polymorphic entity. This interface extends `Entity` and specifies an optional `__t`
+property. In the previous example, `Book` is actually a `PolymorphicEntity`, since we are interested in also persisting
+and accessing `Book` subtype domain objects. However, if we were only to store instances of `Book`, we could have
+defined it to implement `Entity` instead. Note that `PolymorphicEntity` is now deprecated as discriminator keys are
+internally handled by a newer version of `MongooseRepository`.
+
+There is an example of a legacy custom repository and a domain model under the [`test/legacy`](test/legacy) folder,
+which also includes some regression tests to ensure that newer versions of the library are backward compatible with
+the old discriminator key-based domain model definition.
 
 # Contributors
 

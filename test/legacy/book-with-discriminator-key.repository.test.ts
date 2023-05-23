@@ -1,73 +1,73 @@
-import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schema';
+import {
+  BookRepository,
+  MongooseBookRepository,
+} from './book-with-discriminator-key.repository';
+import { AudioBookSchema, BookSchema, PaperBookSchema } from '../book.schema';
 import {
   closeMongoConnection,
   deleteAll,
   findById,
   insert,
-} from './util/mongo-server';
+} from '../util/mongo-server';
+import {
+  AudioBookWithDiscriminatorKey,
+  BookWithDiscriminatorKey,
+  ElectronicBookWithDiscriminatorKey,
+  PaperBookWithDiscriminatorKey,
+} from './book-with-discriminator-key';
 import {
   IllegalArgumentException,
   NotFoundException,
-} from '../src/util/exceptions';
+} from '../../src/util/exceptions';
 import { Optional } from 'typescript-optional';
 import mongoose from 'mongoose';
-import { AudioBook, Book, ElectronicBook, PaperBook } from './book';
-import { BookRepository, MongooseBookRepository } from './book.repository';
 
 describe('Given an instance of book repository', () => {
   let bookRepository: BookRepository;
-  let storedBook: Book;
-  let storedPaperBook: PaperBook;
-  let storedAudioBook: AudioBook;
+  let storedBook: BookWithDiscriminatorKey;
+  let storedPaperBook: PaperBookWithDiscriminatorKey;
+  let storedAudioBook: AudioBookWithDiscriminatorKey;
 
   beforeAll(async () => {
-    const BookModel = mongoose.model(Book.name, BookSchema);
-    BookModel.discriminator(PaperBook.name, PaperBookSchema);
-    BookModel.discriminator(AudioBook.name, AudioBookSchema);
+    const BookModel = mongoose.model('Book', BookSchema);
+    BookModel.discriminator('Paper', PaperBookSchema);
+    BookModel.discriminator('Audio', AudioBookSchema);
     bookRepository = new MongooseBookRepository(BookModel);
   });
 
   beforeEach(async () => {
-    const bookToStore = new Book({
+    const bookToStore = new BookWithDiscriminatorKey({
       title: 'Accelerate',
       description:
         'Building and Scaling High Performing Technology Organizations',
       isbn: '1942788339',
     });
     const storedBookId = await insert(bookToStore, 'books');
-    storedBook = new Book({
+    storedBook = new BookWithDiscriminatorKey({
       ...bookToStore,
       id: storedBookId,
     });
 
-    const paperBookToStore = new PaperBook({
+    const paperBookToStore = new PaperBookWithDiscriminatorKey({
       title: 'Effective Java',
       description: 'Great book on the Java programming language',
       edition: 3,
       isbn: '0134685997',
     });
-    const storedPaperBookId = await insert(
-      paperBookToStore,
-      'books',
-      PaperBook.name,
-    );
-    storedPaperBook = new PaperBook({
+    const storedPaperBookId = await insert(paperBookToStore, 'books');
+    storedPaperBook = new PaperBookWithDiscriminatorKey({
       ...paperBookToStore,
       id: storedPaperBookId,
     });
 
-    const audioBookToStore = new AudioBook({
+    const audioBookToStore = new AudioBookWithDiscriminatorKey({
       title: 'The Sandman',
       description: 'Fantastic fantasy audio book',
       hostingPlatforms: ['Audible'],
       isbn: '5573899870',
     });
-    const storedAudioBookId = await insert(
-      audioBookToStore,
-      'books',
-      AudioBook.name,
-    );
-    storedAudioBook = new AudioBook({
+    const storedAudioBookId = await insert(audioBookToStore, 'books');
+    storedAudioBook = new AudioBookWithDiscriminatorKey({
       ...audioBookToStore,
       id: storedAudioBookId,
     });
@@ -150,7 +150,7 @@ describe('Given an instance of book repository', () => {
   describe('when saving a book', () => {
     describe('that has not been registered as a Mongoose discriminator', () => {
       it('throws an exception', async () => {
-        const bookToInsert = new ElectronicBook({
+        const bookToInsert = new ElectronicBookWithDiscriminatorKey({
           title: 'How to deal with ants at home?',
           description: 'Shows several strategies to avoid having ants at home',
           extension: 'epub',
@@ -164,7 +164,9 @@ describe('Given an instance of book repository', () => {
       describe('that is undefined', () => {
         it('then throws an exception', async () => {
           await expect(
-            bookRepository.save(undefined as unknown as Book),
+            bookRepository.save(
+              undefined as unknown as BookWithDiscriminatorKey,
+            ),
           ).rejects.toThrowError('The given element must be valid');
         });
       });
@@ -172,16 +174,16 @@ describe('Given an instance of book repository', () => {
       describe('that is null', () => {
         it('then throws an exception', async () => {
           await expect(
-            bookRepository.save(null as unknown as Book),
+            bookRepository.save(null as unknown as BookWithDiscriminatorKey),
           ).rejects.toThrowError('The given element must be valid');
         });
       });
 
       describe('that is new', () => {
-        describe('and that is of supertype Book', () => {
+        describe('and that is of supertype BookWithDiscriminatorKey', () => {
           describe('and specifies an ID', () => {
             it('then throws an exception', async () => {
-              const bookToInsert = new Book({
+              const bookToInsert = new BookWithDiscriminatorKey({
                 id: '00007032a61c4eda79230000',
                 title: 'Continuous Delivery',
                 description:
@@ -197,7 +199,7 @@ describe('Given an instance of book repository', () => {
 
           describe('and does not specify an ID', () => {
             it('then inserts the book', async () => {
-              const bookToInsert = new Book({
+              const bookToInsert = new BookWithDiscriminatorKey({
                 title: 'Continuous Delivery',
                 description:
                   'Reliable Software Releases Through Build, Test, and Deployment Automation',
@@ -211,9 +213,9 @@ describe('Given an instance of book repository', () => {
             });
           });
         });
-        describe('and that is of a subtype of Book', () => {
+        describe('and that is of a subtype of BookWithDiscriminatorKey', () => {
           it('then inserts the book', async () => {
-            const bookToInsert = new PaperBook({
+            const bookToInsert = new PaperBookWithDiscriminatorKey({
               title: 'Implementing Domain-Driven Design',
               description: 'Describes Domain-Driven Design in depth',
               edition: 1,
@@ -230,14 +232,14 @@ describe('Given an instance of book repository', () => {
       });
 
       describe('that is not new', () => {
-        describe('and that is of Book supertype', () => {
+        describe('and that is of BookWithDiscriminatorKey supertype', () => {
           describe('and that specifies partial contents of the supertype', () => {
             it('then updates the book', async () => {
               const bookToUpdate = {
                 id: storedBook.id,
                 description:
                   'A Novel About IT, DevOps, and Helping Your Business Win',
-              } as Book;
+              } as BookWithDiscriminatorKey;
 
               const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(storedBook.id);
@@ -247,7 +249,7 @@ describe('Given an instance of book repository', () => {
           });
           describe('and that specifies all the contents of the supertype', () => {
             it('then updates the book', async () => {
-              const bookToUpdate = new Book({
+              const bookToUpdate = new BookWithDiscriminatorKey({
                 id: storedBook.id,
                 title: 'The Phoenix Project',
                 description:
@@ -262,13 +264,13 @@ describe('Given an instance of book repository', () => {
             });
           });
         });
-        describe('and that is of Book subtype', () => {
+        describe('and that is of BookWithDiscriminatorKey subtype', () => {
           describe('and that specifies partial contents of the subtype', () => {
             it('then updates the book', async () => {
               const bookToUpdate = {
                 id: storedAudioBook.id,
                 hostingPlatforms: ['Spotify'],
-              } as AudioBook;
+              } as AudioBookWithDiscriminatorKey;
 
               const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(storedAudioBook.id);
@@ -281,7 +283,7 @@ describe('Given an instance of book repository', () => {
           });
           describe('and that specifies all the contents of the subtype', () => {
             it('then updates the book', async () => {
-              const bookToUpdate = new AudioBook({
+              const bookToUpdate = new AudioBookWithDiscriminatorKey({
                 id: storedAudioBook.id,
                 title: 'Don Quixote',
                 description: 'Important classic in Spanish literature',

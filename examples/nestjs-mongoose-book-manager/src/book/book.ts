@@ -1,5 +1,4 @@
-import { Entity, PolymorphicEntity } from 'node-abstract-repository';
-import { Exclude } from 'class-transformer';
+import { Entity } from 'node-abstract-repository';
 
 export class Book implements Entity {
   readonly id?: string;
@@ -13,27 +12,7 @@ export class Book implements Entity {
   }
 }
 
-type BookType = 'Paper' | 'Audio' | 'Video';
-
-export abstract class PolymorphicBook
-  extends Book
-  implements PolymorphicEntity
-{
-  @Exclude()
-  readonly __t: BookType;
-
-  protected constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    type: BookType;
-  }) {
-    super(book);
-    this.__t = book.type;
-  }
-}
-
-export class PaperBook extends PolymorphicBook {
+export class PaperBook extends Book {
   readonly edition: number;
 
   constructor(paperBook: {
@@ -42,12 +21,12 @@ export class PaperBook extends PolymorphicBook {
     description: string;
     edition: number;
   }) {
-    super({ ...paperBook, type: 'Paper' });
+    super(paperBook);
     this.edition = paperBook.edition;
   }
 }
 
-export class AudioBook extends PolymorphicBook {
+export class AudioBook extends Book {
   readonly hostingPlatforms: string[];
 
   constructor(audioBook: {
@@ -56,7 +35,7 @@ export class AudioBook extends PolymorphicBook {
     description: string;
     hostingPlatforms: string[];
   }) {
-    super({ ...audioBook, type: 'Audio' });
+    super(audioBook);
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }

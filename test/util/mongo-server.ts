@@ -5,8 +5,17 @@ import { Entity } from '../../src';
 const dbName = 'test';
 let mongoServer: MongoMemoryServer;
 
-export const insert = async (entity: Entity, collection: string) => {
+type EntityWithOptionalDiscriminatorKey = Entity & { __t?: string };
+
+export const insert = async (
+  entity: EntityWithOptionalDiscriminatorKey,
+  collection: string,
+  discriminatorKey?: string,
+) => {
   await setupConnection();
+  if (discriminatorKey) {
+    entity['__t'] = discriminatorKey;
+  }
   return mongoose.connection.db
     .collection(collection)
     .insertOne(entity)

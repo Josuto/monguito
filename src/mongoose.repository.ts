@@ -15,6 +15,12 @@ interface ConstructorMap<T> {
   [index: string]: Constructor<T>;
 }
 
+type PartialElementWithIdAndOptionalDiscriminatorKey<T> = { id: string } & {
+  __t?: string;
+} & Partial<T>;
+
+type PartialElementWithId<T> = { id: string } & Partial<T>;
+
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
@@ -49,15 +55,17 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   async save<S extends T>(
-    element: S | ({ id: string } & Partial<S>),
+    element: S | PartialElementWithIdAndOptionalDiscriminatorKey<S>,
   ): Promise<S> {
     if (!element)
       throw new IllegalArgumentException('The given element must be valid');
     let document;
     if (!element.id) {
-      document = await this.insert(<S>element);
+      document = await this.insert(element as S);
     } else {
-      document = await this.update(<{ id: string } & Partial<S>>element);
+      document = await this.update(
+        element as PartialElementWithIdAndOptionalDiscriminatorKey<S>,
+      );
     }
     if (document) return this.instantiateFrom(document) as S;
     throw new NotFoundException(
@@ -66,12 +74,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   protected instantiateFrom<S extends T>(
-    document: HydratedDocument<T> | null,
+    document: HydratedDocument<S> | null,
   ): S | null {
     if (!document) return null;
-    let discriminatorType = document.get('__t');
-    discriminatorType = discriminatorType ?? 'Default';
-    const elementConstructor = this.elementConstructorMap[discriminatorType];
+    const discriminatorType = document.get('__t');
+    const elementConstructor =
+      this.elementConstructorMap[discriminatorType ?? 'Default'];
     if (elementConstructor) {
       return new elementConstructor(document.toObject()) as S;
     }
@@ -82,6 +90,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private async insert<S extends T>(element: S): Promise<HydratedDocument<S>> {
     try {
+      this.setDiscriminatorKeyOn(element);
       return (await this.elementModel.create(
         element,
       )) as unknown as HydratedDocument<S>;
@@ -95,8 +104,20 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
   }
 
+  private setDiscriminatorKeyOn<S extends T>(
+    element: S | PartialElementWithIdAndOptionalDiscriminatorKey<S>,
+  ): void {
+    const elementClassName = element['constructor']['name'];
+    const elementSpecifiesDiscriminatorKey = '__t' in element;
+    const elementIsSupertype =
+      elementClassName !== this.elementConstructorMap['Default'].name;
+    if (!elementSpecifiesDiscriminatorKey && elementIsSupertype) {
+      element['__t'] = elementClassName;
+    }
+  }
+
   private async update<S extends T>(
-    element: { id: string } & Partial<S>,
+    element: PartialElementWithId<S>,
   ): Promise<HydratedDocument<S> | null> {
     const document = await this.elementModel.findById<HydratedDocument<S>>(
       element.id,

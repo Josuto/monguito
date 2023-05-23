@@ -2,13 +2,9 @@ import { Module } from '@nestjs/common';
 import { BookService } from './book.service';
 import { BookController } from './book.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Book } from './book';
-import {
-  AudioBookSchema,
-  BookSchema,
-  MongooseBookRepository,
-  PaperBookSchema,
-} from './book.repository';
+import { AudioBook, Book, PaperBook } from './book';
+import { MongooseBookRepository } from './book.repository';
+import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 
 @Module({
   imports: [
@@ -17,8 +13,8 @@ import {
         name: Book.name,
         schema: BookSchema,
         discriminators: [
-          { name: 'Paper', schema: PaperBookSchema },
-          { name: 'Audio', schema: AudioBookSchema },
+          { name: PaperBook.name, schema: PaperBookSchema },
+          { name: AudioBook.name, schema: AudioBookSchema },
         ],
       },
     ]),

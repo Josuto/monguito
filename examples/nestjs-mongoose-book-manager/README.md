@@ -24,8 +24,6 @@ the [Dependency Injection principle]((https://en.wikipedia.org/wiki/Dependency_i
 The implementation of the book repository is as follows:
 
 ```typescript
-import {Book} from "./book";
-
 export class MongooseBookRepository
   extends MongooseRepository<Book>
   implements Repository<Book> {
@@ -33,9 +31,14 @@ export class MongooseBookRepository
     @InjectModel(Book.name)
     private readonly bookModel: Model<Book>,
   ) {
-    super(bookModel, {Default: Book, Paper: PaperBook, Audio: AudioBook});
+    super(bookModel, {
+      Default: Book,
+      PaperBook: PaperBook,
+      AudioBook: AudioBook,
+    });
   }
 }
+
 ```
 
 The `@InjectModel` decorator from `@nestjs/mongoose` enables the instantiation of `bookModel`, required to perform the
@@ -88,8 +91,8 @@ application domain. Here is its definition:
         name: Book.name,
         schema: BookSchema,
         discriminators: [
-          {name: 'Paper', schema: PaperBookSchema},
-          {name: 'Audio', schema: AudioBookSchema},
+          {name: PaperBook.name, schema: PaperBookSchema},
+          {name: AudioBook.name, schema: AudioBookSchema},
         ],
       },
     ]),
@@ -199,8 +202,8 @@ beforeAll(async () => {
           name: Book.name,
           schema: BookSchema,
           discriminators: [
-            {name: 'Paper', schema: PaperBookSchema},
-            {name: 'Audio', schema: AudioBookSchema},
+            {name: PaperBook.name, schema: PaperBookSchema},
+            {name: AudioBook.name, schema: AudioBookSchema},
           ],
         },
       ]),
