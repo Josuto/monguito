@@ -1,4 +1,3 @@
-import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schema';
 import {
   closeMongoConnection,
   deleteAll,
@@ -10,7 +9,6 @@ import {
   NotFoundException,
 } from '../src/util/exceptions';
 import { Optional } from 'typescript-optional';
-import mongoose from 'mongoose';
 import { AudioBook, Book, ElectronicBook, PaperBook } from './book';
 import { BookRepository, MongooseBookRepository } from './book.repository';
 
@@ -21,10 +19,7 @@ describe('Given an instance of book repository', () => {
   let storedAudioBook: AudioBook;
 
   beforeAll(async () => {
-    const BookModel = mongoose.model(Book.name, BookSchema);
-    BookModel.discriminator(PaperBook.name, PaperBookSchema);
-    BookModel.discriminator(AudioBook.name, AudioBookSchema);
-    bookRepository = new MongooseBookRepository(BookModel);
+    bookRepository = new MongooseBookRepository();
   });
 
   beforeEach(async () => {
@@ -165,7 +160,7 @@ describe('Given an instance of book repository', () => {
         it('then throws an exception', async () => {
           await expect(
             bookRepository.save(undefined as unknown as Book),
-          ).rejects.toThrowError('The given element must be valid');
+          ).rejects.toThrowError('The given entity must be valid');
         });
       });
 
@@ -173,7 +168,7 @@ describe('Given an instance of book repository', () => {
         it('then throws an exception', async () => {
           await expect(
             bookRepository.save(null as unknown as Book),
-          ).rejects.toThrowError('The given element must be valid');
+          ).rejects.toThrowError('The given entity must be valid');
         });
       });
 

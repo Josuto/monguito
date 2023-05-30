@@ -13,9 +13,9 @@ export const BaseSchema = new mongoose.Schema(
   },
 );
 
-export function extendSchema(Schema: any, definition: any, options?: any) {
+export function extendSchema(schema: any, definition: any, options?: any) {
   return new mongoose.Schema(
-    { ...Schema.obj, ...definition },
-    { ...Schema.options, ...options },
+    { ...schema.obj, ...definition },
+    { ...schema.options, ...options },
   );
 }
