@@ -1,20 +1,10 @@
-import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { Book } from './book';
 import { BookService } from './book.service';
 import { CreateBookDto, deserialiseBookDto } from './create-book.dto';
 import { UpdateBookDto } from './update-book.dto';
 
 @Controller('books')
-@UseInterceptors(ClassSerializerInterceptor)
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
