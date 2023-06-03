@@ -276,10 +276,10 @@ alternatives (e.g., [TypeORM](https://typeorm.io/) or [Typegoose](https://typego
 Additionally, TypeORM has mainly been developed for relational databases
 and [presents several limitations compared to Mongoose](https://eliezer.medium.com/typeorm-mongodb-review-8855903228b1).
 Typegoose, on another hand, is yet another Mongoose wrapper that provides TypeScript typing to Mongoose schemas and
-models, but it implements the [Active Record](https://en.wikipedia.org/wiki/Active_record_pattern) pattern instead of
+models, but it implements the [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) pattern instead of
 the Repository pattern. Moreover, this approach is also type-safe. Although it could be interesting to base the
 abstract repository on Typegoose in the future, it would add a new abstraction layer, thus complicating the current
-solution both in logic and size. Considering that Mongoose is currently the most mature ODM for MongoDB, it might be a
+solution both in logic and size. Considering that Mongoose is currently the most mature MongoDB handling utility, it might be a
 better idea to leveraging the abstract repository with other Mongoose features (
 e.g., [implementing various types of relationships between documents belonging to different collections](https://www.bezkoder.com/mongoose-one-to-many-relationship/)).
 
