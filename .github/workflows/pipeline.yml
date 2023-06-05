@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 jobs:
   library:
     name: Library Validation
@@ -19,7 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies 💾
-        run: | 
+        run: |
           yarn install
           cd ./examples/nestjs-mongoose-book-manager
           yarn install
