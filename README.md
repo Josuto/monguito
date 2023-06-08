@@ -84,8 +84,8 @@ No more leaking of the persistence logic into your domain/application logic!
 `MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype
 and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorphic domain models is hidden
 at `MongooseRepository`; all that is required is that `MongooseRepository` receives a map describing the domain model.
-Each map key relates to a domain object type, and the value is the constructor and the
-database [schema](https://mongoosejs.com/docs/guide.html) of such domain object. The `Default` key is mandatory and
+Each map entry key relates to a domain object type, and the related entry value is a reference to the constructor and
+the database [schema](https://mongoosejs.com/docs/guide.html) of such domain object. The `Default` key is mandatory and
 relates to the supertype, while the rest of the keys relate to the subtypes. Beware that subtype keys are named after
 the type name. If it so happens that you do not have any subtype in your domain model, no problem! Just specify the
 domain object that your custom repository is to handle as the sole map key-value, and you are done.
@@ -279,7 +279,8 @@ Typegoose, on another hand, is yet another Mongoose wrapper that provides TypeSc
 models, but it implements the [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) pattern instead of
 the Repository pattern. Moreover, this approach is also type-safe. Although it could be interesting to base the
 abstract repository on Typegoose in the future, it would add a new abstraction layer, thus complicating the current
-solution both in logic and size. Considering that Mongoose is currently the most mature MongoDB handling utility, it might be a
+solution both in logic and size. Considering that Mongoose is currently the most mature MongoDB handling utility, it
+might be a
 better idea to leveraging the abstract repository with other Mongoose features (
 e.g., [implementing various types of relationships between documents belonging to different collections](https://www.bezkoder.com/mongoose-one-to-many-relationship/)).
 
