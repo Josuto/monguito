@@ -2,8 +2,8 @@
 ![Min code size](https://img.shields.io/bundlephobia/minzip/node-abstract-repository)
 [![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/node-abstract-repository/actions/workflows/pipeline.yml)
 [![NPM](https://img.shields.io/npm/v/node-abstract-repository)](https://www.npmjs.com/package/node-abstract-repository)
+[![Downloads stat](https://img.shields.io/npm/dt/node-abstract-repository)](http://www.npmtrends.com/node-abstract-repository)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
-[![Twitter](https://img.shields.io/twitter/follow/elkartech?style=social)](https://twitter.com/elkartech)
 
 This is a lightweight and type-safe library that implements an abstract
 and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/)
@@ -314,7 +314,9 @@ and [Aral Roca](https://github.com/aralroca) for all the insightful conversation
 
 # Stay in touch
 
-- Author - [Josu Martinez](https://es.linkedin.com/in/josumartinez)
+Author - [Josu Martinez](https://es.linkedin.com/in/josumartinez)
+
+[![Twitter](https://img.shields.io/twitter/follow/elkartech?style=social)](https://twitter.com/elkartech)
 
 # License
 
