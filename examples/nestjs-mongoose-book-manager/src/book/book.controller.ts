@@ -1,29 +1,39 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { Book } from './book';
-import { BookService } from './book.service';
-import { CreateBookDto, deserialiseBookDto } from './create-book.dto';
-import { UpdateBookDto } from './update-book.dto';
+import { BookService, PartialBook } from './book.service';
+import { deserialiseBook } from './deserialise-book';
 
 @Controller('books')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Post()
-  async create(
+  async insert(
     @Body({
-      transform: (plainBook) => deserialiseBookDto(plainBook),
+      transform: (plainBook) => deserialiseBook(plainBook),
     })
-    createBookDto: CreateBookDto,
+    book: Book,
   ): Promise<Book> {
-    return this.bookService.create(createBookDto);
+    const createdBook = await this.bookService.save(book);
+    if (createdBook) return createdBook;
+    throw new BadRequestException();
   }
 
-  @Patch('/:bookId')
+  @Patch()
   async update(
-    @Param('bookId') bookId: string,
-    @Body() updateBookDto: UpdateBookDto,
+    @Body()
+    book: PartialBook,
   ): Promise<Book> {
-    return this.bookService.update(updateBookDto);
+    const updatedBook = await this.bookService.save(book);
+    if (updatedBook) return updatedBook;
+    throw new BadRequestException();
   }
 
   @Get()

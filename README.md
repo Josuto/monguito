@@ -215,7 +215,9 @@ would be just fine. All you need to do is ensure that your domain objects specif
 
 ## Basic CRUD Operations
 
-To explain these, let's have a look to `Repository`, the generic interface that `MongooseRepository` implements:
+To explain these, let's have a look to `Repository`, the generic interface that `MongooseRepository` implements. Keep in
+mind that the current semantics for these operations are those provided at `MongooseRepository`. If you want any of
+these operations to behave differently then you must override it at your custom repository implementation.
 
 ```typescript
 export interface Repository<T extends Entity> {
@@ -228,10 +230,11 @@ export interface Repository<T extends Entity> {
 
 - `findById` returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) value of the searched entity.
 - `findAll` returns an array including all the persisted entities, or an empty array otherwise.
-- `save` attempts to persist a given entity by either inserting or updating it. This function inserts the entity if it
-  is new i.e., if the entity specifies an `id` that is `undefined`. Otherwise, the function updates the persisted entity
-  with the properties of the given entity, which may be a `Partial` set of properties. In any case, it returns the
-  persisted entity back to its caller.
+- `save` persists a given entity by either inserting or updating it and returns the persisted entity. It the entity does
+  not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
+  collection; if it does, the function updates it. Otherwise, throws an exception. This is because trying to persist a
+  new entity that includes a developer specified `id` represents a _system invariant violation_; only Mongoose is able
+  to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
 - `deleteById` deletes an entity matching the given `id` if it exists. When it does, the function returns `true`.
   Otherwise, it returns `false`.
 
