@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Book } from './book';
-import { CreateBookDto } from './create-book.dto';
-import { UpdateBookDto } from './update-book.dto';
 import { Repository } from 'node-abstract-repository';
+
+export type PartialBook = { id: string } & Partial<Book>;
+export type PersistentBook = Book | PartialBook;
 
 @Injectable()
 export class BookService {
@@ -11,12 +12,13 @@ export class BookService {
     private readonly bookRepository: Repository<Book>,
   ) {}
 
-  async create(createBookDto: CreateBookDto): Promise<Book> {
-    return this.bookRepository.save(createBookDto.toBook());
-  }
-
-  async update(updateBookDto: UpdateBookDto): Promise<Book> {
-    return this.bookRepository.save(updateBookDto);
+  async save(book: PersistentBook): Promise<Book> {
+    if (book) {
+      try {
+        return await this.bookRepository.save(book);
+      } catch (error) {}
+    }
+    return null as unknown as Book;
   }
 
   async findAll(): Promise<Book[]> {

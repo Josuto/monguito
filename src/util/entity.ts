@@ -3,8 +3,3 @@
 export interface Entity {
   id?: string;
 }
-
-/** @deprecated */
-export interface PolymorphicEntity extends Entity {
-  __t?: string;
-}
