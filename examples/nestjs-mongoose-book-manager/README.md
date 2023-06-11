@@ -13,7 +13,7 @@ A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `Audio
 
 - [Installing and Running the Example Application](#installing-and-running-the-example-application)
 - [Bottom-up Book Manager Application Implementation](#bottom-up-book-manager-application-implementation)
-- [Custom Repository Testing Configuration](#custom-repository-testing-configuration)
+- [Custom Repository Validation](#custom-repository-validation)
 
 # Installing and Running the Example Application
 
@@ -79,12 +79,14 @@ export class BookService {
   ) {
   }
 
-  async create(createBookDto: CreateBookDto): Promise<Book> {
-    return this.bookRepository.save(createBookDto.toBook());
-  }
-
-  async update(updateBookDto: UpdateBookDto): Promise<Book> {
-    return this.bookRepository.save(updateBookDto);
+  async save(book: PersistentBook): Promise<Book> {
+    if (book) {
+      try {
+        return await this.bookRepository.save(book);
+      } catch (error) {
+      }
+    }
+    return null as unknown as Book;
   }
 
   async findAll(): Promise<Book[]> {
@@ -136,21 +138,25 @@ export class BookController {
   }
 
   @Post()
-  async create(
+  async insert(
     @Body({
-      transform: (plainBook) => deserialiseBookDto(plainBook),
+      transform: (plainBook) => deserialiseBook(plainBook),
     })
-      createBookDto: CreateBookDto,
+      book: Book,
   ): Promise<Book> {
-    return this.bookService.create(createBookDto);
+    const createdBook = await this.bookService.save(book);
+    if (createdBook) return createdBook;
+    throw new BadRequestException();
   }
 
-  @Patch('/:bookId')
+  @Patch()
   async update(
-    @Param('bookId') bookId: string,
-    @Body() updateBookDto: UpdateBookDto,
+    @Body()
+      book: { id: string } & Partial<Book>,
   ): Promise<Book> {
-    return this.bookService.update(updateBookDto);
+    const updatedBook = await this.bookService.save(book);
+    if (updatedBook) return updatedBook;
+    throw new BadRequestException();
   }
 
   @Get()
@@ -160,8 +166,8 @@ export class BookController {
 }
 ```
 
-The function `deserialiseBookDto` is a simple factory method that transforms any given object to an instance of
-type `CreateBookDto` or any of its subtypes based on the existence of certain property in the given object.
+The function `deserialiseBook` is a simple factory method that transforms any given object to an instance of type `Book`
+or any of its subtypes based on the existence of certain property in the given object.
 
 ## NestJS Root Module Configuration
 
@@ -183,48 +189,46 @@ The module specified here imports two modules: `BookModule`, that incorporates t
 a dynamic module once more brought by the `MongooseModule.forRoot()`, required by `MongooseBookRepository` to obtain the
 aforementioned Mongoose connection object.
 
-# Custom Repository Testing Configuration
+# Custom Repository Validation
 
-This is a pretty canonical NestJS application. It is so simple that comes with no testing logic for its implementation.
-However, if you ever need to perform NestJS-based custom repository validation, you may want to hear about this.
+This application comes with some e2e tests that you may find useful when validating your own NestJS application. You may
+find the whole test infrastructure [here](./test/book.controller.test.ts).
 
-First of all, in order to create a custom repository to test or to be used in the test of another application component,
-you are going to need to create a NestJS testing module for it. Here is a way you can follow to do so. Say we want to
-create a book repository:
+First of all, you need to create a testing module for your app. Here is a way you can follow to do so:
 
 ```typescript
-let bookRepository: BookRepository;
+let bookManager: INestApplication;
 
 beforeAll(async () => {
-  const module: TestingModule = await Test.createTestingModule({
-    imports: [
-      rootMongooseTestModule(),
-    ],
-    providers: [MongooseBookRepository],
+  const appModule = await Test.createTestingModule({
+    imports: [rootMongooseTestModule(), AppModule],
   }).compile();
 
-  bookRepository = module.get<BookRepository>(MongooseBookRepository);
+  bookManager = appModule.createNestApplication();
+  await bookManager.init();
 });
 ```
 
-You may want to read [this section](../../README.md#write-your-own-repository-interfaces) of
-the `node-abstract-repository` main documentation for further details on the `BookRepository` interface.
-
-Moreover, you may want to use
-the [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server) to validate your
-custom repository. You may realise that the first import specified in the previous code sample invokes the
-function `rootMongooseTestModule()`. We would recommend that you create such a function under some utility test file
-such as [mongo-server.ts](../../test/util/mongo-server.ts). This is its implementation:
+You may want to create an instance of `MongoMemoryServer` (the main class exported by the library
+[`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a
+full-blown MongoDB instance. This instance is vital to inject the custom repository at `BookService` at test runtime.
+The creation of the instance is defined by the `rootMongooseTestModule` function included
+at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
 
 ```typescript
 let mongoServer: MongoMemoryServer;
 
-export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
+export const rootMongooseTestModule = (
+  options: MongooseModuleOptions = {},
+  port = 27016,
+  dbName = 'book-repository',
+) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryServer.create({
         instance: {
-          dbName: 'test',
+          port,
+          dbName: dbName,
         },
       });
       const mongoUri = mongoServer.getUri();
@@ -236,5 +240,18 @@ export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
   });
 ```
 
-You can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as those
-specified at [mongo-server.ts](../../test/util/mongo-server.ts).
+You may perceive that the port and dbName input parameters match those of the database connection
+specified [earlier](#nestjs-root-module-configuration). This is no coincidence.
+
+Finally, you can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as
+those specified at [mongo-server.ts](../../test/util/mongo-server.ts).
+
+## Run the Tests
+
+```shell
+# install the dependencies and run tests
+$ yarn install & yarn test
+
+# install the dependencies and run tests with coverage
+$ yarn install & yarn test:cov
+```
