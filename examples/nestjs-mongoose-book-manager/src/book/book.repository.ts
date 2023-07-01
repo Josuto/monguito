@@ -1,4 +1,8 @@
-import { MongooseRepository, Repository } from 'node-abstract-repository';
+import {
+  IllegalArgumentException,
+  MongooseRepository,
+  Repository,
+} from 'node-abstract-repository';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 import { Injectable } from '@nestjs/common';
@@ -19,5 +23,13 @@ export class MongooseBookRepository
       },
       connection,
     );
+  }
+
+  async deleteById(id: string): Promise<boolean> {
+    if (!id) throw new IllegalArgumentException('The given ID must be valid');
+    return this.entityModel
+      .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
+      .exec()
+      .then((book) => !!book);
   }
 }

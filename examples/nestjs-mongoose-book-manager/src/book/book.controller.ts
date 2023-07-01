@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -39,5 +41,10 @@ export class BookController {
   @Get()
   async findAll(): Promise<Book[]> {
     return this.bookService.findAll();
+  }
+
+  @Delete(':id')
+  async deleteById(@Param('id') id: string): Promise<boolean> {
+    return this.bookService.deleteById(id);
   }
 }

@@ -59,12 +59,27 @@ export class MongooseBookRepository
       connection,
     );
   }
+
+  async deleteById(id: string): Promise<boolean> {
+    if (!id) throw new IllegalArgumentException('The given ID must be valid');
+    return this.entityModel
+      .findByIdAndUpdate(id, {isDeleted: true}, {new: true})
+      .exec()
+      .then((book) => !!book);
+  }
 }
 ```
 
 `@InjectConnection` is a `@nestjs/mongoose` decorator required to inject a Mongoose connection to a MongoDB database;
 You may choose to store all of your entities in collections of the same database or different databases. If you decide
 to use multiple databases, you may need to specify a NestJS provider for each of them.
+
+This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`,
+also modifying it semantics; while `MongooseRepository.deleteById()` performs hard book
+deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that this operation updates
+the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include this field in its
+definition. You may find the full definition of the book domain model used by this sample
+application [here](./src/book/book.ts).
 
 ## Book Service
 
