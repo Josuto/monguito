@@ -141,6 +141,30 @@ describe('Given the book manager controller', () => {
     });
   });
 
+  describe('when deleting a book', () => {
+    describe('that is not stored', () => {
+      it('then returns false', () => {
+        return request(bookManager.getHttpServer())
+          .delete('/books/000000000000000000000000')
+          .expect(HttpStatus.OK)
+          .expect((response) => {
+            expect(response.text).toBe('false');
+          });
+      });
+    });
+
+    describe('that is stored', () => {
+      it('then returns true', () => {
+        return request(bookManager.getHttpServer())
+          .delete(`/books/${storedPaperBook.id}`)
+          .expect(HttpStatus.OK)
+          .expect((response) => {
+            expect(response.text).toBe('true');
+          });
+      });
+    });
+  });
+
   afterEach(async () => {
     await deleteAll(['books']);
   });

@@ -24,4 +24,8 @@ export class BookService {
   async findAll(): Promise<Book[]> {
     return this.bookRepository.findAll();
   }
+
+  async deleteById(id: string): Promise<boolean> {
+    return this.bookRepository.deleteById(id);
+  }
 }

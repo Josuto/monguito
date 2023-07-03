@@ -5,6 +5,7 @@ export const BookSchema = extendSchema(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
+    isDeleted: { type: Boolean, required: true },
   },
   { timestamps: true },
 );
