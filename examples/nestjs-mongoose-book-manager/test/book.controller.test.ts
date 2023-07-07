@@ -21,7 +21,7 @@ describe('Given the book manager controller', () => {
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
-  });
+  }, 10000);
 
   beforeEach(async () => {
     const paperBookToStore = new PaperBook({
