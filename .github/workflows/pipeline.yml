@@ -21,17 +21,21 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install Dependencies 💾
-        run: |
-          yarn install
-          cd ./examples/nestjs-mongoose-book-manager
-          yarn install -f
-      - name: Build Project 🔧
+      - name: Install Library Dependencies 💾
+        run: yarn install
+      - name: Build Library 🔧
         run: yarn build
       - name: Run Library Tests 🧪
         run: yarn test
+      - name: Install NestJS Example App Dependencies 💾
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn install -f
+      - name: Build NestJS Example App 🔧
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn build
       - name: Run NestJS Example App Tests 🧪
         run: |
           cd ./examples/nestjs-mongoose-book-manager
           yarn test
-          
