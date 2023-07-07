@@ -21,7 +21,7 @@ describe('Given the book manager controller', () => {
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
-  }, 10000);
+  }, 15000);
 
   beforeEach(async () => {
     const paperBookToStore = new PaperBook({
@@ -171,5 +171,5 @@ describe('Given the book manager controller', () => {
 
   afterAll(async () => {
     await closeMongoConnection();
-  });
+  }, 15000);
 });
