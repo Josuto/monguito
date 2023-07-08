@@ -10,6 +10,8 @@ import {
 } from './util/mongo-server';
 import { AudioBook, PaperBook } from '../src/book/book';
 
+const timeout = 30000;
+
 describe('Given the book manager controller', () => {
   let bookManager: INestApplication;
   let storedPaperBook: PaperBook;
@@ -21,7 +23,7 @@ describe('Given the book manager controller', () => {
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
-  }, 15000);
+  }, timeout);
 
   beforeEach(async () => {
     const paperBookToStore = new PaperBook({
@@ -171,5 +173,5 @@ describe('Given the book manager controller', () => {
 
   afterAll(async () => {
     await closeMongoConnection();
-  }, 15000);
+  }, timeout);
 });
