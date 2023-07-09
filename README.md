@@ -222,14 +222,15 @@ these operations to behave differently then you must override it at your custom 
 ```typescript
 export interface Repository<T extends Entity> {
   findById: <S extends T>(id: string) => Promise<Optional<S>>;
-  findAll: <S extends T>() => Promise<S[]>;
+  findAll: <S extends T>(filters?: any, sortBy?: any) => Promise<S[]>;
   save: <S extends T>(entity: S | ({ id: string } & Partial<S>)) => Promise<S>;
   deleteById: (id: string) => Promise<boolean>;
 }
 ```
 
 - `findById` returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) value of the searched entity.
-- `findAll` returns an array including all the persisted entities, or an empty array otherwise.
+- `findAll` returns an array including all the persisted entities, or an empty array otherwise. Although not mandatory,
+  it accepts both [filtering and sorting](https://mongoosejs.com/docs/queries.html) parameters.
 - `save` persists a given entity by either inserting or updating it and returns the persisted entity. It the entity does
   not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
   collection; if it does, the function updates it. Otherwise, throws an exception. This is because trying to persist a
