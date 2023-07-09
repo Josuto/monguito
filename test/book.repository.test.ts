@@ -134,11 +134,32 @@ describe('Given an instance of book repository', () => {
     });
   });
 
-  describe('when finding all books', () => {
-    it('then retrieves all the existent books', async () => {
-      const books = await bookRepository.findAll();
-      expect(books.length).toBe(3);
-      expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
+  describe('when searching books', () => {
+    describe('providing no search filters', () => {
+      it('then retrieves a list with all books', async () => {
+        const books = await bookRepository.findAll();
+        expect(books.length).toBe(3);
+        expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
+      });
+    });
+
+    describe('providing a search filter', () => {
+      it('then retrieves a list with all books matching the filter', async () => {
+        const filter = { __t: 'PaperBook' };
+        const books = await bookRepository.findAll(filter);
+        expect(books.length).toBe(1);
+        expect(books).toEqual([storedPaperBook]);
+      });
+
+      describe('and providing a sort parameter', () => {
+        it('then retrieves an ordered list with books matching the filter', async () => {
+          const filter = { __t: ['PaperBook', 'AudioBook'] };
+          const sortBy = { title: -1 };
+          const books = await bookRepository.findAll(filter, sortBy);
+          expect(books.length).toBe(2);
+          expect(books).toEqual([storedAudioBook, storedPaperBook]);
+        });
+      });
     });
   });
 

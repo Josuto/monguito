@@ -45,9 +45,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return !!isDeleted;
   }
 
-  async findAll<S extends T>(): Promise<S[]> {
+  async findAll<S extends T>(filters?: any, sortBy?: any): Promise<S[]> {
     return this.entityModel
-      .find()
+      .find(filters)
+      .sort(sortBy)
       .exec()
       .then((documents) =>
         documents.map((document) => this.instantiateFrom(document) as S),
