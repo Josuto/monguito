@@ -8,7 +8,7 @@ import {
   insert,
   rootMongooseTestModule,
 } from './util/mongo-server';
-import { AudioBook, PaperBook } from '../src/book/book';
+import { AudioBook, PaperBook } from '../src/book';
 
 const timeout = 30000;
 
