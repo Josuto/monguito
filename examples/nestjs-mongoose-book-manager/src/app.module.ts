@@ -1,11 +1,18 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
-import { BookModule } from './book/book.module';
+import { MongooseBookRepository } from './book.repository';
+import { BookController } from './book.controller';
 
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
-    BookModule,
   ],
+  providers: [
+    {
+      provide: 'BOOK_REPOSITORY',
+      useClass: MongooseBookRepository,
+    },
+  ],
+  controllers: [BookController],
 })
 export class AppModule {}

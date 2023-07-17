@@ -1,13 +1,13 @@
 This is an example of how to use the `node-abstract-repository` library in a NestJS application that uses MongoDB. It
-is a dummy book manager that exposes three simple endpoints i.e., create a book, update a book, and list all books.
-A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
+is a dummy book manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
+books. A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
 
 > **Warning**
 >
 > Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main
 > documentation of [node-abstract-repository](../../README.md). The goal of this documentation is not to provide a
-> comprehensive guide on the `node-abstract-repository` library usage. Thus, you may want to check the [code of the
-> example](./src) as you go reading.
+> comprehensive guide on the `node-abstract-repository` library usage. Thus, you may want to check
+> the [sample application code](./src) as you go reading.
 
 # Main Contents
 
@@ -18,6 +18,9 @@ A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `Audio
 # Installing and Running the Example Application
 
 ## Installation
+
+Assuming that you have already [installed NestJS](https://docs.nestjs.com/first-steps) in your local machine, first you
+need to install of the project dependencies by running the following command:
 
 ```bash
 $ yarn install
@@ -37,6 +40,71 @@ $ yarn start
 ```
 
 # Bottom-up Book Manager Application Implementation
+
+## Book Model
+
+The application domain model is pretty simple: `Book` is a supertype that specifies two subclasses i.e., `PaperBook`
+and `AudioBook`. Here is its definition:
+
+```typescript
+export class Book implements Entity {
+  readonly id?: string;
+  readonly title: string;
+  readonly description: string;
+  isDeleted: boolean;
+
+  constructor(book: {
+    id?: string;
+    title: string;
+    description: string;
+    isDeleted?: boolean;
+  }) {
+    this.id = book.id;
+    this.title = book.title;
+    this.description = book.description;
+    this.isDeleted = book.isDeleted ?? false;
+  }
+
+  markAsDeleted() {
+    this.isDeleted = true;
+  }
+}
+
+export class PaperBook extends Book {
+  readonly edition: number;
+
+  constructor(paperBook: {
+    id?: string;
+    title: string;
+    description: string;
+    edition: number;
+    isDeleted?: boolean;
+  }) {
+    super(paperBook);
+    this.edition = paperBook.edition;
+  }
+}
+
+export class AudioBook extends Book {
+  readonly hostingPlatforms: string[];
+
+  constructor(audioBook: {
+    id?: string;
+    title: string;
+    description: string;
+    hostingPlatforms: string[];
+    isDeleted?: boolean;
+  }) {
+    super(audioBook);
+    this.hostingPlatforms = audioBook.hostingPlatforms;
+  }
+}
+```
+
+`Entity` is an interface created to assist developers in the implementation of type-safe domain models. It specifies
+an `id` field that all `Book` or subclass instances must include. This is because `id` is assumed to be the primary key
+of any stored book. However, you do not need to implement `Entity` if you do not want to; simply make sure that your
+superclass includes an `id` field in its definition.
 
 ## Book Repository
 
@@ -70,76 +138,17 @@ export class MongooseBookRepository
 }
 ```
 
-`@InjectConnection` is a `@nestjs/mongoose` decorator required to inject a Mongoose connection to a MongoDB database;
-You may choose to store all of your entities in collections of the same database or different databases. If you decide
-to use multiple databases, you may need to specify a NestJS provider for each of them.
+`InjectConnection` is a decorator required to inject a Mongoose connection to a MongoDB database; You may choose to
+store all of your entities in collections of the same database or different databases. If you decide to use multiple
+databases, you may need to specify a NestJS provider for each of them. NestJS providers are discussed later in this
+document.
 
 This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`,
-also modifying it semantics; while `MongooseRepository.deleteById()` performs hard book
+also modifying its semantics; while `MongooseRepository.deleteById()` performs hard book
 deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that this operation updates
 the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include this field in its
 definition. You may find the full definition of the book domain model used by this sample
-application [here](./src/book/book.ts).
-
-## Book Service
-
-The class `BookService` shows how to inject an instance of `Repository<Book>` in an application service:
-
-```typescript
-@Injectable()
-export class BookService {
-  constructor(
-    @Inject('BOOK_REPOSITORY')
-    private readonly bookRepository: Repository<Book>,
-  ) {
-  }
-
-  async save(book: PersistentBook): Promise<Book> {
-    if (book) {
-      try {
-        return await this.bookRepository.save(book);
-      } catch (error) {
-      }
-    }
-    return null as unknown as Book;
-  }
-
-  async findAll(): Promise<Book[]> {
-    return this.bookRepository.findAll();
-  }
-}
-```
-
-The less obvious details on this application service definition are that (1) the `BookService` is a NodeJS provider
-(i.e., a dependency) that is `injectable` by any other higher-level component in the application layer structure and
-that (2) an instance of book `Repository` is a provider for `BookService`. `BOOK_REPOSITORY` is a NestJS custom token to
-enable the framework's dependency injector to actually `inject` an implementation of book `Repository` to the
-application service. Let's now see how to define which class is to implement book `Repository` in this case.
-
-## Book Module
-
-The `BookModule` class specifies several elements required to put all the book management logic under the same
-application domain. Here is its definition:
-
-```typescript
-@Module({
-  providers: [
-    {
-      provide: 'BOOK_REPOSITORY',
-      useClass: MongooseBookRepository,
-    },
-    BookService,
-  ],
-  controllers: [BookController],
-})
-export class BookModule {
-}
-```
-
-The implementation of such the instance of `Repository<Book>` is given by `MongooseBookRepository`, as specified by the
-provider identified with the `BOOK_REPOSITORY` custom token.
-
-Next, let's see the implementation of the controller specified at the `BookModule` class.
+application [here](src/book.ts).
 
 ## Book Controller
 
@@ -147,62 +156,120 @@ This is a regular NestJS controller that specifies the main endpoints to interac
 contents are as follows:
 
 ```typescript
+type PartialBook = { id: string } & Partial<Book>;
+
+function deserialise<T extends Book>(plainBook: any): T {
+  let book = null;
+  if (plainBook.edition) {
+    book = new PaperBook(plainBook);
+  } else if (plainBook.hostingPlatforms) {
+    book = new AudioBook(plainBook);
+  } else {
+    book = new Book(plainBook);
+  }
+  return book;
+}
+
 @Controller('books')
 export class BookController {
-  constructor(private readonly bookService: BookService) {
+  constructor(
+    @Inject('BOOK_REPOSITORY')
+    private readonly bookRepository: Repository<Book>,
+  ) {
+  }
+
+  @Get()
+  async findAll(): Promise<Book[]> {
+    return this.bookRepository.findAll();
   }
 
   @Post()
   async insert(
     @Body({
-      transform: (plainBook) => deserialiseBook(plainBook),
+      transform: (plainBook) => deserialise(plainBook),
     })
       book: Book,
   ): Promise<Book> {
-    const createdBook = await this.bookService.save(book);
-    if (createdBook) return createdBook;
-    throw new BadRequestException();
+    return this.save(book);
   }
 
   @Patch()
   async update(
     @Body()
-      book: { id: string } & Partial<Book>,
+      book: PartialBook,
   ): Promise<Book> {
-    const updatedBook = await this.bookService.save(book);
-    if (updatedBook) return updatedBook;
-    throw new BadRequestException();
+    return this.save(book);
   }
 
-  @Get()
-  async findAll(): Promise<Book[]> {
-    return this.bookService.findAll();
+  @Delete(':id')
+  async deleteById(@Param('id') id: string): Promise<boolean> {
+    return this.bookRepository.deleteById(id);
+  }
+
+  private async save(book: Book | PartialBook): Promise<Book> {
+    try {
+      return await this.bookRepository.save(book);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }
 ```
 
-The function `deserialiseBook` is a simple factory method that transforms any given object to an instance of type `Book`
-or any of its subtypes based on the existence of certain property in the given object.
+You may argue several things here. For example, you may think that an enterprise application may delegate
+business/domain logic to a layer of service objects as described in
+e.g., [Domain-Driven Design (tactical design)](https://enterprisecraftsmanship.com/posts/domain-vs-application-services/).
+I have decided not to do so for simplicity purposes; the book manager presented here is such an extremely
+simple CRUD application that introducing services would be over-engineering. I rather implement the minimum amount of
+code necessary for the sake of maximising the actual purpose of this documentation: illustrate how to integrate
+the `node-abstract-repository` library on a NodeJS-based enterprise application.
 
-## NestJS Root Module Configuration
+Moreover, you would probably not write a `deserialise` function to enable the transformation of JSON request bodies into
+domain objects when dealing with `POST` requests. Instead, you would rather use
+a [NestJS pipe](https://docs.nestjs.com/pipes#pipes) to do so, thus properly implementing the Single Responsibility
+principle. Once again, I wanted to share the simplest possible working example at the expense of not conveying to the
+recommended practices in NestJS application construction. That being said, I would highly recommend you to
+read [this section](https://docs.nestjs.com/pipes#class-validator) on how to use `class-validator`
+and `class-transformer` for the validation and deserialisation of JSON request bodies in the development of complex
+enterprise applications.
 
-Finally, all NestJS applications must specify a root module. This project defines it at the `app.module.ts` file. Here
-is the code:
+## Book Manager Module
+
+NestJS implements the Dependency Inversion principle; developers specify their component dependencies and NestJS uses
+its built-in dependency injector to inject those dependencies during component instantiation.
+
+So, how do we specify the dependencies of the components that compose the book manager sample application? There are two
+easy steps that we need to take: The first step consists of writing some decorators in the `MongooseBookRepository`
+and `BookController` classes, as I already did in the code definition for both. The former class specifies that its
+instances are `Injectable` to other components. It also specifies that to instantiate a book repository, NestJS needs to
+inject a Mongoose connection. This is done with the `InjectConnection` decorator related to the `connection` constructor
+input parameter.
+
+On another hand, the definition of `BookController` specifies that, during instantiation, the controller consumes an
+instance of a book `Repository` defined by the `BOOK_REPOSITORY` custom token. The definition of this custom token is
+part of the second step: writing the last required class `AppModule`. The definition of this class is as follows:
 
 ```typescript
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
-    BookModule,
   ],
+  providers: [
+    {
+      provide: 'BOOK_REPOSITORY',
+      useClass: MongooseBookRepository,
+    },
+  ],
+  controllers: [BookController],
 })
 export class AppModule {
 }
 ```
 
-The module specified here imports two modules: `BookModule`, that incorporates the book management feature logic, and
-a dynamic module once more brought by the `MongooseModule.forRoot()`, required by `MongooseBookRepository` to obtain the
-aforementioned Mongoose connection object.
+This class module specifies the Mongoose connection required to instantiate `MongooseBookRepository` at the `imports`
+property of the `Module` decorator. It also determines that any component dependent on a provider identified by
+the `BOOK_REPOSITORY` custom token is to get an instance of `MongooseBookRepository`. Finally, it determines
+that `BookController` is the sole controller for the book manager application.
 
 # Custom Repository Validation
 
@@ -226,7 +293,7 @@ beforeAll(async () => {
 
 You may want to create an instance of `MongoMemoryServer` (the main class exported by the library
 [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a
-full-blown MongoDB instance. This instance is vital to inject the custom repository at `BookService` at test runtime.
+full-blown MongoDB instance. This instance is vital to inject the custom repository at `BookController` at test runtime.
 The creation of the instance is defined by the `rootMongooseTestModule` function included
 at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
 
@@ -256,7 +323,7 @@ export const rootMongooseTestModule = (
 ```
 
 You may perceive that the port and dbName input parameters match those of the database connection
-specified [earlier](#nestjs-root-module-configuration). This is no coincidence.
+specified [earlier](#book-manager-module). This is no coincidence.
 
 Finally, you can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as
 those specified at [mongo-server.ts](../../test/util/mongo-server.ts).
