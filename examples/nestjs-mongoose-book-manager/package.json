@@ -28,7 +28,7 @@
     "@nestjs/mongoose": "^10.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "class-transformer": "^0.5.1",
-    "mongoose": "^7.3.2",
+    "mongoose": "^7.3.3",
     "node-abstract-repository": "^2.2.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
