@@ -17,10 +17,6 @@ export class Book implements Entity {
     this.description = book.description;
     this.isDeleted = book.isDeleted ?? false;
   }
-
-  markAsDeleted() {
-    this.isDeleted = true;
-  }
 }
 
 export class PaperBook extends Book {
