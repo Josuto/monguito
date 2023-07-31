@@ -25,7 +25,7 @@
     "@nestjs/common": "^9.4.2",
     "@nestjs/core": "^9.0.0",
     "@nestjs/mapped-types": "^2.0.2",
-    "@nestjs/mongoose": "^10.0.0",
+    "@nestjs/mongoose": "^10.0.1",
     "@nestjs/platform-express": "^9.0.0",
     "class-transformer": "^0.5.1",
     "mongoose": "^7.3.3",
