@@ -3368,6 +3368,11 @@ flatted@^3.1.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.7.tgz#609f39207cb614b89d0765b477cb2d437fbf9787"
   integrity sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==
 
+follow-redirects@^1.15.2:
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
+  integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+
 fork-ts-checker-webpack-plugin@8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-8.0.0.tgz#dae45dfe7298aa5d553e2580096ced79b6179504"
@@ -4582,33 +4587,34 @@ mongodb-connection-string-url@^2.5.4, mongodb-connection-string-url@^2.6.0:
     "@types/whatwg-url" "^8.2.1"
     whatwg-url "^11.0.0"
 
-mongodb-memory-server-core@8.13.0:
-  version "8.13.0"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-8.13.0.tgz#3aabf0faa2ad0eaf986dd047bfb9d599a285d4ed"
-  integrity sha512-4NTOzYOlRUilwb8CxOKix/XbZmac4cLpmEU03eaHx90lgEp+ARZM2PQtIOEg3nhHo97r9THIEv6Gs4LECokp0Q==
+mongodb-memory-server-core@8.14.0:
+  version "8.14.0"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-8.14.0.tgz#f7928cf00db18d6c78d2a02774e67aa72ef74aa3"
+  integrity sha512-neR9nZC/hqEpaRVkbzy019OqFYnlz5y+3cqZSxL15lcl0K73zwKWU/1jS0UpIii5RlSdgFuDc8xG7+M/IDnzzQ==
   dependencies:
     async-mutex "^0.3.2"
     camelcase "^6.3.0"
     debug "^4.3.4"
     find-cache-dir "^3.3.2"
+    follow-redirects "^1.15.2"
     get-port "^5.1.1"
     https-proxy-agent "^5.0.1"
     md5-file "^5.0.0"
     mongodb "^4.16.0"
     new-find-package-json "^2.0.0"
-    semver "^7.5.1"
+    semver "^7.5.4"
     tar-stream "^2.1.4"
-    tslib "^2.5.3"
+    tslib "^2.6.1"
     uuid "^9.0.0"
     yauzl "^2.10.0"
 
-mongodb-memory-server@^8.13.0:
-  version "8.13.0"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-8.13.0.tgz#c3302c72972220f2d7f8e48dc1919eb75c8585a8"
-  integrity sha512-CyrKMwEmRePn8iQ3LtWQiOJxlGK0eM+NNTq3Yg8m7gaywepFu24mF7s13q87Kfuq0WgBuCJQ4t6VcUZJ4m+KWQ==
+mongodb-memory-server@^8.14.0:
+  version "8.14.0"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-8.14.0.tgz#737b94d4aefb35000dbea571661bd981b06c8ba7"
+  integrity sha512-xY6ATsFeGLgzuZPy+13ho/JdYgar8Hv+yeGuI6E5uGuh++LyUKqgJlxh92dQbJUeEhrbFX50wgC8aWIDBXObKQ==
   dependencies:
-    mongodb-memory-server-core "8.13.0"
-    tslib "^2.5.3"
+    mongodb-memory-server-core "8.14.0"
+    tslib "^2.6.1"
 
 mongodb@5.6.0:
   version "5.6.0"
@@ -4724,8 +4730,10 @@ node-abort-controller@^3.0.1:
   integrity sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==
 
 "node-abstract-repository@link:../..":
-  version "0.0.0"
-  uid ""
+  version "2.3.0"
+  dependencies:
+    mongoose "^7.1.1"
+    typescript-optional "^3.0.0-alpha.3"
 
 node-emoji@1.11.0:
   version "1.11.0"
@@ -5299,7 +5307,7 @@ semver@^6.0.0, semver@^6.3.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.3.5, semver@^7.3.7, semver@^7.3.8, semver@^7.5.1, semver@^7.5.3:
+semver@^7.3.5, semver@^7.3.7, semver@^7.3.8, semver@^7.5.3, semver@^7.5.4:
   version "7.5.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.5.4.tgz#483986ec4ed38e1c6c48c34894a9182dbff68a6e"
   integrity sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==
@@ -5764,12 +5772,7 @@ tslib@^1.11.1, tslib@^1.8.1:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.1.0, tslib@^2.3.1, tslib@^2.5.0, tslib@^2.5.3:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.0.tgz#b295854684dbda164e181d259a22cd779dcd7bc3"
-  integrity sha512-7At1WUettjcSRHXCyYtTselblcHl9PJFFVKiCAy/bY97+BPZXSQ2wbq0P9s8tK2G7dFQfNnlJnPAiArVBVBsfA==
-
-tslib@^2.6.0:
+tslib@^2.1.0, tslib@^2.3.1, tslib@^2.5.0, tslib@^2.6.0, tslib@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.1.tgz#fd8c9a0ff42590b25703c0acb3de3d3f4ede0410"
   integrity sha512-t0hLfiEKfMUoqhG+U1oid7Pva4bbDPHYfJNiB7BiIjRkj1pyC++4N3huJfqY6aRH6VTB0rvtzQwjM4K6qpfOig==
