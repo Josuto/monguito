@@ -81,7 +81,7 @@
     "lint-staged": "^14.0.0",
     "microbundle": "^0.15.1",
     "mongodb-memory-server": "^8.12.2",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.2",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.0.0",
     "typescript": "^5.0.4"
