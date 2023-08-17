@@ -9,9 +9,9 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    versioning-strategy: "widen_ranges" # Avoid patch dependency updates
+    versioning-strategy: "increase" # Avoid patch dependency updates
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/examples/nestjs-mongoose-book-manager/" # Location of package manifests
     schedule:
       interval: "weekly"
-    versioning-strategy: "widen_ranges" # Avoid patch dependency updates
+    versioning-strategy: "increase" # Avoid patch dependency updates
