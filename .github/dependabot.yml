@@ -9,9 +9,13 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    versioning-strategy: "increase" # Avoid patch dependency updates
+    ignore: # Avoid patch dependency updates
+      - dependency-name: "*"
+        update-types: [ "version-update:semver-patch" ]
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/examples/nestjs-mongoose-book-manager/" # Location of package manifests
     schedule:
       interval: "weekly"
-    versioning-strategy: "increase" # Avoid patch dependency updates
+    ignore: # Avoid patch dependency updates
+      - dependency-name: "*"
+        update-types: [ "version-update:semver-patch" ]
