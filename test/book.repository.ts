@@ -26,9 +26,7 @@ export class MongooseBookRepository
   async findByIsbn<T extends Book>(isbn: string): Promise<Optional<T>> {
     if (!isbn)
       throw new IllegalArgumentException('The given ISBN must be valid');
-    return this.entityModel
-      .findOne({ isbn: isbn })
-      .exec()
-      .then((book) => Optional.ofNullable(this.instantiateFrom(book) as T));
+    const book = await this.entityModel.findOne({ isbn: isbn }).exec();
+    return Optional.ofNullable<T>(this.instantiateFrom(book) as unknown as T);
   }
 }
