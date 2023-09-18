@@ -1,6 +1,6 @@
 {
   "name": "node-abstract-repository",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Node.js lightweight abstract and polymorphic MongoDB repository implementation.",
   "author": {
     "name": "Josu Martinez",

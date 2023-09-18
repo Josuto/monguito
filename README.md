@@ -60,7 +60,7 @@ export class MongooseBookRepository
     return this.entityModel
       .findOne({isbn: isbn})
       .exec()
-      .then((book) => Optional.ofNullable(this.instantiateFrom(book) as T));
+      .then((book) => Optional.ofNullable(this.instantiateFrom(book) as unknown as T));
   }
 }
 ```
