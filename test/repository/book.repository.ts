@@ -2,9 +2,9 @@ import {
   IllegalArgumentException,
   MongooseRepository,
   Repository,
-} from '../src';
+} from '../../src';
 import { Optional } from 'typescript-optional';
-import { AudioBook, Book, PaperBook } from './book';
+import { AudioBook, Book, PaperBook } from '../domain/book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schema';
 
 export interface BookRepository extends Repository<Book> {

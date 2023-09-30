@@ -1,4 +1,4 @@
-import { BaseSchema, extendSchema } from '../src';
+import { BaseSchema, extendSchema } from '../../src';
 
 export const BookSchema = extendSchema(
   BaseSchema,
