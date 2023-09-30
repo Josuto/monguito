@@ -3,13 +3,13 @@ import {
   deleteAll,
   findById,
   insert,
-} from './util/mongo-server';
+} from '../util/mongo-server';
 import {
   IllegalArgumentException,
   NotFoundException,
-} from '../src/util/exceptions';
+} from '../../src/util/exceptions';
 import { Optional } from 'typescript-optional';
-import { AudioBook, Book, ElectronicBook, PaperBook } from './book';
+import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
 import { BookRepository, MongooseBookRepository } from './book.repository';
 
 describe('Given an instance of book repository', () => {

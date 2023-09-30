@@ -16,6 +16,7 @@ export const insert = async (
   if (discriminatorKey) {
     entity['__t'] = discriminatorKey;
   }
+
   return mongoose.connection.db
     .collection(collection)
     .insertOne(entity)
@@ -30,7 +31,6 @@ export const findById = async (id: string, collection: string) => {
 };
 
 export const deleteAll = async (collection: string) => {
-  if (!mongoServer) return;
   await setupConnection();
   await mongoose.connection.db.collection(collection).deleteMany({});
   return;
@@ -41,14 +41,14 @@ export const closeMongoConnection = async () => {
   await mongoServer?.stop();
 };
 
-const setupConnection = async () => {
+export const setupConnection = async () => {
   if (!mongoServer) {
     mongoServer = await MongoMemoryServer.create({
       instance: {
         dbName: dbName,
       },
     });
+    await mongoose.connect(mongoServer.getUri());
+    await mongoose.connection.useDb(dbName);
   }
-  await mongoose.connect(mongoServer.getUri());
-  await mongoose.connection.useDb(dbName);
 };
