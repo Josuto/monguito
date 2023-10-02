@@ -1,16 +1,20 @@
-import { Auditable } from '../../src';
-import { Book, BookType } from './book';
+import { Auditable, AuditableClass, Entity } from '../../src';
+import { BookType } from './book';
 
 type AuditableBookType = BookType & Auditable;
 
-export class AuditableBook extends Book implements Auditable {
-  readonly createdAt?: Date;
-  readonly updatedAt?: Date;
+export class AuditableBook extends AuditableClass implements Entity {
+  readonly id?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly isbn: string;
 
   constructor(book: AuditableBookType) {
     super(book);
-    this.createdAt = book.createdAt;
-    this.updatedAt = book.updatedAt;
+    this.id = book.id;
+    this.title = book.title;
+    this.description = book.description;
+    this.isbn = book.isbn;
   }
 }
 
