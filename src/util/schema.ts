@@ -16,8 +16,8 @@ export const BaseSchema = new Schema(
 export const AuditableSchema = extendSchema(
   BaseSchema,
   {
-    createdBy: { type: String, required: false },
-    updatedBy: { type: String, required: false },
+    createdBy: { type: String },
+    updatedBy: { type: String },
   },
   { timestamps: true },
 );

@@ -1,15 +1,15 @@
 export interface Auditable {
   createdAt?: Date;
-  createdBy?: string | number;
+  createdBy?: string;
   updatedAt?: Date;
-  updatedBy?: string | number;
+  updatedBy?: string;
 }
 
 export abstract class AuditableClass implements Auditable {
   readonly createdAt?: Date;
-  readonly createdBy?: string | number;
+  readonly createdBy?: string;
   readonly updatedAt?: Date;
-  readonly updatedBy?: string | number;
+  readonly updatedBy?: string;
 
   constructor(entity: Auditable) {
     this.createdAt = entity.createdAt;

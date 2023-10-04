@@ -66,7 +66,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   async save<S extends T>(
     entity: S | PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
-    userId?: string | number,
+    userId?: string,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
@@ -123,11 +123,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private async insert<S extends T>(
     entity: S,
-    userId?: string | number,
+    userId?: string,
   ): Promise<HydratedDocument<S>> {
     try {
       this.setDiscriminatorKeyOn(entity);
-      const document = this.assignUserId(entity, userId);
+      const document = this.createDocumentAndSetUserId(entity, userId);
       return (await document.save()) as HydratedDocument<S>;
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
@@ -151,17 +151,17 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
   }
 
-  private assignUserId<S extends T>(entity: S, userId?: string | number) {
-    const tempEntity = new this.entityModel(entity);
+  private createDocumentAndSetUserId<S extends T>(entity: S, userId?: string) {
+    const document = new this.entityModel(entity);
     if (isAuditable(entity) && userId) {
-      tempEntity.$locals.userId = userId;
+      document.$locals.userId = userId;
     }
-    return tempEntity;
+    return document;
   }
 
   private async update<S extends T>(
     entity: PartialEntityWithId<S>,
-    userId?: string | number,
+    userId?: string,
   ): Promise<HydratedDocument<S> | null> {
     const document = await this.entityModel.findById<HydratedDocument<S>>(
       entity.id,
