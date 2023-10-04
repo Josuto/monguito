@@ -1,4 +1,4 @@
-import { Repository } from './repository';
+import { PartialEntityWithId, Repository } from './repository';
 import { Optional } from 'typescript-optional';
 import mongoose, {
   Connection,
@@ -14,6 +14,7 @@ import {
   UndefinedConstructorException,
   UniquenessViolationException,
 } from './util/exceptions';
+import { isAuditable } from './util/audit';
 
 type Constructor<T> = new (...args: any) => T;
 
@@ -24,8 +25,6 @@ interface ConstructorMap<T> {
 type PartialEntityWithIdAndOptionalDiscriminatorKey<T> = { id: string } & {
   __t?: string;
 } & Partial<T>;
-
-type PartialEntityWithId<T> = { id: string } & Partial<T>;
 
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
@@ -67,15 +66,17 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   async save<S extends T>(
     entity: S | PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
+    userId?: string | number,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     let document;
     if (!entity.id) {
-      document = await this.insert(entity as S);
+      document = await this.insert(entity as S, userId);
     } else {
       document = await this.update(
         entity as PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
+        userId,
       );
     }
     if (document) return this.instantiateFrom(document) as S;
@@ -120,12 +121,14 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return entityModel;
   }
 
-  private async insert<S extends T>(entity: S): Promise<HydratedDocument<S>> {
+  private async insert<S extends T>(
+    entity: S,
+    userId?: string | number,
+  ): Promise<HydratedDocument<S>> {
     try {
       this.setDiscriminatorKeyOn(entity);
-      return (await this.entityModel.create(
-        entity,
-      )) as unknown as HydratedDocument<S>;
+      const document = this.assignUserId(entity, userId);
+      return (await document.save()) as HydratedDocument<S>;
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
         throw new UniquenessViolationException(
@@ -140,16 +143,25 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
-    const entitySpecifiesDiscriminatorKey = '__t' in entity;
-    const entityIsSupertype =
+    const hasEntityDiscriminatorKey = '__t' in entity;
+    const isEntitySupertype =
       entityClassName !== this.entityConstructorMap['Default'].type.name;
-    if (!entitySpecifiesDiscriminatorKey && entityIsSupertype) {
+    if (!hasEntityDiscriminatorKey && isEntitySupertype) {
       entity['__t'] = entityClassName;
     }
   }
 
+  private assignUserId<S extends T>(entity: S, userId?: string | number) {
+    const tempEntity = new this.entityModel(entity);
+    if (isAuditable(entity) && userId) {
+      tempEntity.$locals.userId = userId;
+    }
+    return tempEntity;
+  }
+
   private async update<S extends T>(
     entity: PartialEntityWithId<S>,
+    userId?: string | number,
   ): Promise<HydratedDocument<S> | null> {
     const document = await this.entityModel.findById<HydratedDocument<S>>(
       entity.id,
@@ -157,6 +169,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     if (document) {
       document.set(entity);
       document.isNew = false;
+      if (isAuditable(document) && userId) {
+        document.$locals.userId = userId;
+      }
       return (await document.save()) as HydratedDocument<S>;
     }
     return null;

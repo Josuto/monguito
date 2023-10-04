@@ -18,3 +18,10 @@ export abstract class AuditableClass implements Auditable {
     this.updatedBy = entity.updatedBy;
   }
 }
+
+export const isAuditable = (entity: any): entity is Auditable =>
+  entity &&
+  'createdAt' in entity &&
+  'updatedAt' in entity &&
+  'createdBy' in entity &&
+  'updatedBy' in entity;
