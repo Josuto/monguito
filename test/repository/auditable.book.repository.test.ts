@@ -27,9 +27,14 @@ describe('', () => {
               isbn: '9780321601919',
             });
 
-            const auditableBook = await bookRepository.save(bookToInsert);
-            expect(auditableBook).toHaveProperty('createdAt');
-            expect(auditableBook).toHaveProperty('updatedAt');
+            const auditableBook = await bookRepository.save(
+              bookToInsert,
+              '1234',
+            );
+            expect(auditableBook.createdAt).toBeDefined();
+            expect(auditableBook.updatedAt).toBeDefined();
+            expect(auditableBook.createdBy).toBeDefined();
+            expect(auditableBook.updatedBy).toBeDefined();
           });
         });
 
@@ -42,9 +47,14 @@ describe('', () => {
               isbn: '9780321834577',
             });
 
-            const auditableBook = await bookRepository.save(bookToInsert);
-            expect(auditableBook).toHaveProperty('createdAt');
-            expect(auditableBook).toHaveProperty('updatedAt');
+            const auditableBook = await bookRepository.save(
+              bookToInsert,
+              '1234',
+            );
+            expect(auditableBook.createdAt).toBeDefined();
+            expect(auditableBook.updatedAt).toBeDefined();
+            expect(auditableBook.createdBy).toBeDefined();
+            expect(auditableBook.updatedBy).toBeDefined();
           });
         });
       });
@@ -59,7 +69,10 @@ describe('', () => {
               'Building and Scaling High Performing Technology Organizations',
             isbn: '1942788339',
           });
-          storedAuditableBook = await bookRepository.save(auditableBook);
+          storedAuditableBook = await bookRepository.save(
+            auditableBook,
+            '1234',
+          );
         });
 
         describe('and that is of supertype AuditableBook', () => {
@@ -70,12 +83,24 @@ describe('', () => {
                 'A Novel About IT, DevOps, and Helping Your Business Win',
             } as AuditableBook;
 
-            const auditableBook = await bookRepository.save(bookToUpdate);
+            const auditableBook = await bookRepository.save(
+              bookToUpdate,
+              '5678',
+            );
             expect(auditableBook.createdAt).toEqual(
               storedAuditableBook.createdAt,
             );
             expect(auditableBook.updatedAt?.getTime()).toBeGreaterThan(
               storedAuditableBook.updatedAt!.getTime(),
+            );
+            expect(auditableBook.createdBy).toEqual(
+              storedAuditableBook.createdBy,
+            );
+            expect(auditableBook.updatedBy).not.toEqual(
+              storedAuditableBook.createdBy,
+            );
+            expect(auditableBook.updatedBy).not.toEqual(
+              storedAuditableBook.updatedBy,
             );
           });
         });
@@ -93,6 +118,7 @@ describe('', () => {
 
             storedAuditablePaperBook = await bookRepository.save(
               auditablePaperBook,
+              '1234',
             );
           });
 
@@ -102,12 +128,24 @@ describe('', () => {
               edition: 4,
             } as AuditablePaperBook;
 
-            const auditablePaperBook = await bookRepository.save(bookToUpdate);
+            const auditablePaperBook = await bookRepository.save(
+              bookToUpdate,
+              '5678',
+            );
             expect(auditablePaperBook.createdAt).toEqual(
               storedAuditablePaperBook.createdAt,
             );
             expect(auditablePaperBook.updatedAt?.getTime()).toBeGreaterThan(
               storedAuditablePaperBook.updatedAt!.getTime(),
+            );
+            expect(auditablePaperBook.createdBy).toEqual(
+              storedAuditablePaperBook.createdBy,
+            );
+            expect(auditablePaperBook.updatedBy).not.toEqual(
+              storedAuditablePaperBook.createdBy,
+            );
+            expect(auditablePaperBook.updatedBy).not.toEqual(
+              storedAuditablePaperBook.updatedBy,
             );
           });
         });
