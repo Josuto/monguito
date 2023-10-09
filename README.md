@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="monguito.png" width="120" alt="Monguito" />
+</p>
+
+<p align="center">
+  Easy and fast build of custom MongoDB repositories
+</p>
+
+<div align="center">
+
 ![Code size](https://img.shields.io/github/languages/code-size/josuto/node-abstract-repository)
 ![Min code size](https://img.shields.io/bundlephobia/minzip/node-abstract-repository)
 [![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/node-abstract-repository/actions/workflows/pipeline.yml)
@@ -5,46 +15,52 @@
 [![Downloads stat](https://img.shields.io/npm/dt/node-abstract-repository)](http://www.npmtrends.com/node-abstract-repository)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
-This is a lightweight and type-safe library that implements an abstract
-and [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/)
-[repository](https://www.martinfowler.com/eaaCatalog/repository.html)
-for [Node.js](https://nodejs.org/), currently focused on [MongoDB](https://www.mongodb.com/). It has been designed to
-help developers focus on defining any custom repository in a fast, easy, and structured manner, releasing them from
-having to write basic CRUD operations, while decoupling domain from persistence logic.
+</div>
 
 # Main Contents
 
-- [Installation](#installation)
-- [Usage](#usage)
+- [What is `monguito` Exactly?](#what-is-monguito-exactly)
+- [Getting Started](#getting-started)
 - [Examples](#examples)
 - [Write Your Own Repository Interfaces](#write-your-own-repository-interfaces)
 - [Some Important Implementation Details](#some-important-implementation-details)
 - [Comparison to other Alternatives](#comparison-to-other-alternatives)
-- [Add Support for other Database Technologies](#add-support-for-other-database-technologies)
 - [Contributors](#contributors)
 
-# Installation
+# What is `monguito` Exactly?
 
-You can install `node-abstract-repository`with npm:
+`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the generic [repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
+
+It allows developers to define any custom MongoDB repository in a fast, easy, and structured manner, releasing them from having to write basic CRUD operations, while decoupling domain from persistence logic. Despite its small size, it includes several optional features such as seamless audit data handling support. 
+
+Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
+
+Check it out! 🚀
+
+# Getting Started
+
+## Installation
+
+You can install `monguito` with npm:
 
 ```shell
-npm install node-abstract-repository
+npm install monguito
 ```
 
 Or yarn:
 
 ```shell
-yarn add node-abstract-repository
+yarn add monguito
 ```
 
-# Usage
+## Usage
 
 Creating your repository with custom database operations is very straight forward. Say you want to create a custom
 repository to handle database operations over instances of a `Book` and any of its subtypes (e.g., `PaperBook`
 and `AudioBook`). Here's the implementation of a custom repository that deals with persistable instances of `Book`:
 
 ```typescript
-export class MongooseBookRepository
+class MongooseBookRepository
   extends MongooseRepository<Book> {
   constructor() {
     super({
@@ -77,7 +93,7 @@ const bookRepository = new MongooseBookRepository();
 const books: Book[] = bookRepository.findAll();
 ```
 
-No more leaking of the persistence logic into your domain/application logic!
+No more leaking of the persistence logic into your domain/application logic! 🤩
 
 ## Polymorphic Domain Model Specification
 
@@ -113,7 +129,7 @@ follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Depend
 abstractions, not implementations_. To do so, you simply need to add one extra artefact to your code:
 
 ```typescript
-export interface BookRepository extends Repository<Book> {
+interface BookRepository extends Repository<Book> {
   findByIsbn: <T extends Book>(isbn: string) => Promise<Optional<T>>;
 }
 ```
@@ -123,7 +139,7 @@ your repository (e.g., Mongoose-based or [MongoDB Node Driver](https://www.mongo
 -based, Postgres, MySQL, etc.) Then, make your custom repository implement `BookRepository` as follows:
 
 ```typescript
-export class MongooseBookRepository
+class MongooseBookRepository
   extends MongooseRepository<Book>
   implements BookRepository {
 
@@ -136,7 +152,7 @@ implementation class implement `Repository<T>`, where `T` is your domain model s
 custom book repository example:
 
 ```typescript
-export class MongooseBookRepository
+class MongooseBookRepository
   extends MongooseRepository<Book>
   implements Repository<Book> {
 
@@ -151,18 +167,20 @@ export class MongooseBookRepository
 Here is a possible definition for the aforementioned polymorphic book domain model:
 
 ```typescript
-export class Book implements Entity {
+type BookType = {
+  id?: string;
+  title: string;
+  description: string;
+  isbn: string;
+};
+
+class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
   readonly isbn: string;
 
-  constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    isbn: string;
-  }) {
+  constructor(book: BookType) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
@@ -170,33 +188,14 @@ export class Book implements Entity {
   }
 }
 
-export class PaperBook extends Book {
+type PaperBookType = BookType & { edition: number };
+
+class PaperBook extends Book {
   readonly edition: number;
 
-  constructor(paperBook: {
-    id?: string;
-    title: string;
-    description: string;
-    isbn: string;
-    edition: number;
-  }) {
+  constructor(paperBook: PaperBookType) {
     super(paperBook);
     this.edition = paperBook.edition;
-  }
-}
-
-export class AudioBook extends Book {
-  readonly hostingPlatforms: string[];
-
-  constructor(audioBook: {
-    id?: string;
-    title: string;
-    description: string;
-    isbn: string;
-    hostingPlatforms: string[];
-  }) {
-    super(audioBook);
-    this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }
 ```
@@ -220,10 +219,12 @@ mind that the current semantics for these operations are those provided at `Mong
 these operations to behave differently then you must override it at your custom repository implementation.
 
 ```typescript
-export interface Repository<T extends Entity> {
+type PartialEntityWithId<T> = { id: string } & Partial<T>;
+
+interface Repository<T extends Entity> {
   findById: <S extends T>(id: string) => Promise<Optional<S>>;
   findAll: <S extends T>(filters?: any, sortBy?: any) => Promise<S[]>;
-  save: <S extends T>(entity: S | ({ id: string } & Partial<S>)) => Promise<S>;
+  save: <S extends T>(entity: S | PartialEntityWithId<S>, userId?: string) => Promise<S>;
   deleteById: (id: string) => Promise<boolean>;
 }
 ```
@@ -235,7 +236,8 @@ export interface Repository<T extends Entity> {
   not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
   collection; if it does, the function updates it. Otherwise, throws an exception. This is because trying to persist a
   new entity that includes a developer specified `id` represents a _system invariant violation_; only Mongoose is able
-  to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
+  to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates. Finally, this function specifies 
+  an optional `userId` argument to enable user audit data handling (more on that topic later).
 - `deleteById` deletes an entity matching the given `id` if it exists. When it does, the function returns `true`.
   Otherwise, it returns `false`.
 
@@ -245,13 +247,13 @@ be sure that the resulting values of the CRUD operations are of the type you exp
 
 ## Utilities to Define Your Custom Schemas
 
-This project includes a couple of utilities to ease the specification of custom domain object-related Mongoose schemas.
-The `extendSchema` function enables you to create schemas for subtype domain objects that inherit from the supertype
-domain object schema. This is specially convenient when defining schemas for polymorphic data structures. The following
-example depicts the definition of `BookSchema`, `PaperBookSchema`, and `AudioBookSchema`:
+The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `moquito` 
+to handle the required implementation details. This function is specially convenient when defining schemas for 
+polymorphic data structures. The following example depicts the definition of `BookSchema`, `PaperBookSchema`, 
+and `AudioBookSchema`:
 
 ```typescript
-export const BookSchema = extendSchema(
+const BookSchema = extendSchema(
   BaseSchema,
   {
     title: {type: String, required: true},
@@ -261,11 +263,11 @@ export const BookSchema = extendSchema(
   {timestamps: true},
 );
 
-export const PaperBookSchema = extendSchema(BookSchema, {
+const PaperBookSchema = extendSchema(BookSchema, {
   edition: {type: Number, required: true, min: 1},
 });
 
-export const AudioBookSchema = extendSchema(BookSchema, {
+const AudioBookSchema = extendSchema(BookSchema, {
   hostingPlatforms: {type: [{type: String}], required: true},
 });
 ```
@@ -273,27 +275,81 @@ export const AudioBookSchema = extendSchema(BookSchema, {
 Make sure that the schema for your supertype domain object extends from `BaseSchema`. It is required
 by `MongooseRepository` to properly deserialise your domain objects.
 
+## Built-in Audit Data Support
+
+You can enable `monguito`'s out-of-the-box audit data handling by just making your domain objects implement 
+the `Auditable` interface. It specifies the data to audit i.e., creation and last update time and (optionally) 
+user. Any domain object can implement this interface and add audit data as part of its constructor arguments. 
+This approach is particularly useful for those domain objects that inherit the members of a superclass. Here is 
+an example of the use of `Auditable`:
+
+```typescript
+type AuditableBookType = BookType & Auditable;
+
+class AuditableBook implements Entity, Auditable {
+  readonly id?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly isbn: string;
+  readonly createdAt?: Date;
+  readonly createdBy?: string;
+  readonly updatedAt?: Date;
+  readonly updatedBy?: string;
+
+  constructor(book: AuditableBookType) {
+    this.id = book.id;
+    this.title = book.title;
+    this.description = book.description;
+    this.isbn = book.isbn;
+    this.createdAt = book.createdAt;
+    this.createdBy = book.createdBy;
+    this.updatedAt = book.updatedAt;
+    this.updatedBy = book.updatedBy;
+  }
+}
+```
+
+If you would rather avoid all this boilerplate and you are not planning to make your domain object extend from any other 
+class, you can make it inherit from `AuditableClass`. This is an abstract class included in `moquito` that implements 
+`Auditable` and both declares and instantiates all the audit data for you. You may then use `AuditableClass` as follows:
+
+```typescript
+type AuditableBookType = BookType & Auditable;
+
+class AuditableBook extends AuditableClass implements Entity {
+  readonly id?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly isbn: string;
+
+  constructor(book: AuditableBookType) {
+    super(book);
+    this.id = book.id;
+    this.title = book.title;
+    this.description = book.description;
+    this.isbn = book.isbn;
+  }
+}
+```
+
+`monguito` will produce and save the audit data for any domain object implementing `Auditable` or extending 
+`AuditableClass` that is to be stored in MongoDB invoking the repository `save` operation. The user audit data is 
+optional; if you want `monguito` to handle it for you, simply invoke `save` with a value for the `userId` input 
+parameter.
+
 # Comparison to other Alternatives
 
-First and foremost, this approach is simpler and more lightweight than other existing database integration
+First and foremost, `monguito` is simpler and more lightweight than other existing database integration
 alternatives (e.g., [TypeORM](https://typeorm.io/) or [Typegoose](https://typegoose.github.io/typegoose/)).
-Additionally, TypeORM has mainly been developed for relational databases
-and [presents several limitations compared to Mongoose](https://eliezer.medium.com/typeorm-mongodb-review-8855903228b1).
+Additionally, TypeORM has mainly been developed for relational databases and 
+[presents several limitations compared to Mongoose](https://eliezer.medium.com/typeorm-mongodb-review-8855903228b1).
 Typegoose, on another hand, is yet another Mongoose wrapper that provides TypeScript typing to Mongoose schemas and
 models, but it implements the [Data Mapper](https://martinfowler.com/eaaCatalog/dataMapper.html) pattern instead of
-the Repository pattern. Moreover, this approach is also type-safe. Although it could be interesting to base the
-abstract repository on Typegoose in the future, it would add a new abstraction layer, thus complicating the current
-solution both in logic and size. Considering that Mongoose is currently the most mature MongoDB handling utility, it
-might be a
-better idea to leveraging the abstract repository with other Mongoose features (
-e.g., [implementing various types of relationships between documents belonging to different collections](https://www.bezkoder.com/mongoose-one-to-many-relationship/)).
+the Repository pattern, which in complex domain model scenarios results in query logic duplication. Moreover, 
+`monguito` is also type-safe. 
 
-# Add Support for other Database Technologies
-
-Extending the repository to provide an implementation
-for [MongoDB Node Driver](https://www.mongodb.com/docs/drivers/node/current/) or even for another database technology
-such as MySQL or PostgreSQL is easy. All you need to do is first create an abstract template for the required database
-technology, make it implement the `Repository` interface, and then add all the logic required for each of its methods.
+Considering that Mongoose is currently the most mature MongoDB handling utility, we decided to keep it as `monguito`'s 
+foundation.
 
 # Project Validation
 
@@ -316,8 +372,6 @@ and [Aral Roca](https://github.com/aralroca) for all the insightful conversation
 # Stay in touch
 
 Author - [Josu Martinez](https://es.linkedin.com/in/josumartinez)
-
-[![Twitter](https://img.shields.io/twitter/follow/elkartech?style=social)](https://twitter.com/elkartech)
 
 # License
 
