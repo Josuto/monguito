@@ -107,7 +107,7 @@ relates to the supertype, while the rest of the keys relate to the subtypes. Bew
 the type name. If it so happens that you do not have any subtype in your domain model, no problem! Just specify the
 domain object that your custom repository is to handle as the sole map key-value, and you are done.
 
-Regarding schemas: I believe that writing your own database schemas is a good practice, as opposed of using decorators
+Regarding schemas: We believe that writing your own database schemas is a good practice, as opposed of using decorators
 at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
 rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
 properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
@@ -119,8 +119,8 @@ of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test
 complete set of unit test cases used to validate this project.
 
 Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
-[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, I would
-recommend that you read the following section.
+[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, we
+recommend reading the following section.
 
 # Write Your Own Repository Interfaces
 
@@ -207,7 +207,7 @@ safely be `undefined` until the pertaining domain object instance is inserted (i
 database.
 
 The fact that `Entity` is an interface instead of an abstract class is not a coincidence; JavaScript is a single
-inheritance-based programming language, and I strongly believe that you are entitled to design the domain model at your
+inheritance-based programming language, and we strongly believe that you are entitled to design the domain model at your
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
 
