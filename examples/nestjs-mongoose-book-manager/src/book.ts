@@ -1,4 +1,4 @@
-import { Entity } from 'node-abstract-repository';
+import { Entity } from 'monguito';
 
 export class Book implements Entity {
   readonly id?: string;

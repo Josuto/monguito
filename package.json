@@ -1,5 +1,5 @@
 {
-  "name": "node-abstract-repository",
+  "name": "monguito",
   "version": "2.8.0",
   "description": "Node.js lightweight abstract and polymorphic MongoDB repository implementation.",
   "author": {
@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/josuto/node-abstract-repository.git"
+    "url": "https://github.com/josuto/monguito.git"
   },
   "keywords": [
     "node",

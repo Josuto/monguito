@@ -1,13 +1,12 @@
-This is an example of how to use the `node-abstract-repository` library in a NestJS application that uses MongoDB. It
-is a dummy book manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
+This is an example of how to use `monguito` in a NestJS application that uses MongoDB. It is a dummy book 
+manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
 books. A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
 
 > **Warning**
 >
 > Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main
-> documentation of [node-abstract-repository](../../README.md). The goal of this documentation is not to provide a
-> comprehensive guide on the `node-abstract-repository` library usage. Thus, you may want to check
-> the [sample application code](./src) as you go reading.
+> documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive 
+guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
 
 # Main Contents
 
@@ -222,7 +221,7 @@ e.g., [Domain-Driven Design (tactical design)](https://enterprisecraftsmanship.c
 I have decided not to do so for simplicity purposes; the book manager presented here is such an extremely
 simple CRUD application that introducing services would be over-engineering. I rather implement the minimum amount of
 code necessary for the sake of maximising the actual purpose of this documentation: illustrate how to integrate
-the `node-abstract-repository` library on a NodeJS-based enterprise application.
+`monguito` on a NodeJS-based enterprise application.
 
 Moreover, you would probably not write a `deserialise` function to enable the transformation of JSON request bodies into
 domain objects when dealing with `POST` requests. Instead, you would rather use
