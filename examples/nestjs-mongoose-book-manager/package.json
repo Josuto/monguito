@@ -1,7 +1,7 @@
 {
   "name": "nestjs-mongoose-book-manager",
   "version": "0.2.0",
-  "description": "Sample NestJS application that uses the node-abstract-repository library.",
+  "description": "Sample NestJS application that uses monguito.",
   "author": "Josu Martinez",
   "private": true,
   "license": "MIT",
@@ -29,7 +29,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "class-transformer": "^0.5.1",
     "mongoose": "^7.6.1",
-    "node-abstract-repository": "link:../../",
+    "monguito": "link:../../",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "typescript-optional": "^3.0.0-alpha.3"

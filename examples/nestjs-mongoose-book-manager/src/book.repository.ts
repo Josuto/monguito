@@ -2,7 +2,7 @@ import {
   IllegalArgumentException,
   MongooseRepository,
   Repository,
-} from 'node-abstract-repository';
+} from 'monguito';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 import { Injectable } from '@nestjs/common';

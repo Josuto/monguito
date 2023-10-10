@@ -1,4 +1,4 @@
-import { BaseSchema, extendSchema } from 'node-abstract-repository';
+import { BaseSchema, extendSchema } from 'monguito';
 
 export const BookSchema = extendSchema(
   BaseSchema,
