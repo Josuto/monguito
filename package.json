@@ -1,7 +1,7 @@
 {
   "name": "monguito",
   "version": "2.10.0",
-  "description": "Node.js lightweight abstract and polymorphic MongoDB repository implementation.",
+  "description": "Small generic and polymorphic MongoDB repository implementation for Node.js apps.",
   "author": {
     "name": "Josu Martinez",
     "email": "josu.martinez@gmail.com"
