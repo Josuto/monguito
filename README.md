@@ -247,7 +247,7 @@ be sure that the resulting values of the CRUD operations are of the type you exp
 
 ## Utilities to Define Your Custom Schemas
 
-The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `moquito` 
+The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `monguito` 
 to handle the required implementation details. This function is specially convenient when defining schemas for 
 polymorphic data structures. The following example depicts the definition of `BookSchema`, `PaperBookSchema`, 
 and `AudioBookSchema`:
@@ -310,7 +310,7 @@ class AuditableBook implements Entity, Auditable {
 ```
 
 If you would rather avoid all this boilerplate and you are not planning to make your domain object extend from any other 
-class, you can make it inherit from `AuditableClass`. This is an abstract class included in `moquito` that implements 
+class, you can make it inherit from `AuditableClass`. This is an abstract class included in `monguito` that implements 
 `Auditable` and both declares and instantiates all the audit data for you. You may then use `AuditableClass` as follows:
 
 ```typescript
