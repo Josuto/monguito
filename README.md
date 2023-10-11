@@ -8,12 +8,13 @@
 
 <div align="center">
 
-![Code size](https://img.shields.io/github/languages/code-size/josuto/node-abstract-repository)
-![Min code size](https://img.shields.io/bundlephobia/minzip/node-abstract-repository)
-[![CI](https://github.com/josuto/nestjs-abstract-repository/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/node-abstract-repository/actions/workflows/pipeline.yml)
-[![NPM](https://img.shields.io/npm/v/node-abstract-repository)](https://www.npmjs.com/package/node-abstract-repository)
+![Code size](https://img.shields.io/github/languages/code-size/josuto/monguito)
+![Min code size](https://img.shields.io/bundlephobia/minzip/monguito
+)
+[![CI](https://github.com/josuto/monguito/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/monguito/actions/workflows/pipeline.yml)
+[![NPM](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
 [![Downloads stat](https://img.shields.io/npm/dt/node-abstract-repository)](http://www.npmtrends.com/node-abstract-repository)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](https://makeapullrequest.com)
 
 </div>
 
