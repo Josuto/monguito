@@ -30,7 +30,7 @@
 
 # What is `monguito`?
 
-`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the generic [repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
+`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the Abstract [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
 
 It allows developers to define any custom MongoDB repository in a fast, easy, and structured manner, releasing them from having to write basic CRUD operations, while decoupling domain from persistence logic. Despite its small size, it includes several optional features such as seamless audit data handling support.
 
