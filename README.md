@@ -36,8 +36,6 @@ It allows developers to define any custom MongoDB repository in a fast, easy, an
 
 Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
 
-Check it out! 🚀
-
 # Getting Started
 
 ## Installation
