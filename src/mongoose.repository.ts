@@ -1,5 +1,3 @@
-import { PartialEntityWithId, Repository } from './repository';
-import { Optional } from 'typescript-optional';
 import mongoose, {
   Connection,
   HydratedDocument,
@@ -7,6 +5,9 @@ import mongoose, {
   Schema,
   UpdateQuery,
 } from 'mongoose';
+import { Optional } from 'typescript-optional';
+import { PartialEntityWithId, Repository } from './repository';
+import { isAuditable } from './util/audit';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -14,7 +15,7 @@ import {
   UndefinedConstructorException,
   UniquenessViolationException,
 } from './util/exceptions';
-import { isAuditable } from './util/audit';
+import { SearchOptions } from './util/search-options';
 
 type Constructor<T> = new (...args: any) => T;
 
@@ -44,14 +45,35 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return !!isDeleted;
   }
 
-  async findAll<S extends T>(filters?: any, sortBy?: any): Promise<S[]> {
-    return this.entityModel
-      .find(filters)
-      .sort(sortBy)
-      .exec()
-      .then((documents) =>
-        documents.map((document) => this.instantiateFrom(document) as S),
+  async findAll<S extends T>(options?: SearchOptions): Promise<S[]> {
+    if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
+      throw new IllegalArgumentException(
+        'The given page number must be a positive number',
       );
+    }
+    if (options?.pageable?.offset && options?.pageable?.offset < 0) {
+      throw new IllegalArgumentException(
+        'The given page offset must be a positive number',
+      );
+    }
+
+    const offset = options?.pageable?.offset ?? 0;
+    const pageNumber = options?.pageable?.pageNumber ?? 0;
+    try {
+      return this.entityModel
+        .find(options?.filters)
+        .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
+        .limit(offset)
+        .sort(options?.sortBy)
+        .exec()
+        .then((documents) =>
+          documents.map((document) => this.instantiateFrom(document) as S),
+        );
+    } catch (error) {
+      throw new IllegalArgumentException(
+        'The given optional parameters must be valid',
+      );
+    }
   }
 
   async findById<S extends T>(id: string): Promise<Optional<S>> {

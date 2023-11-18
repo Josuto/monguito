@@ -1,15 +1,15 @@
+import { Optional } from 'typescript-optional';
+import {
+  IllegalArgumentException,
+  NotFoundException,
+} from '../../src/util/exceptions';
+import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
 import {
   closeMongoConnection,
   deleteAll,
   findById,
   insert,
 } from '../util/mongo-server';
-import {
-  IllegalArgumentException,
-  NotFoundException,
-} from '../../src/util/exceptions';
-import { Optional } from 'typescript-optional';
-import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
 import { BookRepository, MongooseBookRepository } from './book.repository';
 
 describe('Given an instance of book repository', () => {
@@ -68,7 +68,7 @@ describe('Given an instance of book repository', () => {
     });
   });
 
-  describe('when finding a book by ID', () => {
+  describe('when searching a book by ID', () => {
     describe('by an undefined ID', () => {
       it('then throws an exception', async () => {
         await expect(
@@ -101,7 +101,7 @@ describe('Given an instance of book repository', () => {
     });
   });
 
-  describe('when finding a book by a custom field search value', () => {
+  describe('when searching a book by a custom field value', () => {
     describe('and the search value is undefined', () => {
       it('then throws an error', async () => {
         await expect(
@@ -135,7 +135,7 @@ describe('Given an instance of book repository', () => {
   });
 
   describe('when searching books', () => {
-    describe('providing no search filters', () => {
+    describe('and not providing any optional parameter', () => {
       it('then retrieves a list with all books', async () => {
         const books = await bookRepository.findAll();
         expect(books.length).toBe(3);
@@ -143,22 +143,685 @@ describe('Given an instance of book repository', () => {
       });
     });
 
-    describe('providing a search filter', () => {
-      it('then retrieves a list with all books matching the filter', async () => {
-        const filter = { __t: 'PaperBook' };
-        const books = await bookRepository.findAll(filter);
-        expect(books.length).toBe(1);
-        expect(books).toEqual([storedPaperBook]);
+    describe('and providing a value for the filter parameter', () => {
+      describe('and such a field does not refer to an existing field in any Book type', () => {
+        it('then retrieves an empty list of books', async () => {
+          const filters = { fruit: 'Banana' };
+          const books = await bookRepository.findAll({ filters });
+          expect(books.length).toBe(0);
+        });
       });
 
-      describe('and providing a sort parameter', () => {
-        it('then retrieves an ordered list with books matching the filter', async () => {
-          const filter = { __t: ['PaperBook', 'AudioBook'] };
-          const sortBy = { title: -1 };
-          const books = await bookRepository.findAll(filter, sortBy);
-          expect(books.length).toBe(2);
-          expect(books).toEqual([storedAudioBook, storedPaperBook]);
+      describe('and such a value refers to an existing field in some Book type', () => {
+        it('then retrieves a list with all books matching the filter', async () => {
+          const filters = { __t: 'PaperBook' };
+          const books = await bookRepository.findAll({ filters });
+          expect(books.length).toBe(1);
+          expect(books).toEqual([storedPaperBook]);
         });
+      });
+    });
+
+    describe('and providing a value for the sort parameter', () => {
+      describe('and such a value is invalid', () => {
+        it('then throws an exception', async () => {
+          const sortBy = { title: 2 };
+          await expect(bookRepository.findAll({ sortBy })).rejects.toThrowError(
+            IllegalArgumentException,
+          );
+        });
+      });
+
+      describe('and such a value is valid', () => {
+        it('then retrieves an ordered list with books', async () => {
+          const sortBy = { title: -1 };
+          const books = await bookRepository.findAll({ sortBy });
+          expect(books.length).toBe(3);
+          expect(books).toEqual([storedAudioBook, storedPaperBook, storedBook]);
+        });
+      });
+    });
+
+    describe('and providing a value for the pagination parameter', () => {
+      describe('and the page number is undefined', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: -1,
+            };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: 0,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves a list one book', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: 1,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(1);
+            expect(books).toEqual([storedBook]);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: 3,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: undefined as unknown as number,
+              offset: 4,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+      });
+
+      describe('and the page number is null', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: -1,
+            };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: 0,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves a list one book', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: 1,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(1);
+            expect(books).toEqual([storedBook]);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: 3,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: null as unknown as number,
+              offset: 4,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+      });
+
+      describe('and the page number is a negative number', () => {
+        describe('and the offset is undefined', () => {
+          it('then throws an exception', async () => {
+            const pageable = {
+              pageNumber: -1,
+              offset: undefined as unknown as number,
+            };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then throws an exception', async () => {
+            const pageable = {
+              pageNumber: -1,
+              offset: null as unknown as number,
+            };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: -1, offset: -1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: -1, offset: 0 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: -1, offset: 1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: -1, offset: 3 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: -1, offset: 4 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+      });
+
+      describe('and the page number is zero', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: 0,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: 0,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: 0, offset: -1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 0, offset: 0 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves a list one book', async () => {
+            const pageable = { pageNumber: 0, offset: 1 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(1);
+            expect(books).toEqual([storedBook]);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 0, offset: 3 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 0, offset: 4 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+      });
+
+      describe('and the page number is one', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: 1,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = {
+              pageNumber: 1,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: 1, offset: -1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 1, offset: 0 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves a list with one book', async () => {
+            const pageable = { pageNumber: 1, offset: 1 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(1);
+            expect(books).toEqual([storedBook]);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 1, offset: 3 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves a list with all books', async () => {
+            const pageable = { pageNumber: 1, offset: 4 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+      });
+
+      describe('and the page number is equals to the amount of all of the stored books', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = {
+              pageNumber: 3,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = {
+              pageNumber: 3,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: 3, offset: -1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = { pageNumber: 3, offset: 0 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves a list with one book', async () => {
+            const pageable = { pageNumber: 3, offset: 1 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(1);
+            expect(books).toEqual([storedAudioBook]);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves an empty list of books', async () => {
+            const pageable = { pageNumber: 3, offset: 3 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(0);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves an empty list of books', async () => {
+            const pageable = { pageNumber: 3, offset: 4 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(0);
+          });
+        });
+      });
+
+      describe('and the page number is bigger than the amount of all of the stored books', () => {
+        describe('and the offset is undefined', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = {
+              pageNumber: 4,
+              offset: undefined as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is null', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = {
+              pageNumber: 4,
+              offset: null as unknown as number,
+            };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is a negative number', () => {
+          it('then throws an exception', async () => {
+            const pageable = { pageNumber: 4, offset: -1 };
+            await expect(
+              bookRepository.findAll({ pageable }),
+            ).rejects.toThrowError(IllegalArgumentException);
+          });
+        });
+
+        describe('and the offset is zero', () => {
+          it('then retrieves a list of all books', async () => {
+            const pageable = { pageNumber: 4, offset: 0 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(3);
+            expect(books).toEqual([
+              storedBook,
+              storedPaperBook,
+              storedAudioBook,
+            ]);
+          });
+        });
+
+        describe('and the offset is one', () => {
+          it('then retrieves an empty list of books', async () => {
+            const pageable = { pageNumber: 4, offset: 1 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(0);
+          });
+        });
+
+        describe('and the offset is equals to the amount of all of the stored books', () => {
+          it('then retrieves an empty list of books', async () => {
+            const pageable = { pageNumber: 4, offset: 3 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(0);
+          });
+        });
+
+        describe('and the offset is bigger than the amount of all of the stored books', () => {
+          it('then retrieves an empty list of books', async () => {
+            const pageable = { pageNumber: 4, offset: 4 };
+            const books = await bookRepository.findAll({ pageable });
+            expect(books.length).toBe(0);
+          });
+        });
+      });
+    });
+
+    describe('and providing a valid value for all optional parameters', () => {
+      it('then retrieves an ordered list with books matching the filter', async () => {
+        const filters = { __t: ['PaperBook', 'AudioBook'] };
+        const sortBy = { title: -1 };
+        const pageable = { pageNumber: 1, offset: 1 };
+        const books = await bookRepository.findAll({
+          filters,
+          sortBy,
+          pageable,
+        });
+        expect(books.length).toBe(1);
+        expect(books).toEqual([storedAudioBook]);
       });
     });
   });
