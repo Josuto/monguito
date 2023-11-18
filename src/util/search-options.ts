@@ -26,7 +26,7 @@ export class Pageable {
 }
 
 /**
- * Specifies some options to narrow down a concrete search operation.
+ * Specifies some options to narrow down a search operation.
  *
  * @property {any} filters (optional) a MongoDB entity field-based query to filter results.
  * @property {any} sortBy (optional) a MongoDB sort criteria to return results in some sorted order.
