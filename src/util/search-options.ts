@@ -30,7 +30,7 @@ export class Pageable {
  *
  * @property {any} filters (optional) a MongoDB entity field-based query to filter results.
  * @property {any} sortBy (optional) a MongoDB sort criteria to return results in some sorted order.
- * @property {Pageable} pageable (optional) required data (i.e., page number and offset) to return a particular page of results.
+ * @property {Pageable} pageable (optional) pagination data required to return a particular page of results.
  */
 export type SearchOptions = {
   filters?: any;
