@@ -64,7 +64,7 @@
     "typescript-optional": ">= 3.0.0-alpha.3"
   },
   "dependencies": {
-    "mongoose": "^7.1.1",
+    "mongoose": "^8.0.0",
     "typescript-optional": "^3.0.0-alpha.3"
   },
   "devDependencies": {
