@@ -135,31 +135,32 @@ interface Repository<T extends Entity> {
 object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
 are of the type you expect.
 
-## `findById`
+### `findById`
 
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
 This value wraps an actual entity or `null` in case that no entity matches the given `id`.
 
-The `Optional` type is meant to create awareness on the nullable nature of the result of the operation for custom
-repository clients, thus helping developers to think on the logic required to handle use cases that are different
-from the happy path of their programs. Furthermore, the `Optional` API is quite complete and includes many elegant
-solutions to handle all use cases. Check it out!
+The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
+clients. This type helps client code developers to easily reason about all possible result types without having to handle
+slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
+Effective Java. Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases.
+Check it out!
 
-## `findAll`
+### `findAll`
 
 Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some
-additional search options:
+additional and non-required search `options`:
 
 - `filters`: a [MongoDB entity field-based query](https://www.mongodb.com/docs/manual/tutorial/query-documents/)
   to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
   to return results in some sorted order
-- `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular page of results.
+- `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular set of results.
   Both values must be a whole positive number to achieve the desired outcome
 
-## `save`
+### `save`
 
-Persists a given entity by either inserting or updating it and returns the persisted entity. It the entity does
+Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity does
 not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
 collection; if it does, the function updates it or throwns exception if it does not.
 
@@ -169,7 +170,7 @@ only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions 
 Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
 [this section](#built-in-audit-data-support) for further details).
 
-## `deleteById`
+### `deleteById`
 
 Deletes an entity matching the given `id` if it exists. When it does, the function returns `true`. Otherwise, it returns `false`.
 
