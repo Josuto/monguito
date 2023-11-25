@@ -1240,10 +1240,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@eslint/js@8.53.0":
-  version "8.53.0"
-  resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.53.0.tgz#bea56f2ed2b5baea164348ff4d5a879f6f81f20d"
-  integrity sha512-Kn7K8dx/5U6+cT1yEhpX1w4PCSg0M+XyRILPgvwcEBjerFWCwQj5sbr3/VmxqV0JGHCBCzyd6LxypEuehypY1w==
+"@eslint/js@8.54.0":
+  version "8.54.0"
+  resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.54.0.tgz#4fab9a2ff7860082c304f750e94acd644cf984cf"
+  integrity sha512-ut5V+D+fOoWPgGGNj83GGjnntO39xDy6DWxO0wb7Jp3DcMX0TfIqdzHF85VTQkerdyGmuuMD9AKAo5KiNlf/AQ==
 
 "@humanwhocodes/config-array@^0.11.13":
   version "0.11.13"
@@ -2931,14 +2931,14 @@ eslint-visitor-keys@^3.3.0, eslint-visitor-keys@^3.4.1, eslint-visitor-keys@^3.4
   integrity sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==
 
 eslint@^8.0.1:
-  version "8.53.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.53.0.tgz#14f2c8244298fcae1f46945459577413ba2697ce"
-  integrity sha512-N4VuiPjXDUa4xVeV/GC/RV3hQW9Nw+Y463lkWaKKXKYMvmRiRDAtfpuPFLN+E1/6ZhyR8J2ig+eVREnYgUsiag==
+  version "8.54.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.54.0.tgz#588e0dd4388af91a2e8fa37ea64924074c783537"
+  integrity sha512-NY0DfAkM8BIZDVl6PgSa1ttZbx3xHgJzSNJKYcQglem6CppHyMhRIQkBVSSMaSRnLhig3jsDbEzOjwCVt4AmmA==
   dependencies:
     "@eslint-community/eslint-utils" "^4.2.0"
     "@eslint-community/regexpp" "^4.6.1"
     "@eslint/eslintrc" "^2.1.3"
-    "@eslint/js" "8.53.0"
+    "@eslint/js" "8.54.0"
     "@humanwhocodes/config-array" "^0.11.13"
     "@humanwhocodes/module-importer" "^1.0.1"
     "@nodelib/fs.walk" "^1.2.8"
@@ -4622,10 +4622,10 @@ mongodb-connection-string-url@^2.6.0:
     "@types/whatwg-url" "^8.2.1"
     whatwg-url "^11.0.0"
 
-mongodb-memory-server-core@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-9.0.0.tgz#f3c42e26114560da4d23c64bb938b0a786b45e9b"
-  integrity sha512-rEB328vrwpafplU8rxUizJ4JdazTEkVuoqBeXef3si2HjFXdTl19VfenxSEuEpLDiTkEDlwr05ZqGCT3cRBrHw==
+mongodb-memory-server-core@9.1.1:
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-9.1.1.tgz#9b1b2c0f881424d53d1a4704023f1d03cf70eb14"
+  integrity sha512-5toYR4A7DfV5k+Qf6L9FG86baID2rPP/JYwp8TPrdm8ZzfTfyHTwQwa2BzVpSwmLoVW5gXN0znYmXiE68mImMg==
   dependencies:
     async-mutex "^0.4.0"
     camelcase "^6.3.0"
@@ -4633,7 +4633,7 @@ mongodb-memory-server-core@9.0.0:
     find-cache-dir "^3.3.2"
     follow-redirects "^1.15.3"
     https-proxy-agent "^7.0.2"
-    mongodb "^5.9.0"
+    mongodb "^5.9.1"
     new-find-package-json "^2.0.0"
     semver "^7.5.4"
     tar-stream "^3.0.0"
@@ -4641,11 +4641,11 @@ mongodb-memory-server-core@9.0.0:
     yauzl "^2.10.0"
 
 mongodb-memory-server@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-9.0.0.tgz#52407c47f3ffbdb06bab9a6225d0d0444f2b111e"
-  integrity sha512-bbRJoKfUZuP2OqMgwbnBOAH/MzQt9rBVa+H6T6a+hqAxCV/9IajVIGZwHlyB4WmZiivXsUepMZD/FtSEmhE26A==
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-9.1.1.tgz#ebe5f55e79984ca9fcfa58789c3b484127d23353"
+  integrity sha512-ZOHOdb7//sBR2ea1lPHDPRaw8oO2MIfMdF+z82/KnzfNZ6yY6igR48cfG8u+QArKJQFsA392GMMHSevfPWsrRA==
   dependencies:
-    mongodb-memory-server-core "9.0.0"
+    mongodb-memory-server-core "9.1.1"
     tslib "^2.6.2"
 
 mongodb@6.2.0:
@@ -4657,10 +4657,10 @@ mongodb@6.2.0:
     bson "^6.2.0"
     mongodb-connection-string-url "^2.6.0"
 
-mongodb@^5.9.0:
-  version "5.9.0"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-5.9.0.tgz#5a22065fa8cfaf1d58bf2e3c451cd2c4bfa983a2"
-  integrity sha512-g+GCMHN1CoRUA+wb1Agv0TI4YTSiWr42B5ulkiAfLLHitGK1R+PkSAf3Lr5rPZwi/3F04LiaZEW0Kxro9Fi2TA==
+mongodb@^5.9.1:
+  version "5.9.1"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-5.9.1.tgz#da03ea253b0972bf8097301fa5f65e34acad18fa"
+  integrity sha512-NBGA8AfJxGPeB12F73xXwozt8ZpeIPmCUeWRwl9xejozTXFes/3zaep9zhzs1B/nKKsw4P3I4iPfXl3K7s6g+Q==
   dependencies:
     bson "^5.5.0"
     mongodb-connection-string-url "^2.6.0"
