@@ -9,8 +9,7 @@
 <div align="center">
 
 ![Code size](https://img.shields.io/github/languages/code-size/josuto/monguito)
-![Min code size](https://img.shields.io/bundlephobia/minzip/monguito
-)
+![Min code size](https://img.shields.io/bundlephobia/minzip/monguito)
 [![CI](https://github.com/josuto/monguito/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/monguito/actions/workflows/pipeline.yml)
 [![NPM](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
 [![Downloads stat](https://img.shields.io/npm/dt/node-abstract-repository)](http://www.npmtrends.com/node-abstract-repository)
@@ -22,6 +21,7 @@
 
 - [What is `monguito`?](#what-is-monguito)
 - [Getting Started](#getting-started)
+- [Supported Database Operations](#supported-database-operations)
 - [Examples](#examples)
 - [Write Your Own Repository Interfaces](#write-your-own-repository-interfaces)
 - [Some Important Implementation Details](#some-important-implementation-details)
@@ -110,6 +110,69 @@ Regarding schemas: We believe that writing your own database schemas is a good p
 at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
 rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
 properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
+
+# Supported Database Operations
+
+Let's have a look to `Repository`, the generic interface implemented by `MongooseRepository`. Keep in mind that the current
+semantics for these operations are those provided at `MongooseRepository`. If you want any of these operations to behave
+differently then you must override it at your custom repository implementation.
+
+```typescript
+type PartialEntityWithId<T> = { id: string } & Partial<T>;
+
+interface Repository<T extends Entity> {
+  findById: <S extends T>(id: string) => Promise<Optional<S>>;
+  findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
+  save: <S extends T>(
+    entity: S | PartialEntityWithId<S>,
+    userId?: string,
+  ) => Promise<S>;
+  deleteById: (id: string) => Promise<boolean>;
+}
+```
+
+`T` refers to a domain object type that implements `Entity` (e.g., `Book`), and `S` refers to a subtype of such a domain
+object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
+are of the type you expect.
+
+### `findById`
+
+Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
+This value wraps an actual entity or `null` in case that no entity matches the given `id`.
+
+The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
+clients. This type helps client code developers to easily reason about all possible result types without having to handle
+slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
+Effective Java. Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases.
+Check it out!
+
+### `findAll`
+
+Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some
+additional and non-required search `options`:
+
+- `filters`: a [MongoDB entity field-based query](https://www.mongodb.com/docs/manual/tutorial/query-documents/)
+  to filter results
+- `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
+  to return results in some sorted order
+- `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular set of results.
+  Both values must be a whole positive number to achieve the desired outcome
+
+### `save`
+
+Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity does
+not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
+collection; if it does, the function updates it or throwns exception if it does not.
+
+Trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_;
+only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
+
+Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
+[this section](#built-in-audit-data-support) for further details).
+
+### `deleteById`
+
+Deletes an entity matching the given `id` if it exists. When it does, the function returns `true`. Otherwise, it returns `false`.
 
 # Examples
 
@@ -209,42 +272,6 @@ The fact that `Entity` is an interface instead of an abstract class is not a coi
 inheritance-based programming language, and we strongly believe that you are entitled to design the domain model at your
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
-
-## Basic CRUD Operations
-
-To explain these, let's have a look to `Repository`, the generic interface that `MongooseRepository` implements. Keep in
-mind that the current semantics for these operations are those provided at `MongooseRepository`. If you want any of
-these operations to behave differently then you must override it at your custom repository implementation.
-
-```typescript
-type PartialEntityWithId<T> = { id: string } & Partial<T>;
-
-interface Repository<T extends Entity> {
-  findById: <S extends T>(id: string) => Promise<Optional<S>>;
-  findAll: <S extends T>(filters?: any, sortBy?: any) => Promise<S[]>;
-  save: <S extends T>(
-    entity: S | PartialEntityWithId<S>,
-    userId?: string,
-  ) => Promise<S>;
-  deleteById: (id: string) => Promise<boolean>;
-}
-```
-
-- `findById` returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) value of the searched entity.
-- `findAll` returns an array including all the persisted entities, or an empty array otherwise. Although not mandatory,
-  it accepts both [filtering and sorting](https://mongoosejs.com/docs/queries.html) parameters.
-- `save` persists a given entity by either inserting or updating it and returns the persisted entity. It the entity does
-  not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
-  collection; if it does, the function updates it. Otherwise, throws an exception. This is because trying to persist a
-  new entity that includes a developer specified `id` represents a _system invariant violation_; only Mongoose is able
-  to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates. Finally, this function specifies
-  an optional `userId` argument to enable user audit data handling (more on that topic later).
-- `deleteById` deletes an entity matching the given `id` if it exists. When it does, the function returns `true`.
-  Otherwise, it returns `false`.
-
-A final note on the definition of `Repository`: `T` refers to a domain object type that implements `Entity` (e.g.,
-`Book`), and `S` refers to a subtype of such a domain object type (e.g., `PaperBook` or `AudioBook`). This way, you can
-be sure that the resulting values of the CRUD operations are of the type you expect.
 
 ## Utilities to Define Your Custom Schemas
 
