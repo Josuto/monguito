@@ -192,8 +192,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private createDocumentAndSetUserId<S extends T>(entity: S, userId?: string) {
     const document = new this.entityModel(entity);
-    if (isAuditable(entity) && userId) {
-      document.$locals.userId = userId;
+    if (isAuditable(entity)) {
+      if (userId) document.$locals.userId = userId;
+      document.__v = 0;
     }
     return document;
   }
@@ -208,8 +209,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     if (document) {
       document.set(entity);
       document.isNew = false;
-      if (isAuditable(document) && userId) {
-        document.$locals.userId = userId;
+      if (isAuditable(document)) {
+        if (userId) document.$locals.userId = userId;
+        document.__v = (document.__v ?? 0) + 1;
       }
       return (await document.save()) as HydratedDocument<S>;
     }
