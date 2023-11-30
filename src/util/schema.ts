@@ -1,5 +1,8 @@
 import { Schema } from 'mongoose';
 
+/**
+ * Base schema to be extended by all persistable domain object schemas.
+ */
 export const BaseSchema = new Schema(
   {},
   {
@@ -13,6 +16,9 @@ export const BaseSchema = new Schema(
   },
 );
 
+/**
+ * Schema to be extended by all persistable domain objects that require audit capability.
+ */
 export const AuditableSchema = extendSchema(
   BaseSchema,
   {
@@ -39,6 +45,14 @@ function setUserAuditData(schema: Schema) {
 
 type Plugin = { fn: (schema: Schema) => void; opts?: undefined };
 
+/**
+ * Creates a new schema from the given data.
+ *
+ * @param schema a schema to extend from.
+ * @param definition some second schema definition.
+ * @param options (optional) some second schema options.
+ * @returns a new schema that integrates the contents of the given parameters.
+ */
 export function extendSchema(schema: any, definition: any, options?: any) {
   const newSchema = new Schema(
     { ...schema.obj, ...definition },

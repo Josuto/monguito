@@ -1,5 +1,6 @@
-// Inspired in DDD Entity, it models any object that must specify some ID.
-// This interface can be implemented by any persistable domain object.
+/**
+ * Models a persistable domain object. Any domain object that implements this interface must specify some database `id`.
+ */
 export interface Entity {
   id?: string;
 }

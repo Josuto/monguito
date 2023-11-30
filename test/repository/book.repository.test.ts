@@ -1,8 +1,5 @@
 import { Optional } from 'typescript-optional';
-import {
-  IllegalArgumentException,
-  NotFoundException,
-} from '../../src/util/exceptions';
+import { IllegalArgumentException } from '../../src/util/exceptions';
 import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
 import {
   closeMongoConnection,
@@ -870,7 +867,7 @@ describe('Given an instance of book repository', () => {
 
               await expect(
                 bookRepository.save(bookToInsert),
-              ).rejects.toThrowError(NotFoundException);
+              ).rejects.toThrowError(IllegalArgumentException);
             });
           });
 

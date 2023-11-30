@@ -1,27 +1,23 @@
-import { Repository } from './repository';
 import { MongooseRepository } from './mongoose.repository';
-import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
-import { Entity } from './util/entity';
+import { Repository } from './repository';
 import { Auditable, AuditableClass, isAuditable } from './util/audit';
+import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
-  NotFoundException,
   UndefinedConstructorException,
-  UniquenessViolationException,
 } from './util/exceptions';
+import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 
 export {
-  Repository,
-  MongooseRepository,
-  BaseSchema,
-  AuditableSchema,
-  extendSchema,
-  Entity,
   Auditable,
   AuditableClass,
-  isAuditable,
+  AuditableSchema,
+  BaseSchema,
+  Entity,
   IllegalArgumentException,
+  MongooseRepository,
+  Repository,
   UndefinedConstructorException,
-  UniquenessViolationException,
-  NotFoundException,
+  extendSchema,
+  isAuditable,
 };

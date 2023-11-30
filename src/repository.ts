@@ -4,6 +4,9 @@ import { SearchOptions } from './util/search-options';
 
 export type PartialEntityWithId<T> = { id: string } & Partial<T>;
 
+/**
+ * Specifies a list of common database CRUD operations.
+ */
 export interface Repository<T extends Entity> {
   /**
    * Find an entity by ID.

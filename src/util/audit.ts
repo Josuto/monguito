@@ -1,3 +1,6 @@
+/**
+ * Models an auditable persistable domain object.
+ */
 export interface Auditable {
   createdAt?: Date;
   createdBy?: string;
@@ -5,6 +8,9 @@ export interface Auditable {
   updatedBy?: string;
 }
 
+/**
+ * Utility class designed to ease the definition of {@link Auditable} persistable domain objects.
+ */
 export abstract class AuditableClass implements Auditable {
   readonly createdAt?: Date;
   readonly createdBy?: string;
@@ -19,6 +25,12 @@ export abstract class AuditableClass implements Auditable {
   }
 }
 
+/**
+ * Determines whether a given domain object is {@link Auditable}.
+ *
+ * @param entity the entity to evaluate.
+ * @returns true if the given entity is auditable, false otherwise.
+ */
 export const isAuditable = (entity: any): entity is Auditable =>
   entity &&
   'createdAt' in entity &&
