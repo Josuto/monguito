@@ -34,6 +34,7 @@ describe('Given an instance of auditable book repository and a user ID', () => {
         expect(auditableBook.updatedAt).toBeDefined();
         expect(auditableBook.createdBy).toEqual(createdBy);
         expect(auditableBook.updatedBy).toEqual(createdBy);
+        expect(auditableBook.version).toBe(0);
       });
     });
 
@@ -54,6 +55,7 @@ describe('Given an instance of auditable book repository and a user ID', () => {
         expect(auditableBook.updatedAt).toBeDefined();
         expect(auditableBook.createdBy).toEqual(createdBy);
         expect(auditableBook.updatedBy).toEqual(createdBy);
+        expect(auditableBook.version).toBe(0);
       });
     });
   });
@@ -81,12 +83,14 @@ describe('Given an instance of auditable book repository and a user ID', () => {
         } as AuditableBook;
 
         const auditableBook = await bookRepository.save(bookToUpdate, '5678');
+
         expect(auditableBook.createdAt).toEqual(storedAuditableBook.createdAt);
         expect(auditableBook.updatedAt?.getTime()).toBeGreaterThan(
           storedAuditableBook.updatedAt!.getTime(),
         );
         expect(auditableBook.createdBy).toEqual(createdBy);
         expect(auditableBook.updatedBy).toEqual(updatedBy);
+        expect(auditableBook.version).toBe(1);
       });
     });
 
@@ -113,18 +117,19 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           edition: 4,
         } as AuditablePaperBook;
 
-        const auditablePaperBook = await bookRepository.save(
+        const auditableBook = await bookRepository.save(
           bookToUpdate,
           updatedBy,
         );
-        expect(auditablePaperBook.createdAt).toEqual(
+        expect(auditableBook.createdAt).toEqual(
           storedAuditablePaperBook.createdAt,
         );
-        expect(auditablePaperBook.updatedAt?.getTime()).toBeGreaterThan(
+        expect(auditableBook.updatedAt?.getTime()).toBeGreaterThan(
           storedAuditablePaperBook.updatedAt!.getTime(),
         );
-        expect(auditablePaperBook.createdBy).toEqual(createdBy);
-        expect(auditablePaperBook.updatedBy).toEqual(updatedBy);
+        expect(auditableBook.createdBy).toEqual(createdBy);
+        expect(auditableBook.updatedBy).toEqual(updatedBy);
+        expect(auditableBook.version).toBe(1);
       });
     });
   });

@@ -8,7 +8,7 @@ export const BaseSchema = new Schema(
   {
     // required to deserialize Entity objects
     toObject: {
-      transform: (document, result) => {
+      transform: (document: any, result: any) => {
         result.id = document.id;
         delete result._id;
       },
@@ -25,7 +25,17 @@ export const AuditableSchema = extendSchema(
     createdBy: { type: String },
     updatedBy: { type: String },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toObject: {
+      transform: (document: any, result: any) => {
+        result.id = document.id;
+        result.version = document.__v;
+        delete result._id;
+        delete result.__v;
+      },
+    },
+  },
 );
 AuditableSchema.plugin(setUserAuditData);
 
