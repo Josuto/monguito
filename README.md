@@ -8,7 +8,6 @@
 
 <div align="center">
 
-![Code size](https://img.shields.io/github/languages/code-size/josuto/monguito)
 ![Min code size](https://img.shields.io/bundlephobia/minzip/monguito)
 [![CI](https://github.com/josuto/monguito/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/monguito/actions/workflows/pipeline.yml)
 [![NPM](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
