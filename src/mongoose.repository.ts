@@ -41,7 +41,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
    */
   protected constructor(
     private readonly entityConstructorMap: ConstructorMap<T>,
-    private readonly connection?: Connection,
+    protected readonly connection?: Connection,
   ) {
     this.entityModel = this.createEntityModel(entityConstructorMap, connection);
   }
