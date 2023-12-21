@@ -12,6 +12,7 @@ import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
   UndefinedConstructorException,
+  ValidationException,
 } from './util/exceptions';
 import { SearchOptions } from './util/search-options';
 
@@ -103,19 +104,29 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
-    let document;
-    if (!entity.id) {
-      document = await this.insert(entity as S, userId);
-    } else {
-      document = await this.update(
-        entity as PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
-        userId,
+    try {
+      let document;
+      if (!entity.id) {
+        document = await this.insert(entity as S, userId);
+      } else {
+        document = await this.update(
+          entity as PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
+          userId,
+        );
+      }
+      if (document) return this.instantiateFrom(document) as S;
+      throw new IllegalArgumentException(
+        `There is no document matching the given ID ${entity.id}. New entities cannot not specify an ID`,
       );
+    } catch (error) {
+      if (error.message.includes('validation failed')) {
+        throw new ValidationException(
+          `Some fields of the given entity do not specify valid values`,
+          error,
+        );
+      }
+      throw error;
     }
-    if (document) return this.instantiateFrom(document) as S;
-    throw new IllegalArgumentException(
-      `There is no document matching the given ID ${entity.id}. New entities cannot not specify an ID`,
-    );
   }
 
   /**
@@ -171,7 +182,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
         throw new IllegalArgumentException(
-          `The given entity with ID ${entity.id} includes a field which value is expected to be unique`,
+          `The given entity includes a field which value is expected to be unique`,
         );
       }
       throw error;

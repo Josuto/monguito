@@ -5,6 +5,7 @@ import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
   UndefinedConstructorException,
+  ValidationException,
 } from './util/exceptions';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 
@@ -18,6 +19,7 @@ export {
   MongooseRepository,
   Repository,
   UndefinedConstructorException,
+  ValidationException,
   extendSchema,
   isAuditable,
 };

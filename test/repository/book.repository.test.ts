@@ -1,5 +1,8 @@
 import { Optional } from 'typescript-optional';
-import { IllegalArgumentException } from '../../src/util/exceptions';
+import {
+  IllegalArgumentException,
+  ValidationException,
+} from '../../src/util/exceptions';
 import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
 import {
   closeMongoConnection,
@@ -872,35 +875,70 @@ describe('Given an instance of book repository', () => {
           });
 
           describe('and does not specify an ID', () => {
+            describe('and some field values are invalid', () => {
+              it('then throws an exception', async () => {
+                const bookToInsert = new Book({
+                  title: 'Continuous Delivery',
+                  description:
+                    'Reliable Software Releases Through Build, Test, and Deployment Automation',
+                  isbn: undefined as unknown as string,
+                });
+
+                await expect(
+                  bookRepository.save(bookToInsert),
+                ).rejects.toThrowError(ValidationException);
+              });
+            });
+
+            describe('and all field values are valid', () => {
+              it('then inserts the book', async () => {
+                const bookToInsert = new Book({
+                  title: 'Continuous Delivery',
+                  description:
+                    'Reliable Software Releases Through Build, Test, and Deployment Automation',
+                  isbn: '9780321601919',
+                });
+
+                const book = await bookRepository.save(bookToInsert);
+                expect(book.id).toBeTruthy();
+                expect(book.title).toBe(bookToInsert.title);
+                expect(book.description).toBe(bookToInsert.description);
+              });
+            });
+          });
+        });
+
+        describe('and that is of a subtype of Book', () => {
+          describe('and some field values are invalid', () => {
+            it('then throws an exception', async () => {
+              const bookToInsert = new PaperBook({
+                title: 'Implementing Domain-Driven Design',
+                description: 'Describes Domain-Driven Design in depth',
+                edition: undefined as unknown as number,
+                isbn: '9780321834577',
+              });
+
+              await expect(
+                bookRepository.save(bookToInsert),
+              ).rejects.toThrowError(ValidationException);
+            });
+          });
+
+          describe('and all field values are valid', () => {
             it('then inserts the book', async () => {
-              const bookToInsert = new Book({
-                title: 'Continuous Delivery',
-                description:
-                  'Reliable Software Releases Through Build, Test, and Deployment Automation',
-                isbn: '9780321601919',
+              const bookToInsert = new PaperBook({
+                title: 'Implementing Domain-Driven Design',
+                description: 'Describes Domain-Driven Design in depth',
+                edition: 1,
+                isbn: '9780321834577',
               });
 
               const book = await bookRepository.save(bookToInsert);
               expect(book.id).toBeTruthy();
               expect(book.title).toBe(bookToInsert.title);
               expect(book.description).toBe(bookToInsert.description);
+              expect(book.edition).toBe(bookToInsert.edition);
             });
-          });
-        });
-        describe('and that is of a subtype of Book', () => {
-          it('then inserts the book', async () => {
-            const bookToInsert = new PaperBook({
-              title: 'Implementing Domain-Driven Design',
-              description: 'Describes Domain-Driven Design in depth',
-              edition: 1,
-              isbn: '9780321834577',
-            });
-
-            const book = await bookRepository.save(bookToInsert);
-            expect(book.id).toBeTruthy();
-            expect(book.title).toBe(bookToInsert.title);
-            expect(book.description).toBe(bookToInsert.description);
-            expect(book.edition).toBe(bookToInsert.edition);
           });
         });
       });
@@ -908,17 +946,34 @@ describe('Given an instance of book repository', () => {
       describe('that is not new', () => {
         describe('and that is of Book supertype', () => {
           describe('and that specifies partial contents of the supertype', () => {
-            it('then updates the book', async () => {
-              const bookToUpdate = {
-                id: storedBook.id,
-                description:
-                  'A Novel About IT, DevOps, and Helping Your Business Win',
-              } as Book;
+            describe('and some field values are invalid', () => {
+              it('then throws an exception', async () => {
+                const bookToUpdate = {
+                  id: storedBook.id,
+                  description:
+                    'A Novel About IT, DevOps, and Helping Your Business Win',
+                  isbn: undefined as unknown as string,
+                } as Book;
 
-              const book = await bookRepository.save(bookToUpdate);
-              expect(book.id).toBe(storedBook.id);
-              expect(book.title).toBe(storedBook.title);
-              expect(book.description).toBe(bookToUpdate.description);
+                await expect(
+                  bookRepository.save(bookToUpdate),
+                ).rejects.toThrowError(ValidationException);
+              });
+            });
+
+            describe('and all field values are valid', () => {
+              it('then updates the book', async () => {
+                const bookToUpdate = {
+                  id: storedBook.id,
+                  description:
+                    'A Novel About IT, DevOps, and Helping Your Business Win',
+                } as Book;
+
+                const book = await bookRepository.save(bookToUpdate);
+                expect(book.id).toBe(storedBook.id);
+                expect(book.title).toBe(storedBook.title);
+                expect(book.description).toBe(bookToUpdate.description);
+              });
             });
           });
           describe('and that specifies all the contents of the supertype', () => {
@@ -938,42 +993,79 @@ describe('Given an instance of book repository', () => {
             });
           });
         });
+
         describe('and that is of Book subtype', () => {
           describe('and that specifies partial contents of the subtype', () => {
-            it('then updates the book', async () => {
-              const bookToUpdate = {
-                id: storedAudioBook.id,
-                hostingPlatforms: ['Spotify'],
-              } as AudioBook;
+            describe('and some field values are invalid', () => {
+              it('then throws an exception', async () => {
+                const bookToUpdate = {
+                  id: storedAudioBook.id,
+                  hostingPlatforms: ['Spotify'],
+                  isbn: undefined as unknown as string,
+                } as AudioBook;
 
-              const book = await bookRepository.save(bookToUpdate);
-              expect(book.id).toBe(storedAudioBook.id);
-              expect(book.title).toBe(storedAudioBook.title);
-              expect(book.description).toBe(storedAudioBook.description);
-              expect(book.hostingPlatforms).toEqual(
-                bookToUpdate.hostingPlatforms,
-              );
+                await expect(
+                  bookRepository.save(bookToUpdate),
+                ).rejects.toThrowError(ValidationException);
+              });
+            });
+
+            describe('and all field values are valid', () => {
+              it('then updates the book', async () => {
+                const bookToUpdate = {
+                  id: storedAudioBook.id,
+                  hostingPlatforms: ['Spotify'],
+                } as AudioBook;
+
+                const book = await bookRepository.save(bookToUpdate);
+                expect(book.id).toBe(storedAudioBook.id);
+                expect(book.title).toBe(storedAudioBook.title);
+                expect(book.description).toBe(storedAudioBook.description);
+                expect(book.hostingPlatforms).toEqual(
+                  bookToUpdate.hostingPlatforms,
+                );
+              });
             });
           });
-          describe('and that specifies all the contents of the subtype', () => {
-            it('then updates the book', async () => {
-              const bookToUpdate = new AudioBook({
-                id: storedAudioBook.id,
-                title: 'Don Quixote',
-                description: 'Important classic in Spanish literature',
-                hostingPlatforms: ['Spotify'],
-                format: 'mp3',
-                isbn: '0142437239',
-              });
 
-              const book = await bookRepository.save(bookToUpdate);
-              expect(book.id).toBe(bookToUpdate.id);
-              expect(book.title).toBe(bookToUpdate.title);
-              expect(book.description).toBe(bookToUpdate.description);
-              expect(book.hostingPlatforms).toEqual(
-                bookToUpdate.hostingPlatforms,
-              );
-              expect(book.format).toEqual(bookToUpdate.format);
+          describe('and that specifies all the contents of the subtype', () => {
+            describe('and some field values are invalid', () => {
+              it('then throws an exception', async () => {
+                const bookToUpdate = new AudioBook({
+                  id: storedAudioBook.id,
+                  title: 'Don Quixote',
+                  description: 'Important classic in Spanish literature',
+                  hostingPlatforms: undefined as unknown as string[],
+                  format: 'mp3',
+                  isbn: '0142437239',
+                });
+
+                await expect(
+                  bookRepository.save(bookToUpdate),
+                ).rejects.toThrowError(ValidationException);
+              });
+            });
+
+            describe('and all field values are valid', () => {
+              it('then updates the book', async () => {
+                const bookToUpdate = new AudioBook({
+                  id: storedAudioBook.id,
+                  title: 'Don Quixote',
+                  description: 'Important classic in Spanish literature',
+                  hostingPlatforms: ['Spotify'],
+                  format: 'mp3',
+                  isbn: '0142437239',
+                });
+
+                const book = await bookRepository.save(bookToUpdate);
+                expect(book.id).toBe(bookToUpdate.id);
+                expect(book.title).toBe(bookToUpdate.title);
+                expect(book.description).toBe(bookToUpdate.description);
+                expect(book.hostingPlatforms).toEqual(
+                  bookToUpdate.hostingPlatforms,
+                );
+                expect(book.format).toEqual(bookToUpdate.format);
+              });
             });
           });
         });
