@@ -1,12 +1,12 @@
-This is an example of how to use `monguito` in a NestJS application that uses MongoDB. It is a dummy book 
+This is an example of how to use `monguito` in a NestJS application that uses MongoDB. It is a dummy book
 manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
 books. A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
 
 > **Warning**
 >
 > Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main
-> documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive 
-guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
+> documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive
+> guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
 
 # Main Contents
 
@@ -35,7 +35,7 @@ MongoDB instance, assuming that Docker Desktop is running.
 $ yarn start:dev
 
 # run the NestJS application with no MongoDB Docker container
-$ yarn start 
+$ yarn start
 ```
 
 # Bottom-up Book Manager Application Implementation
@@ -115,13 +115,14 @@ directly implement the `Repository` interface. The definition of `MongooseBookRe
 @Injectable()
 export class MongooseBookRepository
   extends MongooseRepository<Book>
-  implements Repository<Book> {
+  implements Repository<Book>
+{
   constructor(@InjectConnection() connection: Connection) {
     super(
       {
-        Default: {type: Book, schema: BookSchema},
-        PaperBook: {type: PaperBook, schema: PaperBookSchema},
-        AudioBook: {type: AudioBook, schema: AudioBookSchema},
+        Default: { type: Book, schema: BookSchema },
+        PaperBook: { type: PaperBook, schema: PaperBookSchema },
+        AudioBook: { type: AudioBook, schema: AudioBookSchema },
       },
       connection,
     );
@@ -130,7 +131,7 @@ export class MongooseBookRepository
   async deleteById(id: string): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
-      .findByIdAndUpdate(id, {isDeleted: true}, {new: true})
+      .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
       .exec()
       .then((book) => !!book);
   }
@@ -174,8 +175,7 @@ export class BookController {
   constructor(
     @Inject('BOOK_REPOSITORY')
     private readonly bookRepository: Repository<Book>,
-  ) {
-  }
+  ) {}
 
   @Get()
   async findAll(): Promise<Book[]> {
@@ -187,7 +187,7 @@ export class BookController {
     @Body({
       transform: (plainBook) => deserialise(plainBook),
     })
-      book: Book,
+    book: Book,
   ): Promise<Book> {
     return this.save(book);
   }
@@ -195,7 +195,7 @@ export class BookController {
   @Patch()
   async update(
     @Body()
-      book: PartialBook,
+    book: PartialBook,
   ): Promise<Book> {
     return this.save(book);
   }
@@ -261,8 +261,7 @@ part of the second step: writing the last required class `AppModule`. The defini
   ],
   controllers: [BookController],
 })
-export class AppModule {
-}
+export class AppModule {}
 ```
 
 This class module specifies the Mongoose connection required to instantiate `MongooseBookRepository` at the `imports`
@@ -321,7 +320,7 @@ export const rootMongooseTestModule = (
   });
 ```
 
-You may perceive that the port and dbName input parameters match those of the database connection
+You may perceive that the `port` and `dbName` input parameters match those of the database connection
 specified [earlier](#book-manager-module). This is no coincidence.
 
 Finally, you can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as
