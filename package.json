@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": {
     "name": "Josu Martinez",

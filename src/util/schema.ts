@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Schema, SchemaDefinition, SchemaOptions } from 'mongoose';
 
 /**
  * Base schema to be extended by all persistable domain object schemas.
@@ -63,11 +63,19 @@ type Plugin = { fn: (schema: Schema) => void; opts?: undefined };
  * @param options (optional) some second schema options.
  * @returns a new schema that integrates the contents of the given parameters.
  */
-export function extendSchema(schema: any, definition: any, options?: any) {
-  const newSchema = new Schema(
+export function extendSchema<T = object, S = object>(
+  schema: Schema<T>,
+  definition: SchemaDefinition<S>,
+  options?: SchemaOptions,
+): Schema<T & S> {
+  const newSchema = new Schema<T & S>(
     { ...schema.obj, ...definition },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     { ...schema.options, ...options },
   );
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   schema.plugins.forEach((plugin: Plugin) => {
     newSchema.plugin(plugin.fn, plugin.opts);
   });
