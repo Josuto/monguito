@@ -16,15 +16,17 @@ import {
 } from './util/exceptions';
 import { SearchOptions } from './util/search-options';
 
-type Constructor<T> = new (...args: any) => T;
+/**
+ * Models a persistable domain object constructor function.
+ */
+export type Constructor<T> = new (...args: any) => T;
 
-interface ConstructorMap<T> {
+/**
+ * Models a persistable domain object constructor map.
+ */
+export interface ConstructorMap<T> {
   [index: string]: { type: Constructor<T>; schema: Schema };
 }
-
-type PartialEntityWithIdAndOptionalDiscriminatorKey<T> = { id: string } & {
-  __t?: string;
-} & Partial<T>;
 
 /**
  * Abstract implementation of the {@link Repository} interface for MongoDB using Mongoose.
@@ -36,9 +38,8 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /**
    * Sets up the underlying configuration to enable Mongoose operation execution.
-   *
-   * @param entityConstructorMap a map with all the persistable domain object types.
-   * @param connection (optional) a Mongoose connection to an instance of MongoDB.
+   * @param {ConstructorMap<T>} entityConstructorMap a map with all the persistable domain object types.
+   * @param {Connection=} connection (optional) a Mongoose connection to an instance of MongoDB.
    */
   protected constructor(
     private readonly entityConstructorMap: ConstructorMap<T>,
@@ -82,6 +83,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     } catch (error) {
       throw new IllegalArgumentException(
         'The given optional parameters must be valid',
+        error,
       );
     }
   }
@@ -99,7 +101,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /** @inheritdoc */
   async save<S extends T>(
-    entity: S | PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
+    entity: S | PartialEntityWithId<S>,
     userId?: string,
   ): Promise<S> {
     if (!entity)
@@ -109,14 +111,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       if (!entity.id) {
         document = await this.insert(entity as S, userId);
       } else {
-        document = await this.update(
-          entity as PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
-          userId,
-        );
+        document = await this.update(entity as PartialEntityWithId<S>, userId);
       }
       if (document) return this.instantiateFrom(document) as S;
       throw new IllegalArgumentException(
-        `There is no document matching the given ID ${entity.id}. New entities cannot not specify an ID`,
+        `There is no document matching the given ID '${entity.id}'. New entities cannot not specify an ID`,
       );
     } catch (error) {
       if (error.message.includes('validation failed')) {
@@ -131,9 +130,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /**
    * Instantiates a persistable domain object from the given Mongoose Document.
-   *
    * @param document the given Mongoose Document.
    * @returns the resulting persistable domain object instance.
+   * @throws {UndefinedConstructorException} if there is no constructor available.
    */
   protected instantiateFrom<S extends T>(
     document: HydratedDocument<S> | null,
@@ -181,7 +180,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       return (await document.save()) as HydratedDocument<S>;
     } catch (error) {
       if (error.message.includes('duplicate key error')) {
-        throw new IllegalArgumentException(
+        throw new ValidationException(
           `The given entity includes a field which value is expected to be unique`,
         );
       }
@@ -190,7 +189,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   private setDiscriminatorKeyOn<S extends T>(
-    entity: S | PartialEntityWithIdAndOptionalDiscriminatorKey<S>,
+    entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
     const hasEntityDiscriminatorKey = '__t' in entity;
