@@ -19,6 +19,10 @@ export abstract class AuditableClass implements Auditable {
   readonly updatedBy?: string;
   readonly version?: number;
 
+  /**
+   * Creates an auditable persistable domain object instance.
+   * @param {Auditable} entity the entity to create the auditable persistable domain object from.
+   */
   constructor(entity: Auditable) {
     this.createdAt = entity.createdAt;
     this.createdBy = entity.createdBy;
@@ -31,8 +35,8 @@ export abstract class AuditableClass implements Auditable {
 /**
  * Determines whether a given domain object is {@link Auditable}.
  *
- * @param entity the entity to evaluate.
- * @returns true if the given entity is auditable, false otherwise.
+ * @param {any} entity the entity to evaluate.
+ * @returns {boolean} `true` if the given entity is auditable, `false` otherwise.
  */
 export const isAuditable = (entity: any): entity is Auditable =>
   entity &&

@@ -57,27 +57,54 @@ type Plugin = { fn: (schema: Schema) => void; opts?: undefined };
 
 /**
  * Creates a new schema from the given data.
- *
- * @param schema a schema to extend from.
- * @param definition some second schema definition.
- * @param options (optional) some second schema options.
- * @returns a new schema that integrates the contents of the given parameters.
+ * @param {Schema<T>} baseSchema the base schema.
+ * @param {Schema<S>} extension the schema to extend from.
+ * @returns {Schema<T & S>} a new schema that integrates the contents of the given parameters.
  */
 export function extendSchema<T = object, S = object>(
-  schema: Schema<T>,
-  definition: SchemaDefinition<S>,
+  baseSchema: Schema<T>,
+  extension: Schema<S>,
+): Schema<T & S>;
+/**
+ * Creates a new schema from the given data.
+ * @param {Schema<T>} baseSchema the base schema.
+ * @param {SchemaDefinition<S>} extension the schema definition to extend from.
+ * @param {SchemaOptions=} options (optional) some schema options.
+ * @returns {Schema<T & S>} a new schema that integrates the contents of the given parameters.
+ */
+export function extendSchema<T = object, S = object>(
+  baseSchema: Schema<T>,
+  extension: SchemaDefinition<S>,
+  options?: SchemaOptions,
+): Schema<T & S>;
+export function extendSchema<T = object, S = object>(
+  baseSchema: Schema<T>,
+  extension: Schema<T> | SchemaDefinition<S>,
   options?: SchemaOptions,
 ): Schema<T & S> {
+  const isExtensionASchema = extension instanceof Schema;
   const newSchema = new Schema<T & S>(
-    { ...schema.obj, ...definition },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    { ...schema.options, ...options },
+    { ...baseSchema.obj, ...(isExtensionASchema ? extension.obj : extension) },
+    {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ...baseSchema.options,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ...(isExtensionASchema ? extension.options : options),
+    },
   );
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  schema.plugins.forEach((plugin: Plugin) => {
+  baseSchema.plugins.forEach((plugin: Plugin) => {
     newSchema.plugin(plugin.fn, plugin.opts);
   });
+  if (isExtensionASchema) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    extension.plugins.forEach((plugin: Plugin) => {
+      newSchema.plugin(plugin.fn, plugin.opts);
+    });
+  }
   return newSchema;
 }
