@@ -118,9 +118,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         `There is no document matching the given ID '${entity.id}'. New entities cannot not specify an ID`,
       );
     } catch (error) {
-      if (error.message.includes('validation failed')) {
+      if (
+        error.message.includes('validation failed') ||
+        error.message.includes('duplicate key error')
+      ) {
         throw new ValidationException(
-          `Some fields of the given entity do not specify valid values`,
+          'One or more fields of the given entity do not specify valid values',
           error,
         );
       }
@@ -174,18 +177,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S,
     userId?: string,
   ): Promise<HydratedDocument<S>> {
-    try {
-      this.setDiscriminatorKeyOn(entity);
-      const document = this.createDocumentAndSetUserId(entity, userId);
-      return (await document.save()) as HydratedDocument<S>;
-    } catch (error) {
-      if (error.message.includes('duplicate key error')) {
-        throw new ValidationException(
-          `The given entity includes a field which value is expected to be unique`,
-        );
-      }
-      throw error;
-    }
+    this.setDiscriminatorKeyOn(entity);
+    const document = this.createDocumentAndSetUserId(entity, userId);
+    return (await document.save()) as HydratedDocument<S>;
   }
 
   private setDiscriminatorKeyOn<S extends T>(
