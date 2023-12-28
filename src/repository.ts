@@ -2,7 +2,14 @@ import { Optional } from 'typescript-optional';
 import { Entity } from './util/entity';
 import { SearchOptions } from './util/search-options';
 
-export type PartialEntityWithId<T> = { id: string } & Partial<T>;
+/**
+ * Models an entity with partial content that specifies a Mongo `id` and (optionally) a Mongoose discriminator key.
+ */
+export type PartialEntityWithId<T extends Entity> = {
+  id: string;
+} & {
+  __t?: string;
+} & Partial<T>;
 
 /**
  * Specifies a list of common database CRUD operations.
@@ -10,22 +17,28 @@ export type PartialEntityWithId<T> = { id: string } & Partial<T>;
 export interface Repository<T extends Entity> {
   /**
    * Find an entity by ID.
-   * @param id the ID of the entity.
-   * @returns the entity or null.
-   * */
+   * @param {string} id the ID of the entity.
+   * @returns {Promise<Optional<S>>} the entity or null.
+   * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
+   */
   findById: <S extends T>(id: string) => Promise<Optional<S>>;
 
   /**
    * Find all entities.
-   * @param options (optional) the desired search options (i.e., field filters, sorting, and pagination data).
-   * */
+   * @param {SearchOptions} options (optional) the desired search options (i.e., field filters, sorting, and pagination data).
+   * @returns {Promise<S[]>} all entities.
+   * @throws {IllegalArgumentException} if the given `options` specifies an invalid parameter.
+   */
   findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
 
   /**
    * Save (insert or update) an entity.
-   * @param entity the entity to save.
-   * @param userId (optional) the ID of the user executing the action.
-   * @returns the saved version of the entity.
+   * @param {S | PartialEntityWithId<S>} entity the entity to save.
+   * @param {string} userId (optional) the ID of the user executing the action.
+   * @returns {Promise<S>} the saved version of the entity.
+   * @throws {IllegalArgumentException} if the given `entity` is `undefined` or `null` or
+   * specifies an `id` not matching any existing entity.
+   * @throws {ValidationException} if the given `entity` specifies a field with some invalid value.
    */
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
@@ -34,8 +47,9 @@ export interface Repository<T extends Entity> {
 
   /**
    * Delete an entity by ID.
-   * @param id the ID of the entity.
-   * @returns true if the entity was deleted, false otherwise.
+   * @param {string} id the ID of the entity.
+   * @returns {Promise<boolean>} `true` if the entity was deleted, `false` otherwise.
+   * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
    */
   deleteById: (id: string) => Promise<boolean>;
 }

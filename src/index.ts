@@ -1,5 +1,9 @@
-import { MongooseRepository } from './mongoose.repository';
-import { Repository } from './repository';
+import {
+  Constructor,
+  ConstructorMap,
+  MongooseRepository,
+} from './mongoose.repository';
+import { PartialEntityWithId, Repository } from './repository';
 import { Auditable, AuditableClass, isAuditable } from './util/audit';
 import { Entity } from './util/entity';
 import {
@@ -14,9 +18,12 @@ export {
   AuditableClass,
   AuditableSchema,
   BaseSchema,
+  Constructor,
+  ConstructorMap,
   Entity,
   IllegalArgumentException,
   MongooseRepository,
+  PartialEntityWithId,
   Repository,
   UndefinedConstructorException,
   ValidationException,
