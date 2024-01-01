@@ -1,4 +1,5 @@
 import mongoose, {
+  ClientSession,
   Connection,
   HydratedDocument,
   Model,
@@ -15,37 +16,86 @@ import {
   ValidationException,
 } from './util/exceptions';
 import { SearchOptions } from './util/search-options';
+import { runInTransaction } from './util/transaction';
 
 /**
- * Models a persistable domain object constructor function.
+ * Models a domain object instance constructor.
  */
-export type Constructor<T> = new (...args: any) => T;
+export type Constructor<T extends Entity> = new (...args: any) => T;
 
 /**
- * Models a persistable domain object constructor map.
+ * Models some domain object type data.
  */
-export interface ConstructorMap<T> {
-  [index: string]: { type: Constructor<T>; schema: Schema };
+export type TypeData<T extends Entity> = {
+  type: Constructor<T>;
+  schema: Schema;
+};
+
+/**
+ * Models a map of domain object types supported by a custom repository.
+ */
+export interface TypeMap<T extends Entity> {
+  [type: string]: TypeData<T>;
+}
+
+class InnerTypeMap<T extends Entity> {
+  readonly types: string[];
+  readonly data: TypeData<T>[];
+
+  constructor(map: TypeMap<T>) {
+    this.types = Object.keys(map);
+    this.data = Object.values(map);
+  }
+
+  get(type: string): TypeData<T> | undefined {
+    const index = this.types.indexOf(type);
+    return index !== -1 ? this.data[index] : undefined;
+  }
+
+  getSupertypeData(): TypeData<T> {
+    return this.get('Default')!;
+  }
+
+  getSupertypeName(): string {
+    return this.getSupertypeData().type.name;
+  }
+
+  getSubtypesData(): TypeData<T>[] {
+    const subtypeData: TypeData<T>[] = [];
+    for (const key of this.types) {
+      const value = this.get(key);
+      if (value && key !== 'Default') {
+        subtypeData.push(value);
+      }
+    }
+    return subtypeData;
+  }
+
+  has(type: string): boolean {
+    return type === this.getSupertypeName() || this.types.indexOf(type) !== -1;
+  }
 }
 
 /**
- * Abstract implementation of the {@link Repository} interface for MongoDB using Mongoose.
+ * Abstract Mongoose-based implementation of the {@link Repository} interface.
  */
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
+  private readonly typeMap: InnerTypeMap<T>;
   protected readonly entityModel: Model<T>;
 
   /**
    * Sets up the underlying configuration to enable Mongoose operation execution.
-   * @param {ConstructorMap<T>} entityConstructorMap a map with all the persistable domain object types.
+   * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
    * @param {Connection=} connection (optional) a Mongoose connection to an instance of MongoDB.
    */
   protected constructor(
-    private readonly entityConstructorMap: ConstructorMap<T>,
+    typeMap: TypeMap<T>,
     protected readonly connection?: Connection,
   ) {
-    this.entityModel = this.createEntityModel(entityConstructorMap, connection);
+    this.typeMap = new InnerTypeMap(typeMap);
+    this.entityModel = this.createEntityModel(connection);
   }
 
   /** @inheritdoc */
@@ -103,6 +153,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
     userId?: string,
+    session?: ClientSession,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
@@ -111,7 +162,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       if (!entity.id) {
         document = await this.insert(entity as S, userId);
       } else {
-        document = await this.update(entity as PartialEntityWithId<S>, userId);
+        document = await this.update(
+          entity as PartialEntityWithId<S>,
+          userId,
+          session,
+        );
       }
       if (document) return this.instantiateFrom(document) as S;
       throw new IllegalArgumentException(
@@ -131,44 +186,57 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
   }
 
+  /** @inheritdoc */
+  async saveAll<S extends T>(
+    entities: S[] | PartialEntityWithId<S>[],
+    userId?: string,
+  ): Promise<S[]> {
+    return await runInTransaction(
+      async (session: ClientSession) =>
+        await Promise.all(
+          entities.map(
+            async (entity) => await this.save(entity, userId, session),
+          ),
+        ),
+    );
+  }
+
   /**
    * Instantiates a persistable domain object from the given Mongoose Document.
-   * @param document the given Mongoose Document.
-   * @returns the resulting persistable domain object instance.
+   * @param {HydratedDocument<S> | null} document the given Mongoose Document.
+   * @returns {S | null} the resulting persistable domain object instance.
    * @throws {UndefinedConstructorException} if there is no constructor available.
    */
   protected instantiateFrom<S extends T>(
     document: HydratedDocument<S> | null,
   ): S | null {
     if (!document) return null;
-    const discriminatorType = document.get('__t');
-    const entityConstructor =
-      this.entityConstructorMap[discriminatorType ?? 'Default'].type;
-    if (entityConstructor) {
-      return new entityConstructor(document.toObject()) as S;
+    const entityKey = document.get('__t') ?? 'Default';
+    const constructor = this.typeMap.get(entityKey)?.type;
+    if (constructor) {
+      return new constructor(document.toObject()) as S;
     }
     throw new UndefinedConstructorException(
       `There is no registered instance constructor for the document with ID ${document.id}`,
     );
   }
 
-  private createEntityModel<T>(
-    entityConstructorMap: ConstructorMap<T>,
-    connection?: Connection,
-  ) {
+  private createEntityModel(connection?: Connection) {
     let entityModel;
-    const supertypeName = entityConstructorMap['Default'].type.name;
-    const supertypeSchema = entityConstructorMap['Default'].schema;
+    const supertypeData = this.typeMap.getSupertypeData();
     if (connection) {
-      entityModel = connection.model<T>(supertypeName, supertypeSchema);
+      entityModel = connection.model<T>(
+        supertypeData.type.name,
+        supertypeData.schema,
+      );
     } else {
-      entityModel = mongoose.model<T>(supertypeName, supertypeSchema);
+      entityModel = mongoose.model<T>(
+        supertypeData.type.name,
+        supertypeData.schema,
+      );
     }
-    for (const subtypeName in entityConstructorMap) {
-      if (!(subtypeName === 'Default')) {
-        const subtypeSchema = entityConstructorMap[subtypeName].schema;
-        entityModel.discriminator(subtypeName, subtypeSchema);
-      }
+    for (const subtypeData of this.typeMap.getSubtypesData()) {
+      entityModel.discriminator(subtypeData.type.name, subtypeData.schema);
     }
     return entityModel;
   }
@@ -177,6 +245,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S,
     userId?: string,
   ): Promise<HydratedDocument<S>> {
+    const entityClassName = entity['constructor']['name'];
+    if (!this.typeMap.has(entityClassName)) {
+      throw new IllegalArgumentException(
+        `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
+      );
+    }
     this.setDiscriminatorKeyOn(entity);
     const document = this.createDocumentAndSetUserId(entity, userId);
     return (await document.save()) as HydratedDocument<S>;
@@ -186,10 +260,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
+    const isSubtype = entityClassName !== this.typeMap.getSupertypeName();
     const hasEntityDiscriminatorKey = '__t' in entity;
-    const isEntitySupertype =
-      entityClassName !== this.entityConstructorMap['Default'].type.name;
-    if (!hasEntityDiscriminatorKey && isEntitySupertype) {
+    if (isSubtype && !hasEntityDiscriminatorKey) {
       entity['__t'] = entityClassName;
     }
   }
@@ -206,10 +279,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   private async update<S extends T>(
     entity: PartialEntityWithId<S>,
     userId?: string,
+    session?: ClientSession,
   ): Promise<HydratedDocument<S> | null> {
-    const document = await this.entityModel.findById<HydratedDocument<S>>(
-      entity.id,
-    );
+    const document = await this.entityModel
+      .findById<HydratedDocument<S>>(entity.id)
+      .session(session ?? null);
     if (document) {
       document.set(entity);
       document.isNew = false;

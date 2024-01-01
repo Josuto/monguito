@@ -1,23 +1,20 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Entity } from '../../../../src';
 
-let mongoServer: MongoMemoryServer;
+let mongoServer: MongoMemoryReplSet;
 let dbName: string;
 
 export const rootMongooseTestModule = (
   options: MongooseModuleOptions = {},
-  port = 27016,
   dbName = 'book-repository',
 ) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
-      mongoServer = await MongoMemoryServer.create({
-        instance: {
-          port,
-          dbName: dbName,
-        },
+      mongoServer = await MongoMemoryReplSet.create({
+        instanceOpts: [{ port: 27016 }],
+        replSet: { dbName, count: 1 },
       });
       const mongoUri = mongoServer.getUri();
       return {
@@ -55,7 +52,7 @@ export const deleteAll = async (collections: string[]) => {
 const setupConnection = async () => {
   if (!mongoServer) return;
   await mongoose.connect(mongoServer.getUri());
-  await mongoose.connection.useDb(dbName);
+  mongoose.connection.useDb(dbName);
 };
 
 export const closeMongoConnection = async () => {

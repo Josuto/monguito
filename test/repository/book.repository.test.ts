@@ -3,12 +3,20 @@ import {
   IllegalArgumentException,
   ValidationException,
 } from '../../src/util/exceptions';
-import { AudioBook, Book, ElectronicBook, PaperBook } from '../domain/book';
+import { AudioBook, Book, PaperBook } from '../domain/book';
+import {
+  audioBookFixture,
+  bookFixture,
+  electronicBookFixture,
+  paperBookFixture,
+} from '../domain/book.fixtures';
 import {
   closeMongoConnection,
   deleteAll,
   findById,
+  findOne,
   insert,
+  setupConnection,
 } from '../util/mongo-server';
 import { BookRepository, MongooseBookRepository } from './book.repository';
 
@@ -19,53 +27,8 @@ describe('Given an instance of book repository', () => {
   let storedAudioBook: AudioBook;
 
   beforeAll(async () => {
+    setupConnection();
     bookRepository = new MongooseBookRepository();
-  });
-
-  beforeEach(async () => {
-    const bookToStore = new Book({
-      title: 'Accelerate',
-      description:
-        'Building and Scaling High Performing Technology Organizations',
-      isbn: '1942788339',
-    });
-    const storedBookId = await insert(bookToStore, 'books');
-    storedBook = new Book({
-      ...bookToStore,
-      id: storedBookId,
-    });
-
-    const paperBookToStore = new PaperBook({
-      title: 'Effective Java',
-      description: 'Great book on the Java programming language',
-      edition: 3,
-      isbn: '0134685997',
-    });
-    const storedPaperBookId = await insert(
-      paperBookToStore,
-      'books',
-      PaperBook.name,
-    );
-    storedPaperBook = new PaperBook({
-      ...paperBookToStore,
-      id: storedPaperBookId,
-    });
-
-    const audioBookToStore = new AudioBook({
-      title: 'The Sandman',
-      description: 'Fantastic fantasy audio book',
-      hostingPlatforms: ['Audible'],
-      isbn: '5573899870',
-    });
-    const storedAudioBookId = await insert(
-      audioBookToStore,
-      'books',
-      AudioBook.name,
-    );
-    storedAudioBook = new AudioBook({
-      ...audioBookToStore,
-      id: storedAudioBookId,
-    });
   });
 
   describe('when searching a book by ID', () => {
@@ -93,6 +56,23 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by the ID of an existent book', () => {
+      beforeEach(async () => {
+        const paperBookToStore = paperBookFixture();
+        const storedPaperBookId = await insert(
+          paperBookToStore,
+          'books',
+          PaperBook.name,
+        );
+        storedPaperBook = new PaperBook({
+          ...paperBookToStore,
+          id: storedPaperBookId,
+        });
+      });
+
+      afterEach(async () => {
+        await deleteAll('books');
+      });
+
       it('then retrieves the book', async () => {
         const book = await bookRepository.findById(storedPaperBook.id!);
         expect(book.isPresent()).toBe(true);
@@ -126,6 +106,19 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and there is one book matching the given search value', () => {
+      beforeEach(async () => {
+        const bookToStore = bookFixture();
+        const storedBookId = await insert(bookToStore, 'books');
+        storedBook = new Book({
+          ...bookToStore,
+          id: storedBookId,
+        });
+      });
+
+      afterEach(async () => {
+        await deleteAll('books');
+      });
+
       it('then returns a book matching the given search value', async () => {
         const book = await bookRepository.findByIsbn(storedBook.isbn);
         expect(book.isPresent()).toBe(true);
@@ -135,6 +128,41 @@ describe('Given an instance of book repository', () => {
   });
 
   describe('when searching books', () => {
+    beforeEach(async () => {
+      const bookToStore = bookFixture();
+      const storedBookId = await insert(bookToStore, 'books');
+      storedBook = new Book({
+        ...bookToStore,
+        id: storedBookId,
+      });
+
+      const paperBookToStore = paperBookFixture();
+      const storedPaperBookId = await insert(
+        paperBookToStore,
+        'books',
+        PaperBook.name,
+      );
+      storedPaperBook = new PaperBook({
+        ...paperBookToStore,
+        id: storedPaperBookId,
+      });
+
+      const audioBookToStore = audioBookFixture();
+      const storedAudioBookId = await insert(
+        audioBookToStore,
+        'books',
+        AudioBook.name,
+      );
+      storedAudioBook = new AudioBook({
+        ...audioBookToStore,
+        id: storedAudioBookId,
+      });
+    });
+
+    afterEach(async () => {
+      await deleteAll('books');
+    });
+
     describe('and not providing any optional parameter', () => {
       it('then retrieves a list with all books', async () => {
         const books = await bookRepository.findAll();
@@ -829,13 +857,10 @@ describe('Given an instance of book repository', () => {
   describe('when saving a book', () => {
     describe('that has not been registered as a Mongoose discriminator', () => {
       it('throws an exception', async () => {
-        const bookToInsert = new ElectronicBook({
-          title: 'How to deal with ants at home?',
-          description: 'Shows several strategies to avoid having ants at home',
-          extension: 'epub',
-          isbn: '6875234013',
-        });
-        await expect(bookRepository.save(bookToInsert)).rejects.toThrowError();
+        const bookToInsert = electronicBookFixture();
+        await expect(bookRepository.save(bookToInsert)).rejects.toThrowError(
+          IllegalArgumentException,
+        );
       });
     });
 
@@ -860,13 +885,14 @@ describe('Given an instance of book repository', () => {
         describe('and that is of supertype Book', () => {
           describe('and specifies an ID', () => {
             it('then throws an exception', async () => {
-              const bookToInsert = new Book({
-                id: '00007032a61c4eda79230000',
-                title: 'Continuous Delivery',
-                description:
-                  'Reliable Software Releases Through Build, Test, and Deployment Automation',
-                isbn: '9780321601919',
-              });
+              const bookToInsert = bookFixture(
+                {
+                  title: 'Modern Software Engineering',
+                  description: 'Build Better Software Faster',
+                  isbn: '9780321601919',
+                },
+                '00007032a61c4eda79230000',
+              );
 
               await expect(
                 bookRepository.save(bookToInsert),
@@ -877,11 +903,10 @@ describe('Given an instance of book repository', () => {
           describe('and does not specify an ID', () => {
             describe('and some field values are invalid', () => {
               it('then throws an exception', async () => {
-                const bookToInsert = new Book({
-                  title: 'Continuous Delivery',
-                  description:
-                    'Reliable Software Releases Through Build, Test, and Deployment Automation',
-                  isbn: undefined as unknown as string,
+                const bookToInsert = bookFixture({
+                  title: 'Modern Software Engineering',
+                  description: 'Build Better Software Faster',
+                  isbn: undefined,
                 });
 
                 await expect(
@@ -892,10 +917,9 @@ describe('Given an instance of book repository', () => {
 
             describe('and all field values are valid', () => {
               it('then inserts the book', async () => {
-                const bookToInsert = new Book({
-                  title: 'Continuous Delivery',
-                  description:
-                    'Reliable Software Releases Through Build, Test, and Deployment Automation',
+                const bookToInsert = bookFixture({
+                  title: 'Modern Software Engineering',
+                  description: 'Build Better Software Faster',
                   isbn: '9780321601919',
                 });
 
@@ -911,11 +935,10 @@ describe('Given an instance of book repository', () => {
         describe('and that is of a subtype of Book', () => {
           describe('and some field values are invalid', () => {
             it('then throws an exception', async () => {
-              const bookToInsert = new PaperBook({
+              const bookToInsert = paperBookFixture({
                 title: 'Implementing Domain-Driven Design',
                 description: 'Describes Domain-Driven Design in depth',
-                edition: undefined as unknown as number,
-                isbn: '9780321834577',
+                isbn: undefined,
               });
 
               await expect(
@@ -926,11 +949,10 @@ describe('Given an instance of book repository', () => {
 
           describe('and all field values are valid', () => {
             it('then inserts the book', async () => {
-              const bookToInsert = new PaperBook({
+              const bookToInsert = paperBookFixture({
                 title: 'Implementing Domain-Driven Design',
                 description: 'Describes Domain-Driven Design in depth',
-                edition: 1,
-                isbn: '9780321834577',
+                isbn: '0134685998',
               });
 
               const book = await bookRepository.save(bookToInsert);
@@ -944,7 +966,20 @@ describe('Given an instance of book repository', () => {
       });
 
       describe('that is not new', () => {
-        describe('and that is of Book supertype', () => {
+        describe('and that is of supertype Book', () => {
+          beforeEach(async () => {
+            const bookToStore = bookFixture();
+            const storedBookId = await insert(bookToStore, 'books');
+            storedBook = new Book({
+              ...bookToStore,
+              id: storedBookId,
+            });
+          });
+
+          afterEach(async () => {
+            await deleteAll('books');
+          });
+
           describe('and that specifies partial contents of the supertype', () => {
             describe('and some field values are invalid', () => {
               it('then throws an exception', async () => {
@@ -978,13 +1013,14 @@ describe('Given an instance of book repository', () => {
           });
           describe('and that specifies all the contents of the supertype', () => {
             it('then updates the book', async () => {
-              const bookToUpdate = new Book({
-                id: storedBook.id,
-                title: 'The Phoenix Project',
-                description:
-                  'A Novel About IT, DevOps, and Helping Your Business Win',
-                isbn: '1942788290',
-              });
+              const bookToUpdate = bookFixture(
+                {
+                  title: 'Continuous Delivery',
+                  description:
+                    'Boost your development productivity via automation',
+                },
+                storedBook.id,
+              );
 
               const book = await bookRepository.save(bookToUpdate);
               expect(book.id).toBe(bookToUpdate.id);
@@ -994,7 +1030,35 @@ describe('Given an instance of book repository', () => {
           });
         });
 
-        describe('and that is of Book subtype', () => {
+        describe('and that is of a subtype of Book', () => {
+          beforeEach(async () => {
+            const paperBookToStore = paperBookFixture();
+            const storedPaperBookId = await insert(
+              paperBookToStore,
+              'books',
+              PaperBook.name,
+            );
+            storedPaperBook = new PaperBook({
+              ...paperBookToStore,
+              id: storedPaperBookId,
+            });
+
+            const audioBookToStore = audioBookFixture();
+            const storedAudioBookId = await insert(
+              audioBookToStore,
+              'books',
+              AudioBook.name,
+            );
+            storedAudioBook = new AudioBook({
+              ...audioBookToStore,
+              id: storedAudioBookId,
+            });
+          });
+
+          afterEach(async () => {
+            await deleteAll('books');
+          });
+
           describe('and that specifies partial contents of the subtype', () => {
             describe('and some field values are invalid', () => {
               it('then throws an exception', async () => {
@@ -1031,14 +1095,14 @@ describe('Given an instance of book repository', () => {
           describe('and that specifies all the contents of the subtype', () => {
             describe('and some field values are invalid', () => {
               it('then throws an exception', async () => {
-                const bookToUpdate = new AudioBook({
-                  id: storedAudioBook.id,
-                  title: 'Don Quixote',
-                  description: 'Important classic in Spanish literature',
-                  hostingPlatforms: undefined as unknown as string[],
-                  format: 'mp3',
-                  isbn: '0142437239',
-                });
+                const bookToUpdate = audioBookFixture(
+                  {
+                    title: 'The Pragmatic Programmer',
+                    description: 'This book is a jewel for developers',
+                    hostingPlatforms: undefined,
+                  },
+                  storedAudioBook.id,
+                );
 
                 await expect(
                   bookRepository.save(bookToUpdate),
@@ -1048,14 +1112,13 @@ describe('Given an instance of book repository', () => {
 
             describe('and all field values are valid', () => {
               it('then updates the book', async () => {
-                const bookToUpdate = new AudioBook({
-                  id: storedAudioBook.id,
-                  title: 'Don Quixote',
-                  description: 'Important classic in Spanish literature',
-                  hostingPlatforms: ['Spotify'],
-                  format: 'mp3',
-                  isbn: '0142437239',
-                });
+                const bookToUpdate = audioBookFixture(
+                  {
+                    title: 'The Pragmatic Programmer',
+                    description: 'This book is a jewel for developers',
+                  },
+                  storedAudioBook.id,
+                );
 
                 const book = await bookRepository.save(bookToUpdate);
                 expect(book.id).toBe(bookToUpdate.id);
@@ -1070,6 +1133,126 @@ describe('Given an instance of book repository', () => {
           });
         });
       });
+    });
+  });
+
+  describe('when saving a list of books', () => {
+    describe('that is empty', () => {
+      it('then returns an empty list of books', async () => {
+        const books = await bookRepository.saveAll([]);
+
+        expect(books).toEqual([]);
+      });
+    });
+
+    describe('that includes a book that has not been registered as a Mongoose discriminator', () => {
+      it('throws an exception', async () => {
+        const booksToInsert = [
+          bookFixture({ isbn: '1942788340' }),
+          electronicBookFixture({ isbn: '1942788341' }),
+        ];
+        await expect(
+          bookRepository.saveAll(booksToInsert),
+        ).rejects.toThrowError(IllegalArgumentException);
+        expect(await findOne({}, 'books')).toBeNull();
+      });
+    });
+
+    describe('that includes books that have been registered as a Mongoose discriminator', () => {
+      // describe('and one book is undefined', () => {
+      //   it('throws an exception', async () => {});
+      // });
+
+      // describe('and one book is null', () => {
+      //   it('throws an exception', async () => {});
+      // });
+
+      describe('and all books are new', () => {
+        // describe('and all books are of the same type', () => {
+        //   describe('and some field values of one book are invalid', () => {
+        //     it('throws an exception', async () => {});
+        //   });
+
+        //   describe('and all books specify valid field values', () => {});
+        // });
+
+        describe('and each book is of a different type', () => {
+          // describe('and some field values of one book are invalid', () => {
+          //   it('throws an exception', async () => {});
+          // });
+
+          describe('and all books specify valid field values', () => {
+            afterEach(async () => {
+              await deleteAll('books');
+            });
+
+            it('then inserts the books', async () => {
+              const booksToInsert = [
+                bookFixture({ isbn: '1942788342' }),
+                paperBookFixture({ isbn: '1942788343' }),
+              ];
+              const savedBooks = await bookRepository.saveAll(booksToInsert);
+              expect(savedBooks.length).toBe(2);
+            });
+          });
+        });
+      });
+
+      // describe('and none of the books is new', () => {
+      //   describe('and all books are of the same type', () => {
+      //     describe('and some field values of one book are invalid', () => {
+      //       it('throws an exception', async () => {});
+      //     });
+
+      //     describe('and all books specify valid field values', () => {});
+      //   });
+
+      //   describe('and each book is of a different type', () => {
+      //     describe('and some field values of one book are invalid', () => {
+      //       it('throws an exception', async () => {});
+      //     });
+
+      //     describe('and all books specify valid field values', () => {});
+      //   });
+      // });
+
+      // describe('and one book is new while another is not new', () => {
+      //   describe('and all books are of the same type', () => {
+      //     describe('and some field values of one book are invalid', () => {
+      //       it('throws an exception', async () => {});
+      //     });
+
+      //     describe('and all books specify valid field values', () => {
+      //       describe('and the book to insert has a partial content', () => {
+      //         it('throws an exception', async () => {});
+      //       });
+
+      //       describe('and the book to insert has a complete content', () => {
+      //         describe('and the book to update has a partial content', () => {});
+
+      //         describe('and the book to update has a complete content', () => {});
+      //       });
+      //     });
+      //   });
+
+      //   describe('and each book is of a different type', () => {
+      //     describe('and some field values of one book are invalid', () => {
+      //       it('throws an exception', async () => {});
+      //     });
+
+      //     describe('and all books specify valid field values', () => {
+      //       describe('and the book to insert has a partial content', () => {
+      //         it('throws an exception', async () => {});
+      //       });
+
+      //       describe('and the book to insert has a complete content', () => {
+      //         describe('and the book to update has a partial content', () => {});
+
+      //         describe('and the book to update has a complete content', () => {});
+      //       });
+      //     });
+      //   });
+      // });
     });
   });
 
@@ -1100,16 +1283,25 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by the ID of an existent book', () => {
+      beforeEach(async () => {
+        const bookToStore = bookFixture();
+        const storedBookId = await insert(bookToStore, 'books');
+        storedBook = new Book({
+          ...bookToStore,
+          id: storedBookId,
+        });
+      });
+
+      afterEach(async () => {
+        await deleteAll('books');
+      });
+
       it('then returns true and the book has been effectively deleted', async () => {
         const isDeleted = await bookRepository.deleteById(storedBook.id!);
         expect(isDeleted).toBe(true);
         expect(await findById(storedBook.id!, 'books')).toBe(null);
       });
     });
-  });
-
-  afterEach(async () => {
-    await deleteAll('books');
   });
 
   afterAll(async () => {

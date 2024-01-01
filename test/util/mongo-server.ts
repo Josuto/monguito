@@ -1,9 +1,9 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Entity } from '../../src';
 
 const dbName = 'test';
-let mongoServer: MongoMemoryServer;
+let mongoServer: MongoMemoryReplSet;
 
 type EntityWithOptionalDiscriminatorKey = Entity & { __t?: string };
 
@@ -21,6 +21,11 @@ export const insert = async (
     .collection(collection)
     .insertOne(entity)
     .then((result) => result.insertedId.toString());
+};
+
+export const findOne = async (filter: any, collection: string) => {
+  await setupConnection();
+  return await mongoose.connection.db.collection(collection).findOne(filter);
 };
 
 export const findById = async (id: string, collection: string) => {
@@ -43,12 +48,10 @@ export const closeMongoConnection = async () => {
 
 export const setupConnection = async () => {
   if (!mongoServer) {
-    mongoServer = await MongoMemoryServer.create({
-      instance: {
-        dbName: dbName,
-      },
+    mongoServer = await MongoMemoryReplSet.create({
+      replSet: { dbName, count: 1 },
     });
     await mongoose.connect(mongoServer.getUri());
-    await mongoose.connection.useDb(dbName);
+    mongoose.connection.useDb(dbName);
   }
 };
