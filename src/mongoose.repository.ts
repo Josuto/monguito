@@ -160,7 +160,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     try {
       let document;
       if (!entity.id) {
-        document = await this.insert(entity as S, userId);
+        document = await this.insert(entity as S, userId, session);
       } else {
         document = await this.update(
           entity as PartialEntityWithId<S>,
@@ -198,6 +198,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
             async (entity) => await this.save(entity, userId, session),
           ),
         ),
+      this.connection,
     );
   }
 
@@ -244,6 +245,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   private async insert<S extends T>(
     entity: S,
     userId?: string,
+    session?: ClientSession,
   ): Promise<HydratedDocument<S>> {
     const entityClassName = entity['constructor']['name'];
     if (!this.typeMap.has(entityClassName)) {
@@ -253,7 +255,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
     this.setDiscriminatorKeyOn(entity);
     const document = this.createDocumentAndSetUserId(entity, userId);
-    return (await document.save()) as HydratedDocument<S>;
+    return (await document.save({ session })) as HydratedDocument<S>;
   }
 
   private setDiscriminatorKeyOn<S extends T>(
