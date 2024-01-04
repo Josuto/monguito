@@ -9,10 +9,18 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { AudioBook, Book, PaperBook } from './book';
 import { Repository } from '../../../dist';
+import { AudioBook, Book, PaperBook } from './book';
 
 type PartialBook = { id: string } & Partial<Book>;
+
+function deserialiseAll<T extends Book>(plainBooks: any[]): T[] {
+  const books: T[] = [];
+  for (const plainBook of plainBooks) {
+    books.push(deserialise(plainBook));
+  }
+  return books;
+}
 
 function deserialise<T extends Book>(plainBook: any): T {
   let book = null;
@@ -54,6 +62,20 @@ export class BookController {
     book: PartialBook,
   ): Promise<Book> {
     return this.save(book);
+  }
+
+  @Post('/all')
+  async saveAll(
+    @Body({
+      transform: (plainBooks) => deserialiseAll(plainBooks),
+    })
+    books: Book[],
+  ): Promise<Book[]> {
+    try {
+      return await this.bookRepository.saveAll(books);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   @Delete(':id')

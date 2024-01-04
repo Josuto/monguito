@@ -13,7 +13,6 @@ export const rootMongooseTestModule = (
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryReplSet.create({
-        instanceOpts: [{ port: 27016 }],
         replSet: { dbName, count: 1 },
       });
       const mongoUri = mongoServer.getUri();
@@ -39,6 +38,11 @@ export const insert = async (
     .collection(collection)
     .insertOne(entity)
     .then((result) => result.insertedId.toString());
+};
+
+export const findOne = async (filter: any, collection: string) => {
+  await setupConnection();
+  return await mongoose.connection.db.collection(collection).findOne(filter);
 };
 
 export const deleteAll = async (collections: string[]) => {
