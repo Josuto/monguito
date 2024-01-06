@@ -121,15 +121,13 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const offset = options?.pageable?.offset ?? 0;
     const pageNumber = options?.pageable?.pageNumber ?? 0;
     try {
-      return this.entityModel
+      const documents = await this.entityModel
         .find(options?.filters)
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
-        .exec()
-        .then((documents) =>
-          documents.map((document) => this.instantiateFrom(document) as S),
-        );
+        .exec();
+      return documents.map((document) => this.instantiateFrom(document) as S);
     } catch (error) {
       throw new IllegalArgumentException(
         'The given optional parameters must be valid',
@@ -141,12 +139,8 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /** @inheritdoc */
   async findById<S extends T>(id: string): Promise<Optional<S>> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    return this.entityModel
-      .findById(id)
-      .exec()
-      .then((document) =>
-        Optional.ofNullable(this.instantiateFrom(document) as S),
-      );
+    const document = await this.entityModel.findById(id).exec();
+    return Optional.ofNullable(this.instantiateFrom(document) as S);
   }
 
   /** @inheritdoc */
