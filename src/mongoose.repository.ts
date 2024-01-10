@@ -16,7 +16,6 @@ import {
   ValidationException,
 } from './util/exceptions';
 import { SearchOptions } from './util/search-options';
-import { runInTransaction } from './util/transaction';
 
 /**
  * Models a domain object instance constructor.
@@ -86,9 +85,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   protected readonly entityModel: Model<T>;
 
   /**
-   * Sets up the underlying configuration to enable Mongoose operation execution.
+   * Sets up the underlying configuration to enable database operation execution.
    * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
-   * @param {Connection=} connection (optional) a Mongoose connection to an instance of MongoDB.
+   * @param {Connection=} connection (optional) a connection to an instance of MongoDB.
    */
   protected constructor(
     typeMap: TypeMap<T>,
@@ -178,22 +177,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       }
       throw error;
     }
-  }
-
-  /** @inheritdoc */
-  async saveAll<S extends T>(
-    entities: S[] | PartialEntityWithId<S>[],
-    userId?: string,
-  ): Promise<S[]> {
-    return await runInTransaction(
-      async (session: ClientSession) =>
-        await Promise.all(
-          entities.map(
-            async (entity) => await this.save(entity, userId, session),
-          ),
-        ),
-      this.connection,
-    );
   }
 
   /**

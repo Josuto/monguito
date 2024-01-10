@@ -38,7 +38,6 @@ export const findById = async (id: string, collection: string) => {
 export const deleteAll = async (collection: string) => {
   await setupConnection();
   await mongoose.connection.db.collection(collection).deleteMany({});
-  return;
 };
 
 export const closeMongoConnection = async () => {
