@@ -16,7 +16,7 @@ export interface TransactionalRepository<T extends Entity>
    * @throws {ValidationException} if any of the given entities specifies a field with some invalid value.
    */
   saveAll: <S extends T>(
-    entities: S[] | PartialEntityWithId<S>[],
+    entities: (S | PartialEntityWithId<S>)[],
     userId?: string,
   ) => Promise<S[]>;
 }

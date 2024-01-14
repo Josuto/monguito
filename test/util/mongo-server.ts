@@ -50,7 +50,6 @@ export const setupConnection = async () => {
     mongoServer = await MongoMemoryReplSet.create({
       replSet: { dbName, count: 1 },
     });
-    await mongoose.connect(mongoServer.getUri());
-    mongoose.connection.useDb(dbName);
+    await mongoose.connect(mongoServer.getUri(), { dbName });
   }
 };

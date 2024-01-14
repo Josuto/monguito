@@ -25,7 +25,7 @@ export abstract class MongooseTransactionalRepository<
 
   /** @inheritdoc */
   async saveAll<S extends T>(
-    entities: S[] | PartialEntityWithId<S>[],
+    entities: (S | PartialEntityWithId<S>)[],
     userId?: string,
   ): Promise<S[]> {
     return await runInTransaction(

@@ -32,7 +32,7 @@ describe('Given an instance of book repository', () => {
 
   describe('when searching a book by ID', () => {
     describe('by an undefined ID', () => {
-      it('then throws an exception', async () => {
+      it('throws an exception', async () => {
         await expect(
           bookRepository.findById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
@@ -40,7 +40,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by a null ID', () => {
-      it('then throws an exception', async () => {
+      it('throws an exception', async () => {
         await expect(
           bookRepository.findById(null as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
@@ -48,7 +48,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by the ID of a nonexistent book', () => {
-      it('then retrieves an empty book', async () => {
+      it('retrieves an empty book', async () => {
         const book = await bookRepository.findById('000000000000000000000001');
         expect(book).toEqual(Optional.empty());
       });
@@ -72,7 +72,7 @@ describe('Given an instance of book repository', () => {
         await deleteAll('books');
       });
 
-      it('then retrieves the book', async () => {
+      it('retrieves the book', async () => {
         const book = await bookRepository.findById(storedPaperBook.id!);
         expect(book.isPresent()).toBe(true);
         expect(book.get()).toEqual(storedPaperBook);
@@ -82,7 +82,7 @@ describe('Given an instance of book repository', () => {
 
   describe('when searching a book by a custom field value', () => {
     describe('and the search value is undefined', () => {
-      it('then throws an error', async () => {
+      it('throws an error', async () => {
         await expect(
           bookRepository.findByIsbn(undefined as unknown as string),
         ).rejects.toThrowError();
@@ -90,7 +90,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and the search value is null', () => {
-      it('then throws an error', async () => {
+      it('throws an error', async () => {
         await expect(
           bookRepository.findByIsbn(null as unknown as string),
         ).rejects.toThrowError();
@@ -98,7 +98,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and there is no book matching the given search value', () => {
-      it('then returns an empty book', async () => {
+      it('returns an empty book', async () => {
         const book = await bookRepository.findByIsbn('0000000000');
         expect(book).toEqual(Optional.empty());
       });
@@ -118,7 +118,7 @@ describe('Given an instance of book repository', () => {
         await deleteAll('books');
       });
 
-      it('then returns a book matching the given search value', async () => {
+      it('returns a book matching the given search value', async () => {
         const book = await bookRepository.findByIsbn(storedBook.isbn);
         expect(book.isPresent()).toBe(true);
         expect(book.get()).toEqual(storedBook);
@@ -163,7 +163,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and not providing any optional parameter', () => {
-      it('then retrieves a list with all books', async () => {
+      it('retrieves a list with all books', async () => {
         const books = await bookRepository.findAll();
         expect(books.length).toBe(3);
         expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
@@ -172,7 +172,7 @@ describe('Given an instance of book repository', () => {
 
     describe('and providing a value for the filter parameter', () => {
       describe('and such a field does not refer to an existing field in any Book type', () => {
-        it('then retrieves an empty list of books', async () => {
+        it('retrieves an empty list of books', async () => {
           const filters = { fruit: 'Banana' };
           const books = await bookRepository.findAll({ filters });
           expect(books.length).toBe(0);
@@ -180,7 +180,7 @@ describe('Given an instance of book repository', () => {
       });
 
       describe('and such a value refers to an existing field in some Book type', () => {
-        it('then retrieves a list with all books matching the filter', async () => {
+        it('retrieves a list with all books matching the filter', async () => {
           const filters = { __t: 'PaperBook' };
           const books = await bookRepository.findAll({ filters });
           expect(books.length).toBe(1);
@@ -191,7 +191,7 @@ describe('Given an instance of book repository', () => {
 
     describe('and providing a value for the sort parameter', () => {
       describe('and such a value is invalid', () => {
-        it('then throws an exception', async () => {
+        it('throws an exception', async () => {
           const sortBy = { title: 2 };
           await expect(bookRepository.findAll({ sortBy })).rejects.toThrowError(
             IllegalArgumentException,
@@ -200,7 +200,7 @@ describe('Given an instance of book repository', () => {
       });
 
       describe('and such a value is valid', () => {
-        it('then retrieves an ordered list with books', async () => {
+        it('retrieves an ordered list with books', async () => {
           const sortBy = { title: -1 };
           const books = await bookRepository.findAll({ sortBy });
           expect(books.length).toBe(3);
@@ -212,7 +212,7 @@ describe('Given an instance of book repository', () => {
     describe('and providing a value for the pagination parameter', () => {
       describe('and the page number is undefined', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: undefined as unknown as number,
@@ -228,7 +228,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: null as unknown as number,
@@ -244,7 +244,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: -1,
@@ -256,7 +256,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: 0,
@@ -272,7 +272,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves a list one book', async () => {
+          it('retrieves a list one book', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: 1,
@@ -284,7 +284,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: 3,
@@ -300,7 +300,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: undefined as unknown as number,
               offset: 4,
@@ -318,7 +318,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is null', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: undefined as unknown as number,
@@ -334,7 +334,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: null as unknown as number,
@@ -350,7 +350,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: -1,
@@ -362,7 +362,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: 0,
@@ -378,7 +378,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves a list one book', async () => {
+          it('retrieves a list one book', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: 1,
@@ -390,7 +390,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: 3,
@@ -406,7 +406,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: null as unknown as number,
               offset: 4,
@@ -424,7 +424,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is a negative number', () => {
         describe('and the offset is undefined', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = {
               pageNumber: -1,
               offset: undefined as unknown as number,
@@ -436,7 +436,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = {
               pageNumber: -1,
               offset: null as unknown as number,
@@ -448,7 +448,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: -1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -457,7 +457,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 0 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -466,7 +466,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -475,7 +475,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 3 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -484,7 +484,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 4 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -495,7 +495,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is zero', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: 0,
               offset: undefined as unknown as number,
@@ -511,7 +511,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: 0,
               offset: null as unknown as number,
@@ -527,7 +527,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: 0, offset: -1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -536,7 +536,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 0, offset: 0 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -549,7 +549,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves a list one book', async () => {
+          it('retrieves a list one book', async () => {
             const pageable = { pageNumber: 0, offset: 1 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(1);
@@ -558,7 +558,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 0, offset: 3 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -571,7 +571,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 0, offset: 4 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -586,7 +586,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is one', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: 1,
               offset: undefined as unknown as number,
@@ -602,7 +602,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = {
               pageNumber: 1,
               offset: null as unknown as number,
@@ -618,7 +618,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: 1, offset: -1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -627,7 +627,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 1, offset: 0 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -640,7 +640,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves a list with one book', async () => {
+          it('retrieves a list with one book', async () => {
             const pageable = { pageNumber: 1, offset: 1 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(1);
@@ -649,7 +649,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 1, offset: 3 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -662,7 +662,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves a list with all books', async () => {
+          it('retrieves a list with all books', async () => {
             const pageable = { pageNumber: 1, offset: 4 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -677,7 +677,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is equals to the amount of all of the stored books', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = {
               pageNumber: 3,
               offset: undefined as unknown as number,
@@ -693,7 +693,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = {
               pageNumber: 3,
               offset: null as unknown as number,
@@ -709,7 +709,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: 3, offset: -1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -718,7 +718,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = { pageNumber: 3, offset: 0 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -731,7 +731,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves a list with one book', async () => {
+          it('retrieves a list with one book', async () => {
             const pageable = { pageNumber: 3, offset: 1 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(1);
@@ -740,7 +740,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves an empty list of books', async () => {
+          it('retrieves an empty list of books', async () => {
             const pageable = { pageNumber: 3, offset: 3 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(0);
@@ -748,7 +748,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves an empty list of books', async () => {
+          it('retrieves an empty list of books', async () => {
             const pageable = { pageNumber: 3, offset: 4 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(0);
@@ -758,7 +758,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and the page number is bigger than the amount of all of the stored books', () => {
         describe('and the offset is undefined', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = {
               pageNumber: 4,
               offset: undefined as unknown as number,
@@ -774,7 +774,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is null', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = {
               pageNumber: 4,
               offset: null as unknown as number,
@@ -790,7 +790,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is a negative number', () => {
-          it('then throws an exception', async () => {
+          it('throws an exception', async () => {
             const pageable = { pageNumber: 4, offset: -1 };
             await expect(
               bookRepository.findAll({ pageable }),
@@ -799,7 +799,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is zero', () => {
-          it('then retrieves a list of all books', async () => {
+          it('retrieves a list of all books', async () => {
             const pageable = { pageNumber: 4, offset: 0 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(3);
@@ -812,7 +812,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is one', () => {
-          it('then retrieves an empty list of books', async () => {
+          it('retrieves an empty list of books', async () => {
             const pageable = { pageNumber: 4, offset: 1 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(0);
@@ -820,7 +820,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
-          it('then retrieves an empty list of books', async () => {
+          it('retrieves an empty list of books', async () => {
             const pageable = { pageNumber: 4, offset: 3 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(0);
@@ -828,7 +828,7 @@ describe('Given an instance of book repository', () => {
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
-          it('then retrieves an empty list of books', async () => {
+          it('retrieves an empty list of books', async () => {
             const pageable = { pageNumber: 4, offset: 4 };
             const books = await bookRepository.findAll({ pageable });
             expect(books.length).toBe(0);
@@ -838,7 +838,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and providing a valid value for all optional parameters', () => {
-      it('then retrieves an ordered list with books matching the filter', async () => {
+      it('retrieves an ordered list with books matching the filter', async () => {
         const filters = { __t: ['PaperBook', 'AudioBook'] };
         const sortBy = { title: -1 };
         const pageable = { pageNumber: 1, offset: 1 };
@@ -854,7 +854,7 @@ describe('Given an instance of book repository', () => {
   });
 
   describe('when saving a book', () => {
-    describe('that has not been registered as a Mongoose discriminator', () => {
+    describe('which type is not registered in the repository', () => {
       it('throws an exception', async () => {
         const bookToInsert = electronicBookFixture();
         await expect(bookRepository.save(bookToInsert)).rejects.toThrowError(
@@ -863,9 +863,9 @@ describe('Given an instance of book repository', () => {
       });
     });
 
-    describe('that has been registered as a Mongoose discriminator', () => {
+    describe('which type is registered in the repository', () => {
       describe('that is undefined', () => {
-        it('then throws an exception', async () => {
+        it('throws an exception', async () => {
           await expect(
             bookRepository.save(undefined as unknown as Book),
           ).rejects.toThrowError('The given entity must be valid');
@@ -873,7 +873,7 @@ describe('Given an instance of book repository', () => {
       });
 
       describe('that is null', () => {
-        it('then throws an exception', async () => {
+        it('throws an exception', async () => {
           await expect(
             bookRepository.save(null as unknown as Book),
           ).rejects.toThrowError('The given entity must be valid');
@@ -883,7 +883,7 @@ describe('Given an instance of book repository', () => {
       describe('that is new', () => {
         describe('and that is of supertype Book', () => {
           describe('and specifies an ID', () => {
-            it('then throws an exception', async () => {
+            it('throws an exception', async () => {
               const bookToInsert = bookFixture(
                 {
                   title: 'Modern Software Engineering',
@@ -901,7 +901,7 @@ describe('Given an instance of book repository', () => {
 
           describe('and does not specify an ID', () => {
             describe('and some field values are invalid', () => {
-              it('then throws an exception', async () => {
+              it('throws an exception', async () => {
                 const bookToInsert = bookFixture({
                   title: 'Modern Software Engineering',
                   description: 'Build Better Software Faster',
@@ -915,7 +915,7 @@ describe('Given an instance of book repository', () => {
             });
 
             describe('and all field values are valid', () => {
-              it('then inserts the book', async () => {
+              it('inserts the book', async () => {
                 const bookToInsert = bookFixture({
                   title: 'Modern Software Engineering',
                   description: 'Build Better Software Faster',
@@ -933,7 +933,7 @@ describe('Given an instance of book repository', () => {
 
         describe('and that is of a subtype of Book', () => {
           describe('and some field values are invalid', () => {
-            it('then throws an exception', async () => {
+            it('throws an exception', async () => {
               const bookToInsert = paperBookFixture({
                 title: 'Implementing Domain-Driven Design',
                 description: 'Describes Domain-Driven Design in depth',
@@ -947,7 +947,7 @@ describe('Given an instance of book repository', () => {
           });
 
           describe('and all field values are valid', () => {
-            it('then inserts the book', async () => {
+            it('inserts the book', async () => {
               const bookToInsert = paperBookFixture({
                 title: 'Implementing Domain-Driven Design',
                 description: 'Describes Domain-Driven Design in depth',
@@ -981,7 +981,7 @@ describe('Given an instance of book repository', () => {
 
           describe('and that specifies partial contents of the supertype', () => {
             describe('and some field values are invalid', () => {
-              it('then throws an exception', async () => {
+              it('throws an exception', async () => {
                 const bookToUpdate = {
                   id: storedBook.id,
                   description:
@@ -996,7 +996,7 @@ describe('Given an instance of book repository', () => {
             });
 
             describe('and all field values are valid', () => {
-              it('then updates the book', async () => {
+              it('updates the book', async () => {
                 const bookToUpdate = {
                   id: storedBook.id,
                   description:
@@ -1011,7 +1011,7 @@ describe('Given an instance of book repository', () => {
             });
           });
           describe('and that specifies all the contents of the supertype', () => {
-            it('then updates the book', async () => {
+            it('updates the book', async () => {
               const bookToUpdate = bookFixture(
                 {
                   title: 'Continuous Delivery',
@@ -1060,7 +1060,7 @@ describe('Given an instance of book repository', () => {
 
           describe('and that specifies partial contents of the subtype', () => {
             describe('and some field values are invalid', () => {
-              it('then throws an exception', async () => {
+              it('throws an exception', async () => {
                 const bookToUpdate = {
                   id: storedAudioBook.id,
                   hostingPlatforms: ['Spotify'],
@@ -1074,7 +1074,7 @@ describe('Given an instance of book repository', () => {
             });
 
             describe('and all field values are valid', () => {
-              it('then updates the book', async () => {
+              it('updates the book', async () => {
                 const bookToUpdate = {
                   id: storedAudioBook.id,
                   hostingPlatforms: ['Spotify'],
@@ -1093,7 +1093,7 @@ describe('Given an instance of book repository', () => {
 
           describe('and that specifies all the contents of the subtype', () => {
             describe('and some field values are invalid', () => {
-              it('then throws an exception', async () => {
+              it('throws an exception', async () => {
                 const bookToUpdate = audioBookFixture(
                   {
                     title: 'The Pragmatic Programmer',
@@ -1110,7 +1110,7 @@ describe('Given an instance of book repository', () => {
             });
 
             describe('and all field values are valid', () => {
-              it('then updates the book', async () => {
+              it('updates the book', async () => {
                 const bookToUpdate = audioBookFixture(
                   {
                     title: 'The Pragmatic Programmer',
@@ -1137,7 +1137,7 @@ describe('Given an instance of book repository', () => {
 
   describe('when deleting a book', () => {
     describe('by an undefined ID', () => {
-      it('then throws an exception', async () => {
+      it('throws an exception', async () => {
         await expect(
           bookRepository.deleteById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
@@ -1145,7 +1145,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by a null ID', () => {
-      it('then throws an exception', async () => {
+      it('throws an exception', async () => {
         await expect(
           bookRepository.deleteById(undefined as unknown as string),
         ).rejects.toThrowError(IllegalArgumentException);
@@ -1153,7 +1153,7 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('by the ID of a nonexistent book', () => {
-      it('then returns false', async () => {
+      it('returns false', async () => {
         const isDeleted = await bookRepository.deleteById(
           '00007032a61c4eda79230000',
         );
@@ -1175,7 +1175,7 @@ describe('Given an instance of book repository', () => {
         await deleteAll('books');
       });
 
-      it('then returns true and the book has been effectively deleted', async () => {
+      it('returns true and the book has been effectively deleted', async () => {
         const isDeleted = await bookRepository.deleteById(storedBook.id!);
         expect(isDeleted).toBe(true);
         expect(await findById(storedBook.id!, 'books')).toBe(null);

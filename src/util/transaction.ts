@@ -20,7 +20,7 @@ export async function runInTransaction<T>(
   if (connection) {
     session = await connection.startSession();
   } else {
-    session = await mongoose.startSession();
+    session = await mongoose.connection.startSession();
   }
   session.startTransaction();
   try {
