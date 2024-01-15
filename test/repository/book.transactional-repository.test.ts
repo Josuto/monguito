@@ -11,6 +11,7 @@ import {
   paperBookFixture,
 } from '../domain/book.fixtures';
 import {
+  MongoServerType,
   closeMongoConnection,
   deleteAll,
   findOne,
@@ -27,7 +28,7 @@ describe('Given an instance of book repository', () => {
   let bookRepository: TransactionalRepository<Book>;
 
   beforeAll(async () => {
-    await setupConnection();
+    await setupConnection(MongoServerType.REPLICA_SET);
     bookRepository = new MongooseBookTransactionalRepository();
     // Wait until the repository is properly connected to Mongoose's connection
     await sleep(50);

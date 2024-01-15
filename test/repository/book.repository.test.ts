@@ -11,6 +11,7 @@ import {
   paperBookFixture,
 } from '../domain/book.fixtures';
 import {
+  MongoServerType,
   closeMongoConnection,
   deleteAll,
   findById,
@@ -26,7 +27,7 @@ describe('Given an instance of book repository', () => {
   let storedAudioBook: AudioBook;
 
   beforeAll(async () => {
-    setupConnection();
+    await setupConnection(MongoServerType.STANDALONE);
     bookRepository = new MongooseBookRepository();
   });
 
