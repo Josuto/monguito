@@ -35,7 +35,7 @@ export abstract class MongooseTransactionalRepository<
             async (entity) => await this.save(entity, userId, session),
           ),
         ),
-      this.connection,
+      { connection: this.connection },
     );
   }
 }

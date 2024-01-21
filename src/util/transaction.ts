@@ -5,8 +5,14 @@ import mongoose, { ClientSession, Connection } from 'mongoose';
  */
 export type DbCallback<T> = (session: ClientSession) => Promise<T>;
 
+/**
+ * Specifies some transaction options, specifically the Mongoose connection object to create a transaction
+ * session from and the maximum amount of times that the callback function is to be retried in the case of
+ * any MongoDB transient transaction error.
+ */
 export type TransactionOptions = {
-  retries: number;
+  connection?: Connection;
+  retries?: number;
 };
 
 /**
@@ -14,20 +20,31 @@ export type TransactionOptions = {
  * iff it has run successfully.
  *
  * @param {DbCallback<T>} callback a callback function that writes to and reads from the database using a session.
- * @param {Connection=} connection (optional) a Mongoose connection to create the session from.
+ * @param {TransactionOptions=} options (optional) some options about the transaction.
  */
 export async function runInTransaction<T>(
   callback: DbCallback<T>,
-  connection?: Connection,
   options?: TransactionOptions,
-  attempt = 0,
 ): Promise<T> {
-  let session: ClientSession;
+  return await innerRunIntransaction(callback, 0, options);
+}
+
+async function startSession(connection?: Connection): Promise<ClientSession> {
   if (connection) {
-    session = await connection.startSession();
+    return await connection.startSession();
   } else {
-    session = await mongoose.connection.startSession();
+    return await mongoose.connection.startSession();
   }
+}
+
+const DEFAULT_MAX_RETRIES = 3;
+
+async function innerRunIntransaction<T>(
+  callback: DbCallback<T>,
+  attempt: number,
+  options?: TransactionOptions,
+): Promise<T> {
+  const session = await startSession(options?.connection);
   session.startTransaction();
   try {
     const result = await callback(session);
@@ -37,9 +54,9 @@ export async function runInTransaction<T>(
     await session.abortTransaction();
     if (
       isTransientTransactionError(error) &&
-      attempt < (options?.retries ?? 3)
+      attempt < (options?.retries ?? DEFAULT_MAX_RETRIES)
     ) {
-      return runInTransaction(callback, connection, options, ++attempt);
+      return innerRunIntransaction(callback, ++attempt, options);
     }
     throw error;
   } finally {
@@ -50,7 +67,6 @@ export async function runInTransaction<T>(
 /**
  * Determines whether the given error is a transient transaction error or not.
  * Transient transaction errors can be safely retried.
- *
  * @param error the given error.
  * @returns `true` if the given error is a transient transaction error, `false otherwise`.
  */
