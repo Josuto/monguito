@@ -51,12 +51,12 @@ class InnerTypeMap<T extends Entity> {
     return index !== -1 ? this.data[index] : undefined;
   }
 
-  getSupertypeData(): TypeData<T> {
-    return this.get('Default')!;
+  getSupertypeData(): TypeData<T> | undefined {
+    return this.get('Default');
   }
 
-  getSupertypeName(): string {
-    return this.getSupertypeData().type.name;
+  getSupertypeName(): string | undefined {
+    return this.getSupertypeData()?.type.name;
   }
 
   getSubtypesData(): TypeData<T>[] {
@@ -202,6 +202,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   private createEntityModel(connection?: Connection) {
     let entityModel;
     const supertypeData = this.typeMap.getSupertypeData();
+    if (!supertypeData)
+      throw new UndefinedConstructorException(
+        'No super type constructor is registered',
+      );
     if (connection) {
       entityModel = connection.model<T>(
         supertypeData.type.name,
