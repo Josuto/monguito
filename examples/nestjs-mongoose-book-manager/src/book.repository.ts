@@ -1,18 +1,18 @@
+import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 import {
   IllegalArgumentException,
-  MongooseRepository,
-  Repository,
+  MongooseTransactionalRepository,
+  TransactionalRepository,
 } from 'monguito';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
-import { Injectable } from '@nestjs/common';
-import { Connection } from 'mongoose';
-import { InjectConnection } from '@nestjs/mongoose';
 
 @Injectable()
 export class MongooseBookRepository
-  extends MongooseRepository<Book>
-  implements Repository<Book>
+  extends MongooseTransactionalRepository<Book>
+  implements TransactionalRepository<Book>
 {
   constructor(@InjectConnection() connection: Connection) {
     super(
