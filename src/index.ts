@@ -15,7 +15,6 @@ import {
   ValidationException,
 } from './util/exceptions';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
-import { DbCallback, runInTransaction } from './util/transaction';
 
 export {
   Auditable,
@@ -23,7 +22,6 @@ export {
   AuditableSchema,
   BaseSchema,
   Constructor,
-  DbCallback,
   Entity,
   IllegalArgumentException,
   MongooseRepository,
@@ -37,5 +35,4 @@ export {
   ValidationException,
   extendSchema,
   isAuditable,
-  runInTransaction,
 };

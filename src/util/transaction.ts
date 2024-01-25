@@ -3,14 +3,14 @@ import mongoose, { ClientSession, Connection } from 'mongoose';
 /**
  * Models a callback function that writes to and reads from the database using a session.
  */
-export type DbCallback<T> = (session: ClientSession) => Promise<T>;
+type DbCallback<T> = (session: ClientSession) => Promise<T>;
 
 /**
  * Specifies some transaction options, specifically the Mongoose connection object to create a transaction
  * session from and the maximum amount of times that the callback function is to be retried in the case of
  * any MongoDB transient transaction error.
  */
-export type TransactionOptions = {
+type TransactionOptions = {
   connection?: Connection;
   retries?: number;
 };
@@ -26,7 +26,7 @@ export async function runInTransaction<T>(
   callback: DbCallback<T>,
   options?: TransactionOptions,
 ): Promise<T> {
-  return await innerRunIntransaction(callback, 0, options);
+  return await recursiveRunIntransaction(callback, 0, options);
 }
 
 async function startSession(connection?: Connection): Promise<ClientSession> {
@@ -39,7 +39,7 @@ async function startSession(connection?: Connection): Promise<ClientSession> {
 
 const DEFAULT_MAX_RETRIES = 3;
 
-async function innerRunIntransaction<T>(
+async function recursiveRunIntransaction<T>(
   callback: DbCallback<T>,
   attempt: number,
   options?: TransactionOptions,
@@ -56,7 +56,7 @@ async function innerRunIntransaction<T>(
       isTransientTransactionError(error) &&
       attempt < (options?.retries ?? DEFAULT_MAX_RETRIES)
     ) {
-      return innerRunIntransaction(callback, ++attempt, options);
+      return recursiveRunIntransaction(callback, ++attempt, options);
     }
     throw error;
   } finally {
