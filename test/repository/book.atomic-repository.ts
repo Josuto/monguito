@@ -1,8 +1,8 @@
-import { MongooseTransactionalRepository } from '../../src';
+import { MongooseAtomicRepository } from '../../src/mongoose.atomic-repository';
 import { AudioBook, Book, PaperBook } from '../domain/book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schema';
 
-export class MongooseBookTransactionalRepository extends MongooseTransactionalRepository<Book> {
+export class MongooseBookAtomicRepository extends MongooseAtomicRepository<Book> {
   constructor() {
     super({
       Default: { type: Book, schema: BookSchema },

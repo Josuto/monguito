@@ -1,12 +1,12 @@
+import { AtomicRepository } from './atomic-repository';
+import { MongooseAtomicRepository } from './mongoose.atomic-repository';
 import {
   Constructor,
   MongooseRepository,
   TypeData,
   TypeMap,
 } from './mongoose.repository';
-import { MongooseTransactionalRepository } from './mongoose.transactional-repository';
 import { PartialEntityWithId, Repository } from './repository';
-import { TransactionalRepository } from './transactional-repository';
 import { Auditable, AuditableClass, isAuditable } from './util/audit';
 import { Entity } from './util/entity';
 import {
@@ -17,6 +17,7 @@ import {
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 
 export {
+  AtomicRepository,
   Auditable,
   AuditableClass,
   AuditableSchema,
@@ -24,11 +25,10 @@ export {
   Constructor,
   Entity,
   IllegalArgumentException,
+  MongooseAtomicRepository,
   MongooseRepository,
-  MongooseTransactionalRepository,
   PartialEntityWithId,
   Repository,
-  TransactionalRepository,
   TypeData,
   TypeMap,
   UndefinedConstructorException,

@@ -1,18 +1,18 @@
 import { ClientSession, Connection, UpdateQuery } from 'mongoose';
+import { AtomicRepository } from './atomic-repository';
 import { MongooseRepository, TypeMap } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
-import { TransactionalRepository } from './transactional-repository';
 import { Entity } from './util/entity';
 import { runInTransaction } from './util/transaction';
 
 /**
- * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
+ * Abstract Mongoose-based implementation of the {@link AtomicRepository} interface.
  */
-export abstract class MongooseTransactionalRepository<
+export abstract class MongooseAtomicRepository<
     T extends Entity & UpdateQuery<T>,
   >
   extends MongooseRepository<T>
-  implements TransactionalRepository<T>
+  implements AtomicRepository<T>
 {
   /**
    * Sets up the underlying configuration to enable database operation execution.

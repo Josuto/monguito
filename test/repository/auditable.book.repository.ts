@@ -5,7 +5,7 @@ import {
   AuditablePaperBookSchema,
 } from './auditable.book.schema';
 
-export class AuditableMongooseBookRepository extends MongooseRepository<AuditableBook> {
+export class MongooseAuditableBookRepository extends MongooseRepository<AuditableBook> {
   constructor() {
     super({
       Default: { type: AuditableBook, schema: AuditableBookSchema },

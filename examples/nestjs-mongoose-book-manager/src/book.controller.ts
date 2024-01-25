@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { TransactionalRepository } from '../../../dist';
+import { AtomicRepository } from '../../../dist';
 import { AudioBook, Book, PaperBook } from './book';
 
 type PartialBook = { id: string } & Partial<Book>;
@@ -38,7 +38,7 @@ function deserialise<T extends Book>(plainBook: any): T {
 export class BookController {
   constructor(
     @Inject('BOOK_REPOSITORY')
-    private readonly bookRepository: TransactionalRepository<Book>,
+    private readonly bookRepository: AtomicRepository<Book>,
   ) {}
 
   @Get()
