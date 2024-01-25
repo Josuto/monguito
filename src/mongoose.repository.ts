@@ -7,7 +7,11 @@ import mongoose, {
   UpdateQuery,
 } from 'mongoose';
 import { Optional } from 'typescript-optional';
-import { PartialEntityWithId, Repository } from './repository';
+import {
+  OperationOptions,
+  PartialEntityWithId,
+  Repository,
+} from './repository';
 import { isAuditable } from './util/audit';
 import { Entity } from './util/entity';
 import {
@@ -146,19 +150,19 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
     userId?: string,
-    session?: ClientSession,
+    options?: OperationOptions,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     try {
       let document;
       if (!entity.id) {
-        document = await this.insert(entity as S, userId, session);
+        document = await this.insert(entity as S, userId, options?.session);
       } else {
         document = await this.update(
           entity as PartialEntityWithId<S>,
           userId,
-          session,
+          options?.session,
         );
       }
       if (document) return this.instantiateFrom(document) as S;

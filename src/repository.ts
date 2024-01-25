@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import { Optional } from 'typescript-optional';
 import { Entity } from './util/entity';
 import { SearchOptions } from './util/search-options';
@@ -10,6 +11,14 @@ export type PartialEntityWithId<T extends Entity> = {
 } & {
   __t?: string;
 } & Partial<T>;
+
+/**
+ * Specifies some operation options e.g., a Mongoose session required in operations to run within a transaction.
+ */
+export type OperationOptions = {
+  userId?: string;
+  session?: ClientSession;
+};
 
 /**
  * Specifies a list of common database CRUD operations.
@@ -34,7 +43,8 @@ export interface Repository<T extends Entity> {
   /**
    * Saves (insert or update) an entity.
    * @param {S | PartialEntityWithId<S>} entity the entity to save.
-   * @param {string} userId (optional) the ID of the user executing the action.
+   * @param {string=} userId (optional) the ID of the user executing the action.
+   * @param {OperationOptions} OperationOptions (optional) operation options.
    * @returns {Promise<S>} the saved entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or
    * specifies an `id` not matching any existing entity.
@@ -43,6 +53,7 @@ export interface Repository<T extends Entity> {
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
     userId?: string,
+    options?: OperationOptions,
   ) => Promise<S>;
 
   /**

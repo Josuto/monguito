@@ -32,7 +32,7 @@ export abstract class MongooseTransactionalRepository<
       async (session: ClientSession) =>
         await Promise.all(
           entities.map(
-            async (entity) => await this.save(entity, userId, session),
+            async (entity) => await this.save(entity, userId, { session }),
           ),
         ),
       { connection: this.connection },
