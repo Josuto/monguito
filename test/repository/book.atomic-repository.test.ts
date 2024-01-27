@@ -445,6 +445,91 @@ describe('Given an instance of book repository', () => {
     });
   });
 
+  describe('when deleting a list of books', () => {
+    let storedBook: Book, storedPaperBook: PaperBook;
+
+    beforeEach(async () => {
+      const bookToStore = bookFixture({ isbn: '1942788342' });
+      const storedBookId = await insert(bookToStore, 'books');
+      storedBook = new Book({
+        ...bookToStore,
+        id: storedBookId,
+      });
+
+      const paperBookToStore = paperBookFixture({ isbn: '1942788343' });
+      const storedPaperBookId = await insert(
+        paperBookToStore,
+        'books',
+        PaperBook.name,
+      );
+      storedPaperBook = new PaperBook({
+        ...paperBookToStore,
+        id: storedPaperBookId,
+      });
+    });
+
+    describe('that does not include any filter', () => {
+      it('deletes all books', async () => {
+        const deletedBooks = await bookRepository.deleteAll();
+        expect(deletedBooks).toBe(2);
+
+        const storedBooks = await bookRepository.findAll();
+        expect(storedBooks.length).toBe(0);
+      });
+    });
+
+    describe('that includes a null filter', () => {
+      it('throws an exception', async () => {
+        await expect(
+          bookRepository.deleteAll({ filter: null as unknown as object }),
+        ).rejects.toThrowError(IllegalArgumentException);
+
+        const storedBooks = await bookRepository.findAll();
+        expect(storedBooks).toEqual([storedBook, storedPaperBook]);
+      });
+    });
+
+    describe('that includes a filter matching no book', () => {
+      it('does not delete any book', async () => {
+        const deletedBooks = await bookRepository.deleteAll({
+          filter: { hostingPlatforms: ['Audible'] },
+        });
+        expect(deletedBooks).toBe(0);
+
+        const storedBooks = await bookRepository.findAll();
+        expect(storedBooks).toEqual([storedBook, storedPaperBook]);
+      });
+    });
+
+    describe('that includes a filter matching some books', () => {
+      it('only deletes the matching books', async () => {
+        const deletedBooks = await bookRepository.deleteAll({
+          filter: { isbn: '1942788343' },
+        });
+        expect(deletedBooks).toBe(1);
+
+        const storedBooks = await bookRepository.findAll();
+        expect(storedBooks).toEqual([storedBook]);
+      });
+    });
+
+    describe('that includes a filter matching all books', () => {
+      it('deletes all books', async () => {
+        const deletedBooks = await bookRepository.deleteAll({
+          filter: { isbn: ['1942788342', '1942788343'] },
+        });
+        expect(deletedBooks).toBe(2);
+
+        const storedBooks = await bookRepository.findAll();
+        expect(storedBooks.length).toBe(0);
+      });
+    });
+
+    afterEach(async () => {
+      await deleteAll('books');
+    });
+  });
+
   afterAll(async () => {
     await closeMongoConnection();
   });

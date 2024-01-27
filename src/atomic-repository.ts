@@ -2,6 +2,14 @@ import { PartialEntityWithId, Repository } from './repository';
 import { Entity } from './util/entity';
 
 /**
+ * Specifies options for the `deleteAll` operation.
+ * - `filter`: a MongoDB query object to select the entities to be deleted
+ */
+export interface DeleteOptions {
+  filter?: any;
+}
+
+/**
  * Specifies a list of common database CRUD operations that must execute in a database transaction.
  */
 export interface AtomicRepository<T extends Entity> extends Repository<T> {
@@ -18,4 +26,13 @@ export interface AtomicRepository<T extends Entity> extends Repository<T> {
     entities: (S | PartialEntityWithId<S>)[],
     userId?: string,
   ) => Promise<S[]>;
+
+  /**
+   * Deletes all the entities that match the given filter, if any. No filter specification will
+   * result in the deletion of all entities.
+   * @param {DeleteOptions=} options (optional) deletion options.
+   * @returns {number} the number of deleted entities.
+   * @see {@link DeleteOptions}
+   */
+  deleteAll: (options?: DeleteOptions) => Promise<number>;
 }

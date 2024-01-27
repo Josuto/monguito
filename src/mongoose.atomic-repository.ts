@@ -1,8 +1,9 @@
 import { ClientSession, Connection, UpdateQuery } from 'mongoose';
-import { AtomicRepository } from './atomic-repository';
+import { AtomicRepository, DeleteOptions } from './atomic-repository';
 import { MongooseRepository, TypeMap } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
 import { Entity } from './util/entity';
+import { IllegalArgumentException } from './util/exceptions';
 import { runInTransaction } from './util/transaction';
 
 /**
@@ -35,6 +36,19 @@ export abstract class MongooseAtomicRepository<
             async (entity) => await this.save(entity, userId, { session }),
           ),
         ),
+      { connection: this.connection },
+    );
+  }
+
+  /** @inheritdoc */
+  async deleteAll(options?: DeleteOptions): Promise<number> {
+    if (options?.filter === null) {
+      throw new IllegalArgumentException('Null filters are disallowed');
+    }
+    return await runInTransaction(
+      async (session: ClientSession) =>
+        (await this.entityModel.deleteMany(options?.filter, { session }))
+          .deletedCount,
       { connection: this.connection },
     );
   }
