@@ -1,12 +1,30 @@
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
-import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import { MongoMemoryReplSet, MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Entity } from '../../../../src';
 
 const dbName = 'test';
-let mongoServer: MongoMemoryReplSet;
+let mongoServer: MongoMemoryServer | MongoMemoryReplSet;
 
-export const rootMongooseTestModule = (options: MongooseModuleOptions = {}) =>
+export const rootMongooseStandaloneMongoTestModule = (
+  options: MongooseModuleOptions = {},
+) =>
+  MongooseModule.forRootAsync({
+    useFactory: async () => {
+      mongoServer = await MongoMemoryServer.create({
+        instance: { dbName, port: 27016 },
+      });
+      const mongoUri = mongoServer.getUri();
+      return {
+        uri: mongoUri,
+        ...options,
+      };
+    },
+  });
+
+export const rootMongooseReplicaSetMongoTestModule = (
+  options: MongooseModuleOptions = {},
+) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryReplSet.create({

@@ -6,9 +6,8 @@ import { AudioBook, PaperBook } from '../src/book';
 import {
   closeMongoConnection,
   deleteAll,
-  findOne,
   insert,
-  rootMongooseTestModule,
+  rootMongooseStandaloneMongoTestModule,
   setupConnection,
 } from './util/mongo-server';
 
@@ -20,7 +19,7 @@ describe('Given the book manager controller', () => {
 
   beforeAll(async () => {
     const appModule = await Test.createTestingModule({
-      imports: [rootMongooseTestModule(), AppModule],
+      imports: [rootMongooseStandaloneMongoTestModule(), AppModule],
     }).compile();
 
     await setupConnection();
@@ -142,31 +141,6 @@ describe('Given the book manager controller', () => {
             expect(updatedPaperBook.description).toBe(
               storedPaperBook.description,
             );
-          });
-      });
-    });
-  });
-
-  describe('when saving a list of books', () => {
-    describe('that includes an invalid book', () => {
-      it('then returns a bad request HTTP status code', () => {
-        const booksToStore = [
-          {
-            title: 'The Sandman',
-            description: 'Fantastic fantasy audio book',
-            hostingPlatforms: ['Audible'],
-          } as AudioBook,
-          {
-            description: 'Invalid paper book description',
-            edition: 1,
-          } as PaperBook,
-        ];
-        return request(bookManager.getHttpServer())
-          .post('/books/all')
-          .send(booksToStore)
-          .then(async (result) => {
-            expect(result.status).toEqual(HttpStatus.BAD_REQUEST);
-            expect(await findOne({ title: 'The Sandman' }, 'books')).toBeNull();
           });
       });
     });
