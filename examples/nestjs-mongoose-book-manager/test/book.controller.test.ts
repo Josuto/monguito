@@ -9,6 +9,7 @@ import {
   findOne,
   insert,
   rootMongooseTestModule,
+  setupConnection,
 } from './util/mongo-server';
 
 const timeout = 30000;
@@ -21,6 +22,8 @@ describe('Given the book manager controller', () => {
     const appModule = await Test.createTestingModule({
       imports: [rootMongooseTestModule(), AppModule],
     }).compile();
+
+    await setupConnection();
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
@@ -198,6 +201,7 @@ describe('Given the book manager controller', () => {
   });
 
   afterAll(async () => {
+    await bookManager.close();
     await closeMongoConnection();
   }, timeout);
 });
