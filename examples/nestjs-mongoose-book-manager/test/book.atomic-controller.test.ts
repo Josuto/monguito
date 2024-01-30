@@ -105,9 +105,19 @@ describe('Given the book manager controller', () => {
           });
       });
     });
+  });
 
-    afterEach(async () => {
-      await deleteAll(['books']);
+  describe('when deleting all books', () => {
+    it('deletes all books', async () => {
+      return request(bookManager.getHttpServer())
+        .delete('/books')
+        .then(async (result) => {
+          expect(result.status).toEqual(HttpStatus.OK);
+          expect(result.text).toBe('1');
+          expect(
+            await findOne({ title: 'Effective Java' }, 'books'),
+          ).toBeNull();
+        });
     });
   });
 

@@ -69,7 +69,7 @@ export class BookController {
     @Body({
       transform: (plainBooks) => deserialiseAll(plainBooks),
     })
-    books: Book[],
+    books: (Book | PartialBook)[],
   ): Promise<Book[]> {
     try {
       return await this.bookRepository.saveAll(books);
@@ -81,6 +81,11 @@ export class BookController {
   @Delete(':id')
   async deleteById(@Param('id') id: string): Promise<boolean> {
     return this.bookRepository.deleteById(id);
+  }
+
+  @Delete()
+  async deleteAll(): Promise<number> {
+    return this.bookRepository.deleteAll();
   }
 
   private async save(book: Book | PartialBook): Promise<Book> {
