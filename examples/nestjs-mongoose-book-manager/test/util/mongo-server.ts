@@ -12,7 +12,7 @@ export const rootMongooseStandaloneMongoTestModule = (
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryServer.create({
-        instance: { dbName, port: 27016 },
+        instance: { dbName, port: 27017 },
       });
       const mongoUri = mongoServer.getUri();
       return {

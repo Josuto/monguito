@@ -17,7 +17,7 @@ type PartialBook = { id: string } & Partial<Book>;
 function deserialiseAll<T extends Book>(plainBooks: any[]): T[] {
   const books: T[] = [];
   for (const plainBook of plainBooks) {
-    books.push(deserialise(plainBook));
+    books.push('id' in plainBook ? plainBook : deserialise(plainBook));
   }
   return books;
 }

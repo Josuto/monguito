@@ -33,7 +33,7 @@ describe('Given the book manager controller', () => {
     const paperBookToStore = new PaperBook({
       title: 'Effective Java',
       description: 'Great book on the Java programming language',
-      edition: 3,
+      edition: 2,
     });
     const storedPaperBookId = await insert(
       paperBookToStore,
@@ -48,16 +48,15 @@ describe('Given the book manager controller', () => {
 
   describe('when saving a list of books', () => {
     describe('that includes an invalid book', () => {
-      it('then returns a bad request HTTP status code', () => {
+      it('returns a bad request HTTP status code', async () => {
         const booksToStore = [
           {
-            title: 'The Sandman',
-            description: 'Fantastic fantasy audio book',
-            hostingPlatforms: ['Audible'],
-          } as AudioBook,
+            id: storedPaperBook.id,
+            edition: 3,
+          } as Partial<PaperBook>,
           {
-            description: 'Invalid paper book description',
-            edition: 1,
+            description: 'Paper book to insert with no title (thus, invalid)',
+            edition: 3,
           } as PaperBook,
         ];
         return request(bookManager.getHttpServer())
@@ -65,9 +64,50 @@ describe('Given the book manager controller', () => {
           .send(booksToStore)
           .then(async (result) => {
             expect(result.status).toEqual(HttpStatus.BAD_REQUEST);
-            expect(await findOne({ title: 'The Sandman' }, 'books')).toBeNull();
+            expect(await findOne({ title: 'Accelerate' }, 'books')).toBeNull();
+            const updatedPaperBook = await findOne(
+              { title: 'Effective Java' },
+              'books',
+            );
+            expect(updatedPaperBook).toBeDefined();
+            expect(updatedPaperBook!.edition).toBe(2);
           });
       });
+    });
+
+    describe('that includes valid books', () => {
+      it('returns the created books', async () => {
+        const booksToStore = [
+          {
+            title: 'Accelerate',
+            description: 'Building High Performing Technology Organizations',
+            hostingPlatforms: ['Audible'],
+          } as AudioBook,
+          {
+            id: storedPaperBook.id,
+            edition: 3,
+          } as Partial<PaperBook>,
+        ];
+        return request(bookManager.getHttpServer())
+          .post('/books/all')
+          .send(booksToStore)
+          .then(async (result) => {
+            expect(result.status).toEqual(HttpStatus.CREATED);
+            expect(
+              await findOne({ title: 'Accelerate' }, 'books'),
+            ).toBeDefined();
+            const updatedPaperBook = await findOne(
+              { title: 'Effective Java' },
+              'books',
+            );
+            expect(updatedPaperBook).toBeDefined();
+            expect(updatedPaperBook!.edition).toBe(3);
+          });
+      });
+    });
+
+    afterEach(async () => {
+      await deleteAll(['books']);
     });
   });
 

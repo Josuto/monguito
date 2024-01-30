@@ -32,9 +32,7 @@ export const findOne = async (filter: any, collection: string) => {
 };
 
 export const findById = async (id: string, collection: string) => {
-  return await mongoose.connection.db
-    .collection(collection)
-    .findOne({ id: id });
+  return await mongoose.connection.db.collection(collection).findOne({ id });
 };
 
 export const deleteAll = async (collection: string) => {
