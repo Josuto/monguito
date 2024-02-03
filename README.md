@@ -31,9 +31,9 @@
 
 `monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the Abstract [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
 
-It allows developers to define any custom MongoDB repository in a fast, easy, and structured manner, releasing them from having to write basic CRUD operations, while decoupling domain from persistence logic. Despite its small size, it includes several optional features such as seamless audit data handling support.
+It allows you (dear developer) to define any custom MongoDB repository in a fast, easy, and structured manner, releasing you from having to write all the boilerplate code for basic CRUD operations, while enabling you to decouple domain and persistence logic. Moreover, despite its small size, it includes several optional features such as seamless audit data handling support.
 
-Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
+Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. `monguito` enables you to use any Mongoose feature such as [aggregation pipelines](https://mongoosejs.com/docs/api/aggregate.html) or [middleware functions](https://mongoosejs.com/docs/middleware.html). Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
 
 # Getting Started
 
@@ -101,14 +101,17 @@ and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorp
 at `MongooseRepository`; all that is required is that `MongooseRepository` receives a map describing the domain model.
 Each map entry key relates to a domain object type, and the related entry value is a reference to the constructor and
 the database [schema](https://mongoosejs.com/docs/guide.html) of such domain object. The `Default` key is mandatory and
-relates to the supertype, while the rest of the keys relate to the subtypes. Beware that subtype keys are named after
-the type name. If it so happens that you do not have any subtype in your domain model, no problem! Just specify the
-domain object that your custom repository is to handle as the sole map key-value, and you are done.
+relates to the supertype, while the rest of the keys relate to the subtypes.
 
-Regarding schemas: We believe that writing your own database schemas is a good practice, as opposed of using decorators
-at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
-rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
-properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
+Beware that subtype keys are named after the type name. If it so happens that you do not have any subtype in your domain
+model, no problem! Just specify the domain object that your custom repository is to handle as the sole map key-value,
+and you are done.
+
+## Transactional Operations
+
+You may expect all CRUD operations to be [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>). However, not all Mongoose functions are natively atomic e.g., `Model.updateMany`. Similarly, `monguito` includes some operations that require some transaction handling logic to ensure atomicity. This is the case of `saveAll` and `deleteAll`. Furthermore, transactional logic does not work in MongoDB standalone instances; transactions can only be performed on MongoDB instances that are running as part of a larger cluster, which could be either a sharded database cluster or a replica set.
+
+All considered, `monguito` specifies `saveAll` and `deleteAll` in `TransactionalRepository`, an interface that extends `Repository`, and implements them in `MongooseTransactionalRepository`, a class that inherits `MongooseRepository`. All you need to do to ensure that both behave as atomic operations is to connect to a MongoDB cluster instead of a standalone instance. Jump to the [Examples](#examples) section to see examples of `monguito` with MongoDB replica set.
 
 # Supported Database Operations
 
@@ -134,6 +137,19 @@ interface Repository<T extends Entity> {
 object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
 are of the type you expect.
 
+Besides, this is the specification for `TransactionalRepository`, the interface that includes all the operations specified at `Repository` as well as some operations requiring some transactional logic to ensure atomicity. As mentioned earlier, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
+
+```typescript
+export interface AtomicRepository<T extends Entity> extends Repository<T> {
+  saveAll: <S extends T>(
+    entities: (S | PartialEntityWithId<S>)[],
+    userId?: string,
+  ) => Promise<S[]>;
+
+  deleteAll: (filters?: any) => Promise<number>;
+}
+```
+
 ### `findById`
 
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
@@ -150,8 +166,7 @@ Check it out!
 Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some
 additional and non-required search `options`:
 
-- `filters`: a [MongoDB entity field-based query](https://www.mongodb.com/docs/manual/tutorial/query-documents/)
-  to filter results
+- `filters`: a [MongoDB query](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
   to return results in some sorted order
 - `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular set of results.
@@ -159,9 +174,7 @@ additional and non-required search `options`:
 
 ### `save`
 
-Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity does
-not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
-collection; if it does, the function updates it or throwns exception if it does not.
+Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity specifies an `id` field, this function updates it, assuming that it exists in the collection. Otherwise, this operation results in an exception being thrown. On the contrary, if the entity does not specify an `id` field, it inserts it into the collection.
 
 Trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_;
 only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
@@ -169,9 +182,23 @@ only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions 
 Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
 [this section](#built-in-audit-data-support) for further details).
 
+### `saveAll`
+
+Persists the given list of entities by either inserting or updating them and returns the persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
+
+> [!WARNING]
+> This operation is only guaranteed to be atomic when executed against a MongoDB cluster.
+
 ### `deleteById`
 
-Deletes an entity matching the given `id` if it exists. When it does, the function returns `true`. Otherwise, it returns `false`.
+Deletes an entity which `id` field value that matches the given `id`. When it does, the function returns `true`. Otherwise, it returns `false`.
+
+### `deleteAll`
+
+Deletes all the entities that match the MongoDB query specified within the `options` parameter. This operation returns the total amount of deleted entities.
+
+> [!WARNING]
+> This operation is only guaranteed to be atomic when executed against a MongoDB cluster.
 
 # Examples
 
@@ -187,8 +214,8 @@ recommend reading the following section.
 
 If you are to inject your newly created repository into an application that uses a Node.js-based framework
 (e.g., [NestJS](https://nestjs.com/) or [Express](https://expressjs.com/)) then you may want to do some extra effort and
-follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) and _depend on
-abstractions, not implementations_. To do so, you simply need to add one extra artefact to your code:
+follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) to _depend on
+abstractions, not implementations_. Simply need to add one extra artefact to your code:
 
 ```typescript
 interface BookRepository extends Repository<Book> {
@@ -272,7 +299,12 @@ inheritance-based programming language, and we strongly believe that you are ent
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
 
-## Utilities to Define Your Custom Schemas
+## Define Your Custom Schemas
+
+We believe that writing your own database schemas is a good practice, as opposed of using decorators
+at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
+rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
+properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
 
 The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `monguito`
 to handle the required implementation details. This function is specially convenient when defining schemas for
