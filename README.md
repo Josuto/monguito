@@ -109,11 +109,13 @@ and you are done.
 
 ## Transactional Operations
 
-You may expect all CRUD operations to be [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>). However, not all Mongoose functions are natively atomic e.g., `Model.updateMany`. Similarly, `monguito` includes some operations that require some transaction handling logic to ensure atomicity. This is the case of `saveAll` and `deleteAll`. Furthermore, transactional logic does not work in MongoDB standalone instances; transactions can only be performed on MongoDB instances that are running as part of a larger cluster, which could be either a sharded database cluster or a replica set.
+You may expect all CRUD operations to be [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>). However, not all Mongoose functions are natively atomic e.g., `Model.updateMany`. Similarly, `monguito` includes some operations that require some transaction handling logic to ensure atomicity. This is the case of `saveAll` and `deleteAll`. Furthermore, transactional logic does not work in MongoDB standalone instances; transactions can only be performed on MongoDB instances that are running as part of a larger cluster, which could be either a sharded database cluster or a replica set. Using a MongoDB cluster in your production environment is [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/), by the way.
 
-All considered, `monguito` specifies `saveAll` and `deleteAll` in `TransactionalRepository`, an interface that extends `Repository`, and implements them in `MongooseTransactionalRepository`, a class that inherits `MongooseRepository`. All you need to do to ensure that both behave as atomic operations is to connect to a MongoDB cluster instead of a standalone instance. Jump to the [Examples](#examples) section to see examples of `monguito` with MongoDB replica set.
+All considered, `monguito` specifies `saveAll` and `deleteAll` in `TransactionalRepository`, an interface that extends `Repository`, and implements them in `MongooseTransactionalRepository`, a class that inherits `MongooseRepository`. All you need to do to ensure that both behave as atomic operations is to connect to a MongoDB cluster instead of a standalone instance. For further information on how to use `monguito` to access MongoDB replica set jump to the [examples](#examples) section.
 
 # Supported Database Operations
+
+## Basic CRUD Operations
 
 Let's have a look to `Repository`, the generic interface implemented by `MongooseRepository`. Keep in mind that the current
 semantics for these operations are those provided at `MongooseRepository`. If you want any of these operations to behave
@@ -136,19 +138,6 @@ interface Repository<T extends Entity> {
 `T` refers to a domain object type that implements `Entity` (e.g., `Book`), and `S` refers to a subtype of such a domain
 object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
 are of the type you expect.
-
-Besides, this is the specification for `TransactionalRepository`, the interface that includes all the operations specified at `Repository` as well as some operations requiring some transactional logic to ensure atomicity. As mentioned earlier, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
-
-```typescript
-export interface AtomicRepository<T extends Entity> extends Repository<T> {
-  saveAll: <S extends T>(
-    entities: (S | PartialEntityWithId<S>)[],
-    userId?: string,
-  ) => Promise<S[]>;
-
-  deleteAll: (filters?: any) => Promise<number>;
-}
-```
 
 ### `findById`
 
@@ -182,29 +171,40 @@ only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions 
 Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
 [this section](#built-in-audit-data-support) for further details).
 
-### `saveAll`
-
-Persists the given list of entities by either inserting or updating them and returns the persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
-
-> [!WARNING]
-> This operation is only guaranteed to be atomic when executed against a MongoDB cluster.
-
 ### `deleteById`
 
 Deletes an entity which `id` field value that matches the given `id`. When it does, the function returns `true`. Otherwise, it returns `false`.
+
+## Transactional CRUD Operations
+
+Besides, this is the specification for `TransactionalRepository`, the interface that includes all the operations specified at `Repository` as well as some operations requiring some transactional logic to ensure atomicity. As mentioned earlier, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
+
+```typescript
+export interface AtomicRepository<T extends Entity> extends Repository<T> {
+  saveAll: <S extends T>(
+    entities: (S | PartialEntityWithId<S>)[],
+    userId?: string,
+  ) => Promise<S[]>;
+
+  deleteAll: (filters?: any) => Promise<number>;
+}
+```
+
+> [!WARNING]
+> The following operations are only guaranteed to be atomic when executed against a MongoDB cluster.
+
+### `saveAll`
+
+Persists the given list of entities by either inserting or updating them and returns the persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
 
 ### `deleteAll`
 
 Deletes all the entities that match the MongoDB query specified within the `options` parameter. This operation returns the total amount of deleted entities.
 
-> [!WARNING]
-> This operation is only guaranteed to be atomic when executed against a MongoDB cluster.
-
 # Examples
 
-You may find an example of how to instantiate and use a repository that performs CRUD operations over instances
-of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts). This is a
-complete set of unit test cases used to validate this project.
+You may find an example of how to instantiate and use a repository that performs basic CRUD operations over instances
+of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts). You may also find an example on `monguito`'s transactional CRUD operations on [`book.transactional-repository.test.ts`](test/book.transactional-repository.test.ts).
 
 Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
 [`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, we
