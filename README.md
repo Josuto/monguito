@@ -94,7 +94,7 @@ const books: Book[] = bookRepository.findAll();
 
 No more leaking of the persistence logic into your domain/application logic! 🤩
 
-## Polymorphic Domain Model Specification
+# Polymorphic Domain Model Specification
 
 `MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype
 and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorphic domain models is hidden
@@ -107,18 +107,14 @@ Beware that subtype keys are named after the type name. If it so happens that yo
 model, no problem! Just specify the domain object that your custom repository is to handle as the sole map key-value,
 and you are done.
 
-## Transactional Operations
-
-You may expect all CRUD operations to be [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>). However, not all Mongoose functions are natively atomic e.g., `Model.updateMany`. Similarly, `monguito` includes some operations that require some transaction handling logic to ensure atomicity. This is the case of `saveAll` and `deleteAll`. Furthermore, transactional logic does not work in MongoDB standalone instances; transactions can only be performed on MongoDB instances that are running as part of a larger cluster, which could be either a sharded database cluster or a replica set. Using a MongoDB cluster in your production environment is [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/), by the way.
-
-All considered, `monguito` specifies `saveAll` and `deleteAll` in `TransactionalRepository`, an interface that extends `Repository`, and implements them in `MongooseTransactionalRepository`, a class that inherits `MongooseRepository`. All you need to do to ensure that both behave as atomic operations is to connect to a MongoDB cluster instead of a standalone instance. For further information on how to use `monguito` to access MongoDB replica set jump to the [examples](#examples) section.
-
 # Supported Database Operations
+
+We support two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former kind of operations are inherently atomic, the latter kind of operations require some transactional logic to ensure atomicity. Moreover, while basic CRUD operations may be safely executed on a MongoDB standalone instance, transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
 
 ## Basic CRUD Operations
 
 Let's have a look to `Repository`, the generic interface implemented by `MongooseRepository`. Keep in mind that the current
-semantics for these operations are those provided at `MongooseRepository`. If you want any of these operations to behave
+semantics for these operations are those provided at `MongooseRepository`; if you want any of these operations to behave
 differently then you must override it at your custom repository implementation.
 
 ```typescript
@@ -177,7 +173,7 @@ Deletes an entity which `id` field value that matches the given `id`. When it do
 
 ## Transactional CRUD Operations
 
-Besides, this is the specification for `TransactionalRepository`, the interface that includes all the operations specified at `Repository` as well as some operations requiring some transactional logic to ensure atomicity. As mentioned earlier, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
+Let's now see the specification for `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface also is an extension of `Repository` for convenience purposes, as you most likely want to also invoke basic CRUD operations using a single repository instance. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
 
 ```typescript
 export interface AtomicRepository<T extends Entity> extends Repository<T> {
@@ -191,7 +187,7 @@ export interface AtomicRepository<T extends Entity> extends Repository<T> {
 ```
 
 > [!WARNING]
-> The following operations are only guaranteed to be atomic when executed against a MongoDB cluster.
+> The following operations are only guaranteed to be atomic when executed on a MongoDB cluster.
 
 ### `saveAll`
 
