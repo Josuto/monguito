@@ -45,12 +45,12 @@ export abstract class MongooseTransactionalRepository<
 
   /** @inheritdoc */
   async deleteAll(options?: DeleteOptions): Promise<number> {
-    if (options?.filter === null) {
+    if (options?.filters === null) {
       throw new IllegalArgumentException('Null filters are disallowed');
     }
     return await runInTransaction(
       async (session: ClientSession) =>
-        (await this.entityModel.deleteMany(options?.filter, { session }))
+        (await this.entityModel.deleteMany(options?.filters, { session }))
           .deletedCount,
       { connection: this.connection },
     );

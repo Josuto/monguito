@@ -6,7 +6,7 @@ import { Entity } from './util/entity';
  * - `filter`: a MongoDB query object to select the entities to be deleted
  */
 export interface DeleteOptions {
-  filter?: any;
+  filters?: any;
 }
 
 /**
