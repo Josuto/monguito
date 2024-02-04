@@ -1,5 +1,4 @@
-import { PartialEntityWithId } from '../../src';
-import { AtomicRepository } from '../../src/atomic-repository';
+import { PartialEntityWithId, TransactionalRepository } from '../../src';
 import {
   IllegalArgumentException,
   ValidationException,
@@ -18,18 +17,18 @@ import {
   insert,
   setupConnection,
 } from '../util/mongo-server';
-import { MongooseBookAtomicRepository } from './book.atomic-repository';
+import { MongooseBookTransactionalRepository } from './book.transactional-repository';
 
 const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 describe('Given an instance of book repository', () => {
-  let bookRepository: AtomicRepository<Book>;
+  let bookRepository: TransactionalRepository<Book>;
 
   beforeAll(async () => {
     await setupConnection(MongoServerType.REPLICA_SET);
-    bookRepository = new MongooseBookAtomicRepository();
+    bookRepository = new MongooseBookTransactionalRepository();
     // Wait until the repository is properly connected to Mongoose's connection
     await sleep(50);
   });

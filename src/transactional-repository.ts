@@ -12,7 +12,8 @@ export interface DeleteOptions {
 /**
  * Specifies a list of common database CRUD operations that must execute in a database transaction.
  */
-export interface AtomicRepository<T extends Entity> extends Repository<T> {
+export interface TransactionalRepository<T extends Entity>
+  extends Repository<T> {
   /**
    * Saves (insert or update) a list of entities.
    * @param {S[] | PartialEntityWithId<S>[]} entities the list of entities to save.

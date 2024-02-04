@@ -176,7 +176,8 @@ Deletes an entity which `id` field value that matches the given `id`. When it do
 Let's now see the specification for `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface also is an extension of `Repository` for convenience purposes, as you most likely want to also invoke basic CRUD operations using a single repository instance. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
 
 ```typescript
-export interface AtomicRepository<T extends Entity> extends Repository<T> {
+export interface TransactionalRepository<T extends Entity>
+  extends Repository<T> {
   saveAll: <S extends T>(
     entities: (S | PartialEntityWithId<S>)[],
     userId?: string,

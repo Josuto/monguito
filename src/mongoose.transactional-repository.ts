@@ -1,19 +1,22 @@
 import { ClientSession, Connection, UpdateQuery } from 'mongoose';
-import { AtomicRepository, DeleteOptions } from './atomic-repository';
 import { MongooseRepository, TypeMap } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
+import {
+  DeleteOptions,
+  TransactionalRepository,
+} from './transactional-repository';
 import { Entity } from './util/entity';
 import { IllegalArgumentException } from './util/exceptions';
 import { runInTransaction } from './util/transaction';
 
 /**
- * Abstract Mongoose-based implementation of the {@link AtomicRepository} interface.
+ * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
  */
-export abstract class MongooseAtomicRepository<
+export abstract class MongooseTransactionalRepository<
     T extends Entity & UpdateQuery<T>,
   >
   extends MongooseRepository<T>
-  implements AtomicRepository<T>
+  implements TransactionalRepository<T>
 {
   /**
    * Sets up the underlying configuration to enable database operation execution.
