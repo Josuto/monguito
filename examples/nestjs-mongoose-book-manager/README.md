@@ -298,45 +298,45 @@ that `BookController` is the sole controller for the book manager application.
 
 # Custom Repository Validation
 
-This application comes with some e2e tests that you may find useful when validating your own NestJS application. You may
-find the whole test infrastructure [here](./test/book.controller.test.ts).
+This application comes with a couple of unit tests that you may find useful when validating your own NestJS application.
+The first test suite validates the [basic CRUD operations](../../README.md/#basic-crud-operations) included in `BookController` and is encoded in the [book.controller.test.ts](./test/book.controller.test.ts) file. The second test suite validates the [transactional CRUD operations](../../README.md/#transactional-crud-operations) also written in `BookController` and is implemented on [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts).
 
-First of all, you need to create a testing module for your app. Here is a way you can follow to do so:
+As mentioned in `monguito`'s main documentation, basic CRUD operations may run on a MongoDB standalone instance. However, transactional CRUD operations can only run on a MongoDB cluster such as replica set. Therefore, the nature of basic and transactional CRUD operations determines the configuration of the aforementioned test suites: [book.controller.test.ts](./test/book.controller.test.ts) works with an in-memory version of standalone MongoDB, whereas [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts) operates over an in-memory version of MongoDB replica set.
+
+Let's now focus on the module configuration and application initialisation for these test files. Keep in mind that, in both cases, you first need to create a testing module for your app.
+
+## Initialisation of MongoDB Standalone-based App
+
+Here is how you initialise the test application required to run the tests described at [book.controller.test.ts](./test/book.controller.test.ts):
 
 ```typescript
 let bookManager: INestApplication;
 
 beforeAll(async () => {
   const appModule = await Test.createTestingModule({
-    imports: [rootMongooseTestModule(), AppModule],
+    imports: [rootMongooseStandaloneMongoTestModule(), AppModule],
   }).compile();
+
+  await setupConnection();
 
   bookManager = appModule.createNestApplication();
   await bookManager.init();
-});
+}, timeout);
 ```
 
-You may want to create an instance of `MongoMemoryServer` (the main class exported by the library
-[`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a
-full-blown MongoDB instance. This instance is vital to inject the custom repository at `BookController` at test runtime.
-The creation of the instance is defined by the `rootMongooseTestModule` function included
-at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
+You may want to create an instance of `MongoMemoryServer` (the main class exported by the library [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a full-blown MongoDB standalone instance. This instance is required to inject the custom repository at `BookController` at test runtime. The creation of the instance is done at the `rootMongooseStandaloneMongoTestModule` function included at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
 
 ```typescript
+const dbName = 'test';
 let mongoServer: MongoMemoryServer;
 
-export const rootMongooseTestModule = (
+export const rootMongooseStandaloneMongoTestModule = (
   options: MongooseModuleOptions = {},
-  port = 27016,
-  dbName = 'book-repository',
 ) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryServer.create({
-        instance: {
-          port,
-          dbName: dbName,
-        },
+        instance: { dbName, port: 27017 },
       });
       const mongoUri = mongoServer.getUri();
       return {
@@ -347,11 +347,52 @@ export const rootMongooseTestModule = (
   });
 ```
 
-You may perceive that the `port` and `dbName` input parameters match those of the database connection
-specified [earlier](#book-manager-module). This is no coincidence.
+## Initialisation of MongoDB Replica Set-based App
 
-Finally, you can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as
-those specified at [mongo-server.ts](../../test/util/mongo-server.ts).
+Here is how you initialise the test application required to run the tests described at [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts):
+
+```typescript
+let bookManager: INestApplication;
+
+beforeAll(async () => {
+  const appModule = await Test.createTestingModule({
+    imports: [rootMongooseReplicaSetMongoTestModule(), AppModule],
+  }).compile();
+
+  await setupConnection();
+
+  bookManager = appModule.createNestApplication();
+  await bookManager.init();
+}, timeout);
+```
+
+You may want to create an instance of `MongoMemoryReplSet` (also defined in the library [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a full-blown MongoDB replica set instance. This instance is required to inject the custom repository at `BookController` at test runtime. The creation of the instance is done at the `rootMongooseReplicaSetMongoTestModule` function included at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
+
+```typescript
+const dbName = 'test';
+let mongoServer: MongoMemoryServer;
+
+export const rootMongooseReplicaSetMongoTestModule = (
+  options: MongooseModuleOptions = {},
+) =>
+  MongooseModule.forRootAsync({
+    useFactory: async () => {
+      mongoServer = await MongoMemoryReplSet.create({
+        instanceOpts: [{ port: 27016 }],
+        replSet: { name: 'rs0', dbName, count: 1 },
+      });
+      const mongoUri = mongoServer.getUri();
+      return {
+        uri: mongoUri,
+        ...options,
+      };
+    },
+  });
+```
+
+## Connection Setup
+
+You may have appreciated the invocation of `setupConnection` before the initialisation of both testing applications. This function tells Mongoose to connect to the pertaining MongoDB instance (standalone or replica set). You may find the details of this function as well as some other validation helper functions at [`mongo-server.ts`](../../test/util/mongo-server.ts).
 
 ## Run the Tests
 
