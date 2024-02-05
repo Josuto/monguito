@@ -1,12 +1,9 @@
-This is an example of how to use `monguito` in a NestJS application that uses MongoDB. It is a dummy book
-manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
-books. A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
+This is an example of how to use `monguito` in a NestJS application that uses a MongoDB replica set instance with
+a single node. It is a dummy book manager that exposes an endpoint for each CRUD operation offered by `monguito`.
+A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
 
-> **Warning**
->
-> Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main
-> documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive
-> guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
+> [!WARNING]
+> Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
 
 # Main Contents
 
@@ -28,7 +25,7 @@ $ yarn install
 ## Run
 
 The application requires a running instance of MongoDB. It includes a `docker-compose.yml` file that will fire up a
-MongoDB instance, assuming that Docker Desktop is running.
+MongoDB replica set instance, assuming that Docker Desktop is running.
 
 ```bash
 # run the NestJS application as well as the MongoDB Docker container
@@ -109,13 +106,13 @@ superclass includes an `id` field in its definition.
 
 `MongooseBookRepository` is a Mongoose-based book repository implementation class. Since it does not include any
 additional database operation, there is no need to create a custom repository interface for it. In this case, we can
-directly implement the `Repository` interface. The definition of `MongooseBookRepository` is as follows:
+directly implement the `TransactionalRepository` interface. The definition of `MongooseBookRepository` is as follows:
 
 ```typescript
 @Injectable()
 export class MongooseBookRepository
-  extends MongooseRepository<Book>
-  implements Repository<Book>
+  extends MongooseTransactionalRepository<Book>
+  implements TransactionalRepository<Book>
 {
   constructor(@InjectConnection() connection: Connection) {
     super(
@@ -143,12 +140,12 @@ store all of your entities in collections of the same database or different data
 databases, you may need to specify a NestJS provider for each of them. NestJS providers are discussed later in this
 document.
 
-This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`,
-also modifying its semantics; while `MongooseRepository.deleteById()` performs hard book
-deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that this operation updates
-the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include this field in its
-definition. You may find the full definition of the book domain model used by this sample
-application [here](src/book.ts).
+This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`
+(i.e., `MongooseTransactionalRepository`'s extension), also modifying its semantics; while `MongooseRepository.deleteById()`
+performs hard book deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that
+this operation updates the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include
+this field in its definition. You may find the full definition of the book domain model used by this sample application
+[here](src/book.ts).
 
 ## Book Controller
 
@@ -157,6 +154,14 @@ contents are as follows:
 
 ```typescript
 type PartialBook = { id: string } & Partial<Book>;
+
+function deserialiseAll<T extends Book>(plainBooks: any[]): T[] {
+  const books: T[] = [];
+  for (const plainBook of plainBooks) {
+    books.push('id' in plainBook ? plainBook : deserialise(plainBook));
+  }
+  return books;
+}
 
 function deserialise<T extends Book>(plainBook: any): T {
   let book = null;
@@ -174,7 +179,7 @@ function deserialise<T extends Book>(plainBook: any): T {
 export class BookController {
   constructor(
     @Inject('BOOK_REPOSITORY')
-    private readonly bookRepository: Repository<Book>,
+    private readonly bookRepository: TransactionalRepository<Book>,
   ) {}
 
   @Get()
@@ -200,9 +205,28 @@ export class BookController {
     return this.save(book);
   }
 
+  @Post('/all')
+  async saveAll(
+    @Body({
+      transform: (plainBooks) => deserialiseAll(plainBooks),
+    })
+    books: (Book | PartialBook)[],
+  ): Promise<Book[]> {
+    try {
+      return await this.bookRepository.saveAll(books);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
   @Delete(':id')
   async deleteById(@Param('id') id: string): Promise<boolean> {
     return this.bookRepository.deleteById(id);
+  }
+
+  @Delete()
+  async deleteAll(): Promise<number> {
+    return this.bookRepository.deleteAll();
   }
 
   private async save(book: Book | PartialBook): Promise<Book> {
@@ -223,8 +247,8 @@ simple CRUD application that introducing services would be over-engineering. I r
 code necessary for the sake of maximising the actual purpose of this documentation: illustrate how to integrate
 `monguito` on a NodeJS-based enterprise application.
 
-Moreover, you would probably not write a `deserialise` function to enable the transformation of JSON request bodies into
-domain objects when dealing with `POST` requests. Instead, you would rather use
+Moreover, you would probably not write a `deserialise` or `deserialiseAll` functions to enable the transformation of
+JSON request bodies into domain objects when dealing with `POST` requests. Instead, you would rather use
 a [NestJS pipe](https://docs.nestjs.com/pipes#pipes) to do so, thus properly implementing the Single Responsibility
 principle. Once again, I wanted to share the simplest possible working example at the expense of not conveying to the
 recommended practices in NestJS application construction. That being said, I would highly recommend you to
@@ -251,7 +275,10 @@ part of the second step: writing the last required class `AppModule`. The defini
 ```typescript
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
+    MongooseModule.forRoot('mongodb://localhost:27016/book-repository', {
+      directConnection: true,
+      replicaSet: 'rs0',
+    }),
   ],
   providers: [
     {
