@@ -29,9 +29,9 @@
 
 # What is `monguito`?
 
-`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the Abstract [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
+`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the abstract [repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
 
-It allows you (dear developer) to define any custom MongoDB repository in a fast, easy, and structured manner, releasing you from having to write all the boilerplate code for basic CRUD operations, while enabling you to decouple domain and persistence logic. Moreover, despite its small size, it includes several optional features such as seamless audit data handling support.
+It allows you (dear developer) to define any custom MongoDB repository in a fast, easy, and structured manner, releasing you from having to write all the boilerplate code for basic CRUD operations, and also decoupling your domain layer from the persistence logic. Moreover, despite its small size, it includes several optional features such as seamless audit data handling support.
 
 Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. `monguito` enables you to use any Mongoose feature such as [aggregation pipelines](https://mongoosejs.com/docs/api/aggregate.html) or [middleware functions](https://mongoosejs.com/docs/middleware.html). Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
 
@@ -94,7 +94,7 @@ const books: Book[] = bookRepository.findAll();
 
 No more leaking of the persistence logic into your domain/application logic! 🤩
 
-# Polymorphic Domain Model Specification
+### Polymorphic Domain Model Specification
 
 `MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype
 and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorphic domain models is hidden
@@ -109,13 +109,13 @@ and you are done.
 
 # Supported Database Operations
 
-We support two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former kind of operations are inherently atomic, the latter kind of operations require some transactional logic to ensure atomicity. Moreover, while basic CRUD operations may be safely executed on a MongoDB standalone instance, transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+We support two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former are inherently atomic, the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+
+Let's now explore these two kinds of operations in detail.
 
 ## Basic CRUD Operations
 
-Let's have a look to `Repository`, the generic interface implemented by `MongooseRepository`. Keep in mind that the current
-semantics for these operations are those provided at `MongooseRepository`; if you want any of these operations to behave
-differently then you must override it at your custom repository implementation.
+`Repository` is the generic interface implemented by `MongooseRepository`. Its definition is as follows:
 
 ```typescript
 type PartialEntityWithId<T> = { id: string } & Partial<T>;
@@ -135,6 +135,9 @@ interface Repository<T extends Entity> {
 object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
 are of the type you expect.
 
+> [!NOTE]
+> Keep in mind that the current semantics for these operations are those provided at `MongooseRepository`; if you want any of these operations to behave differently then you must override it at your custom repository implementation.
+
 ### `findById`
 
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
@@ -143,8 +146,7 @@ This value wraps an actual entity or `null` in case that no entity matches the g
 The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
 clients. This type helps client code developers to easily reason about all possible result types without having to handle
 slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
-Effective Java. Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases.
-Check it out!
+[Effective Java](https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/). Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases. Check it out!
 
 ### `findAll`
 
@@ -159,21 +161,20 @@ additional and non-required search `options`:
 
 ### `save`
 
-Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity specifies an `id` field, this function updates it, assuming that it exists in the collection. Otherwise, this operation results in an exception being thrown. On the contrary, if the entity does not specify an `id` field, it inserts it into the collection.
+Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection.
 
-Trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_;
-only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
+Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
 
 Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
 [this section](#built-in-audit-data-support) for further details).
 
 ### `deleteById`
 
-Deletes an entity which `id` field value that matches the given `id`. When it does, the function returns `true`. Otherwise, it returns `false`.
+Deletes an entity which `id` field value matches the given `id`. When it does, the function returns `true`. Otherwise, it returns `false`.
 
 ## Transactional CRUD Operations
 
-Let's now see the specification for `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface also is an extension of `Repository` for convenience purposes, as you most likely want to also invoke basic CRUD operations using a single repository instance. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
+Let's now explore the definition of `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface is an extension of `Repository`, thus includes all the basic CRUD operations. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
 
 ```typescript
 export interface TransactionalRepository<T extends Entity>
@@ -183,7 +184,7 @@ export interface TransactionalRepository<T extends Entity>
     userId?: string,
   ) => Promise<S[]>;
 
-  deleteAll: (filters?: any) => Promise<number>;
+  deleteAll: (options?: DeleteOptions) => Promise<number>;
 }
 ```
 
@@ -192,16 +193,20 @@ export interface TransactionalRepository<T extends Entity>
 
 ### `saveAll`
 
-Persists the given list of entities by either inserting or updating them and returns the persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
+Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
+
+In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
 
 ### `deleteAll`
 
-Deletes all the entities that match the MongoDB query specified within the `options` parameter. This operation returns the total amount of deleted entities.
+Deletes all the entities that match the MongoDB `filters` query specified within the `options` parameter. This operation returns the total amount of deleted entities.
+
+In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any entity, thus guaranteeing operation atomicity.
 
 # Examples
 
 You may find an example of how to instantiate and use a repository that performs basic CRUD operations over instances
-of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts). You may also find an example on `monguito`'s transactional CRUD operations on [`book.transactional-repository.test.ts`](test/book.transactional-repository.test.ts).
+of `Book` and its aforementioned subtypes at [`book.repository.test.ts`](test/book.repository.test.ts). You may also find an example on `monguito`'s transactional CRUD operations at [`book.transactional-repository.test.ts`](test/book.transactional-repository.test.ts).
 
 Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
 [`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, we
