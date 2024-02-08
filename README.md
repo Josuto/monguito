@@ -109,7 +109,7 @@ and you are done.
 
 # Supported Database Operations
 
-We support two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former are inherently atomic, the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+The library supports two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former are inherently atomic, the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
 
 Let's now explore these two kinds of operations in detail.
 
@@ -208,9 +208,7 @@ In the event of any error, this operation rollbacks all its changes. In other wo
 You may find an example of how to instantiate and use a repository that performs basic CRUD operations over instances
 of `Book` and its aforementioned subtypes at [`book.repository.test.ts`](test/book.repository.test.ts). You may also find an example on `monguito`'s transactional CRUD operations at [`book.transactional-repository.test.ts`](test/book.transactional-repository.test.ts).
 
-Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
-[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, we
-recommend reading the following section.
+Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit [`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, I recommend reading the following section.
 
 # Write Your Own Repository Interfaces
 
@@ -297,13 +295,13 @@ safely be `undefined` until the pertaining domain object instance is inserted (i
 database.
 
 The fact that `Entity` is an interface instead of an abstract class is not a coincidence; JavaScript is a single
-inheritance-based programming language, and we strongly believe that you are entitled to design the domain model at your
+inheritance-based programming language, and I strongly believe that you are entitled to design the domain model at your
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
 
 ## Define Your Custom Schemas
 
-We believe that writing your own database schemas is a good practice, as opposed of using decorators
+I believe that writing your own database schemas is a good practice, as opposed of using decorators
 at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
 rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
 properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
@@ -409,7 +407,7 @@ models, but it implements the [Data Mapper](https://martinfowler.com/eaaCatalog/
 the Repository pattern, which in complex domain model scenarios results in query logic duplication. Moreover,
 `monguito` is also type-safe.
 
-Considering that Mongoose is currently the most mature MongoDB handling utility, we decided to keep it as `monguito`'s
+Considering that Mongoose is currently the most mature MongoDB handling utility, I decided to keep it as `monguito`'s
 foundation.
 
 # Project Validation
