@@ -104,9 +104,12 @@ describe('Given the book manager controller', () => {
   describe('when updating a book', () => {
     describe('that is invalid', () => {
       it('returns a bad request HTTP status code', () => {
+        const paperBookToUpdate = {
+          edition: 0,
+        };
         return request(bookManager.getHttpServer())
-          .patch('/books')
-          .send()
+          .patch(`/books/${storedPaperBook.id}`)
+          .send(paperBookToUpdate)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
@@ -114,11 +117,10 @@ describe('Given the book manager controller', () => {
     describe('that is not stored', () => {
       it('returns a bad request HTTP status code', () => {
         const paperBookToUpdate = {
-          id: '000000000000000000000000',
           edition: 4,
         };
         return request(bookManager.getHttpServer())
-          .patch('/books')
+          .patch('/books/000000000000000000000000')
           .send(paperBookToUpdate)
           .expect(HttpStatus.BAD_REQUEST);
       });
@@ -127,11 +129,10 @@ describe('Given the book manager controller', () => {
     describe('that is stored', () => {
       it('returns the updated book', () => {
         const paperBookToUpdate = {
-          id: storedPaperBook.id,
           edition: 4,
         };
         return request(bookManager.getHttpServer())
-          .patch('/books')
+          .patch(`/books/${storedPaperBook.id}`)
           .send(paperBookToUpdate)
           .expect(HttpStatus.OK)
           .expect((response) => {

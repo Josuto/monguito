@@ -56,11 +56,12 @@ export class BookController {
     return this.save(book);
   }
 
-  @Patch()
+  @Patch(':id')
   async update(
-    @Body()
-    book: PartialBook,
+    @Param('id') id: string,
+    @Body() book: PartialBook,
   ): Promise<Book> {
+    book.id = id;
     return this.save(book);
   }
 
