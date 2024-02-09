@@ -14,6 +14,12 @@ import {
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
+import {
+  DeleteAllOptions,
+  SaveAllOptions,
+  SaveOptions,
+  SearchOptions,
+} from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 
 export {
@@ -22,12 +28,16 @@ export {
   AuditableSchema,
   BaseSchema,
   Constructor,
+  DeleteAllOptions,
   Entity,
   IllegalArgumentException,
   MongooseRepository,
   MongooseTransactionalRepository,
   PartialEntityWithId,
   Repository,
+  SaveAllOptions,
+  SaveOptions,
+  SearchOptions,
   TransactionalRepository,
   TypeData,
   TypeMap,

@@ -1,12 +1,10 @@
 import { ClientSession, Connection, UpdateQuery } from 'mongoose';
 import { MongooseRepository, TypeMap } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
-import {
-  DeleteOptions,
-  TransactionalRepository,
-} from './transactional-repository';
+import { TransactionalRepository } from './transactional-repository';
 import { Entity } from './util/entity';
 import { IllegalArgumentException } from './util/exceptions';
+import { DeleteAllOptions, SaveAllOptions } from './util/operation-options';
 import { runInTransaction } from './util/transaction';
 
 /**
@@ -30,13 +28,17 @@ export abstract class MongooseTransactionalRepository<
   /** @inheritdoc */
   async saveAll<S extends T>(
     entities: (S | PartialEntityWithId<S>)[],
-    userId?: string,
+    options?: SaveAllOptions,
   ): Promise<S[]> {
     return await runInTransaction(
       async (session: ClientSession) =>
         await Promise.all(
           entities.map(
-            async (entity) => await this.save(entity, userId, { session }),
+            async (entity) =>
+              await this.save(entity, undefined, {
+                userId: options?.userId,
+                session,
+              }),
           ),
         ),
       { connection: this.connection },
@@ -44,7 +46,7 @@ export abstract class MongooseTransactionalRepository<
   }
 
   /** @inheritdoc */
-  async deleteAll(options?: DeleteOptions): Promise<number> {
+  async deleteAll(options?: DeleteAllOptions): Promise<number> {
     if (options?.filters === null) {
       throw new IllegalArgumentException('Null filters are disallowed');
     }

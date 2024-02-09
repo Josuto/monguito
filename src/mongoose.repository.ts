@@ -7,11 +7,7 @@ import mongoose, {
   UpdateQuery,
 } from 'mongoose';
 import { Optional } from 'typescript-optional';
-import {
-  OperationOptions,
-  PartialEntityWithId,
-  Repository,
-} from './repository';
+import { PartialEntityWithId, Repository } from './repository';
 import { isAuditable } from './util/audit';
 import { Entity } from './util/entity';
 import {
@@ -19,7 +15,7 @@ import {
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
-import { SearchOptions } from './util/search-options';
+import { SaveOptions, SearchOptions } from './util/operation-options';
 
 /**
  * Models a domain object instance constructor.
@@ -150,18 +146,27 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
     userId?: string,
-    options?: OperationOptions,
+    options?: SaveOptions,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
+    if (userId) {
+      console.warn(
+        "The 'userId' property is deprecated. Use 'options.userId' instead.",
+      );
+    }
     try {
       let document;
       if (!entity.id) {
-        document = await this.insert(entity as S, userId, options?.session);
+        document = await this.insert(
+          entity as S,
+          userId ?? options?.userId,
+          options?.session,
+        );
       } else {
         document = await this.update(
           entity as PartialEntityWithId<S>,
-          userId,
+          userId ?? options?.userId,
           options?.session,
         );
       }

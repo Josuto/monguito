@@ -93,7 +93,7 @@ export class BookController {
     try {
       return await this.bookRepository.save(book);
     } catch (error) {
-      throw new BadRequestException(error);
+      throw new BadRequestException('Bad request', { cause: error });
     }
   }
 }

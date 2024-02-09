@@ -125,7 +125,7 @@ interface Repository<T extends Entity> {
   findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
-    userId?: string,
+    options?: SaveOptions,
   ) => Promise<S>;
   deleteById: (id: string) => Promise<boolean>;
 }
@@ -150,8 +150,7 @@ slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as 
 
 ### `findAll`
 
-Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some
-additional and non-required search `options`:
+Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some extra search `options`:
 
 - `filters`: a [MongoDB query](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
@@ -165,8 +164,7 @@ Persists the given entity by either inserting or updating it and returns the per
 
 Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
 
-Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
-[this section](#built-in-audit-data-support) for further details).
+This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteById`
 
@@ -181,10 +179,10 @@ export interface TransactionalRepository<T extends Entity>
   extends Repository<T> {
   saveAll: <S extends T>(
     entities: (S | PartialEntityWithId<S>)[],
-    userId?: string,
+    options?: SaveAllOptions,
   ) => Promise<S[]>;
 
-  deleteAll: (options?: DeleteOptions) => Promise<number>;
+  deleteAll: (options?: DeleteAllOptions) => Promise<number>;
 }
 ```
 
@@ -196,6 +194,8 @@ export interface TransactionalRepository<T extends Entity>
 Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
 
 In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
+
+This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteAll`
 
@@ -394,7 +394,7 @@ class AuditableBook extends AuditableClass implements Entity {
 `monguito` will produce and save the audit data for any domain object implementing `Auditable` or extending
 `AuditableClass` that is to be stored in MongoDB invoking the repository `save` operation. The user audit data is
 optional; if you want `monguito` to handle it for you, simply invoke `save` with a value for the `userId` input
-parameter.
+parameter as `options` parameter.
 
 # Comparison to other Alternatives
 
