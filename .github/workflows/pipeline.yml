@@ -13,12 +13,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 21.x]
     steps:
-      - name: Code Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Checkout Code 🛎️
+        uses: actions/checkout@v4
       - name: Setup Node ${{ matrix.node-version }} 🕸️
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Library Dependencies 💾
@@ -33,12 +33,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [18.x, 20.x, 21.x]
+        node-version: [20.x, 21.x]
     steps:
-      - name: Code Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Checkout Code 🛎️
+        uses: actions/checkout@v4
       - name: Setup Node ${{ matrix.node-version }} 🕸️
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Library Dependencies 💾
