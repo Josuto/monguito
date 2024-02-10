@@ -12,8 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        node-version: [ 18.x, 20.x ]
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x, 20.x]
     steps:
       - name: Code Checkout 🛎️
         uses: actions/checkout@v3
@@ -32,8 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        node-version: [ 18.x, 20.x ]
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x, 20.x, 21.x]
     steps:
       - name: Code Checkout 🛎️
         uses: actions/checkout@v3
@@ -48,8 +48,12 @@ jobs:
       - name: Install NestJS Example App Dependencies 💾
         run: |
           cd ./examples/nestjs-mongoose-book-manager
-          yarn install -f
+          yarn install --force
       - name: Build NestJS Example App 🔧
-        run: yarn build
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn build
       - name: Run NestJS Example App Tests 🧪
-        run: yarn test
+        run: |
+          cd ./examples/nestjs-mongoose-book-manager
+          yarn test
