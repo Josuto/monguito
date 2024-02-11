@@ -1,9 +1,14 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet, MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { Entity } from '../../src';
 
+export enum MongoServerType {
+  STANDALONE,
+  REPLICA_SET,
+}
+
 const dbName = 'test';
-let mongoServer: MongoMemoryServer;
+let mongoServer: MongoMemoryServer | MongoMemoryReplSet;
 
 type EntityWithOptionalDiscriminatorKey = Entity & { __t?: string };
 
@@ -12,7 +17,6 @@ export const insert = async (
   collection: string,
   discriminatorKey?: string,
 ) => {
-  await setupConnection();
   if (discriminatorKey) {
     entity['__t'] = discriminatorKey;
   }
@@ -23,17 +27,16 @@ export const insert = async (
     .then((result) => result.insertedId.toString());
 };
 
+export const findOne = async (filter: any, collection: string) => {
+  return await mongoose.connection.db.collection(collection).findOne(filter);
+};
+
 export const findById = async (id: string, collection: string) => {
-  await setupConnection();
-  return await mongoose.connection.db
-    .collection(collection)
-    .findOne({ id: id });
+  return await mongoose.connection.db.collection(collection).findOne({ id });
 };
 
 export const deleteAll = async (collection: string) => {
-  await setupConnection();
   await mongoose.connection.db.collection(collection).deleteMany({});
-  return;
 };
 
 export const closeMongoConnection = async () => {
@@ -41,14 +44,19 @@ export const closeMongoConnection = async () => {
   await mongoServer?.stop();
 };
 
-export const setupConnection = async () => {
+export const setupConnection = async (
+  mongoServerType: MongoServerType = MongoServerType.STANDALONE,
+) => {
   if (!mongoServer) {
-    mongoServer = await MongoMemoryServer.create({
-      instance: {
-        dbName: dbName,
-      },
-    });
-    await mongoose.connect(mongoServer.getUri());
-    await mongoose.connection.useDb(dbName);
+    if (mongoServerType === MongoServerType.STANDALONE) {
+      mongoServer = await MongoMemoryServer.create({
+        instance: { dbName },
+      });
+    } else {
+      mongoServer = await MongoMemoryReplSet.create({
+        replSet: { dbName, count: 1 },
+      });
+    }
+    await mongoose.connect(mongoServer.getUri(), { dbName });
   }
 };

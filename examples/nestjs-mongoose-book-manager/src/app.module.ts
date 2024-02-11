@@ -1,11 +1,14 @@
-import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
-import { MongooseBookRepository } from './book.repository';
+import { MongooseModule } from '@nestjs/mongoose';
 import { BookController } from './book.controller';
+import { MongooseBookRepository } from './book.repository';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
+    MongooseModule.forRoot('mongodb://localhost:27016/book-repository', {
+      directConnection: true,
+      replicaSet: 'rs0',
+    }),
   ],
   providers: [
     {

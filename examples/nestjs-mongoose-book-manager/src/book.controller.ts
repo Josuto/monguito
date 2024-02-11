@@ -9,10 +9,18 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { TransactionalRepository } from '../../../dist';
 import { AudioBook, Book, PaperBook } from './book';
-import { Repository } from '../../../dist';
 
 type PartialBook = { id: string } & Partial<Book>;
+
+function deserialiseAll<T extends Book>(plainBooks: any[]): T[] {
+  const books: T[] = [];
+  for (const plainBook of plainBooks) {
+    books.push('id' in plainBook ? plainBook : deserialise(plainBook));
+  }
+  return books;
+}
 
 function deserialise<T extends Book>(plainBook: any): T {
   let book = null;
@@ -30,7 +38,7 @@ function deserialise<T extends Book>(plainBook: any): T {
 export class BookController {
   constructor(
     @Inject('BOOK_REPOSITORY')
-    private readonly bookRepository: Repository<Book>,
+    private readonly bookRepository: TransactionalRepository<Book>,
   ) {}
 
   @Get()
@@ -48,12 +56,27 @@ export class BookController {
     return this.save(book);
   }
 
-  @Patch()
+  @Patch(':id')
   async update(
-    @Body()
-    book: PartialBook,
+    @Param('id') id: string,
+    @Body() book: PartialBook,
   ): Promise<Book> {
+    book.id = id;
     return this.save(book);
+  }
+
+  @Post('/all')
+  async saveAll(
+    @Body({
+      transform: (plainBooks) => deserialiseAll(plainBooks),
+    })
+    books: (Book | PartialBook)[],
+  ): Promise<Book[]> {
+    try {
+      return await this.bookRepository.saveAll(books);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   @Delete(':id')
@@ -61,11 +84,16 @@ export class BookController {
     return this.bookRepository.deleteById(id);
   }
 
+  @Delete()
+  async deleteAll(): Promise<number> {
+    return this.bookRepository.deleteAll();
+  }
+
   private async save(book: Book | PartialBook): Promise<Book> {
     try {
       return await this.bookRepository.save(book);
     } catch (error) {
-      throw new BadRequestException(error);
+      throw new BadRequestException('Bad request', { cause: error });
     }
   }
 }

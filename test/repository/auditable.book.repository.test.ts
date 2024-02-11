@@ -5,7 +5,7 @@ import {
   deleteAll,
   setupConnection,
 } from '../util/mongo-server';
-import { AuditableMongooseBookRepository } from './auditable.book.repository';
+import { MongooseAuditableBookRepository } from './auditable.book.repository';
 
 describe('Given an instance of auditable book repository and a user ID', () => {
   let bookRepository: Repository<AuditableBook>;
@@ -13,7 +13,7 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
   beforeAll(async () => {
     setupConnection();
-    bookRepository = new AuditableMongooseBookRepository();
+    bookRepository = new MongooseAuditableBookRepository();
   });
 
   describe('when creating an auditable book', () => {

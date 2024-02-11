@@ -2,8 +2,13 @@ version: "3.3"
 
 services:
   mongodb:
+    container_name: mongodb
     image: mongo:latest
     environment:
       - MONGODB_DATABASE="book-repository"
     ports:
       - "27016:27017"
+    volumes:
+      - ~/mongors/data1:/data/db
+      - ./mongo_scripts/rs-init.sh:/mongo_scripts/rs-init.sh
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]

@@ -1,12 +1,9 @@
-This is an example of how to use `monguito` in a NestJS application that uses MongoDB. It is a dummy book
-manager that exposes three simple endpoints i.e., create, update, and delete a book, as well as list all
-books. A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
+This is an example of how to use `monguito` in a NestJS application that uses a MongoDB replica set instance with
+a single node. The application models a dummy book manager that exposes an endpoint for each CRUD operation offered by `monguito`.
+A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `AudioBook`.
 
-> **Warning**
->
-> Some basic knowledge on [NestJS](https://docs.nestjs.com/) is assumed, as well as that you have read the main
-> documentation of [monguito](../../README.md). The goal of this documentation is not to provide a comprehensive
-> guide on `monguito` usage. Thus, you may want to check the [sample application code](./src) as you go reading.
+> [!WARNING]
+> Some basic knowledge on [NestJS](https://docs.nestjs.com/) and [monguito](../../README.md) is assumed. The goal of this documentation is not to provide a comprehensive guide on `monguito` usage; you may want to check the [sample application code](./src) as you go reading.
 
 # Main Contents
 
@@ -25,10 +22,10 @@ need to install of the project dependencies by running the following command:
 $ yarn install
 ```
 
-## Run
+## Execution
 
 The application requires a running instance of MongoDB. It includes a `docker-compose.yml` file that will fire up a
-MongoDB instance, assuming that Docker Desktop is running.
+MongoDB replica set instance, assuming that Docker Desktop is running.
 
 ```bash
 # run the NestJS application as well as the MongoDB Docker container
@@ -109,13 +106,13 @@ superclass includes an `id` field in its definition.
 
 `MongooseBookRepository` is a Mongoose-based book repository implementation class. Since it does not include any
 additional database operation, there is no need to create a custom repository interface for it. In this case, we can
-directly implement the `Repository` interface. The definition of `MongooseBookRepository` is as follows:
+directly implement the `TransactionalRepository` interface. The definition of `MongooseBookRepository` is as follows:
 
 ```typescript
 @Injectable()
 export class MongooseBookRepository
-  extends MongooseRepository<Book>
-  implements Repository<Book>
+  extends MongooseTransactionalRepository<Book>
+  implements TransactionalRepository<Book>
 {
   constructor(@InjectConnection() connection: Connection) {
     super(
@@ -143,12 +140,12 @@ store all of your entities in collections of the same database or different data
 databases, you may need to specify a NestJS provider for each of them. NestJS providers are discussed later in this
 document.
 
-This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`,
-also modifying its semantics; while `MongooseRepository.deleteById()` performs hard book
-deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that this operation updates
-the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include this field in its
-definition. You may find the full definition of the book domain model used by this sample
-application [here](src/book.ts).
+This implementation of `MongooseBookRepository` overrides the `deleteById` operation defined at `MongooseRepository`
+(i.e., `MongooseTransactionalRepository`'s extension), also modifying its semantics; while `MongooseRepository.deleteById()`
+performs hard book deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that
+this operation updates the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include
+this field in its definition. You may find the full definition of the book domain model used by this sample application
+[here](src/book.ts).
 
 ## Book Controller
 
@@ -158,23 +155,11 @@ contents are as follows:
 ```typescript
 type PartialBook = { id: string } & Partial<Book>;
 
-function deserialise<T extends Book>(plainBook: any): T {
-  let book = null;
-  if (plainBook.edition) {
-    book = new PaperBook(plainBook);
-  } else if (plainBook.hostingPlatforms) {
-    book = new AudioBook(plainBook);
-  } else {
-    book = new Book(plainBook);
-  }
-  return book;
-}
-
 @Controller('books')
 export class BookController {
   constructor(
     @Inject('BOOK_REPOSITORY')
-    private readonly bookRepository: Repository<Book>,
+    private readonly bookRepository: TransactionalRepository<Book>,
   ) {}
 
   @Get()
@@ -192,17 +177,37 @@ export class BookController {
     return this.save(book);
   }
 
-  @Patch()
+  @Patch(':id')
   async update(
-    @Body()
-    book: PartialBook,
+    @Param('id') id: string,
+    @Body() book: PartialBook,
   ): Promise<Book> {
+    book.id = id;
     return this.save(book);
+  }
+
+  @Post('/all')
+  async saveAll(
+    @Body({
+      transform: (plainBooks) => deserialiseAll(plainBooks),
+    })
+    books: (Book | PartialBook)[],
+  ): Promise<Book[]> {
+    try {
+      return await this.bookRepository.saveAll(books);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   @Delete(':id')
   async deleteById(@Param('id') id: string): Promise<boolean> {
     return this.bookRepository.deleteById(id);
+  }
+
+  @Delete()
+  async deleteAll(): Promise<number> {
+    return this.bookRepository.deleteAll();
   }
 
   private async save(book: Book | PartialBook): Promise<Book> {
@@ -223,35 +228,24 @@ simple CRUD application that introducing services would be over-engineering. I r
 code necessary for the sake of maximising the actual purpose of this documentation: illustrate how to integrate
 `monguito` on a NodeJS-based enterprise application.
 
-Moreover, you would probably not write a `deserialise` function to enable the transformation of JSON request bodies into
-domain objects when dealing with `POST` requests. Instead, you would rather use
-a [NestJS pipe](https://docs.nestjs.com/pipes#pipes) to do so, thus properly implementing the Single Responsibility
-principle. Once again, I wanted to share the simplest possible working example at the expense of not conveying to the
-recommended practices in NestJS application construction. That being said, I would highly recommend you to
-read [this section](https://docs.nestjs.com/pipes#class-validator) on how to use `class-validator`
-and `class-transformer` for the validation and deserialisation of JSON request bodies in the development of complex
-enterprise applications.
+The functions `deserialise` and `deserialiseAll` deserialise books in JSON format into actual instances of type `Book` or any of its subtypes. I am not showing its code as it does not bring too much value here. Moreover, you would probably not write them; instead, you would rather use a [NestJS pipe](https://docs.nestjs.com/pipes#pipes) to perform book deserialisation, thus properly implementing the Single Responsibility principle. I wanted to share the simplest possible working example at the expense of not conveying to the recommended practices in NestJS application construction. That being said, I would highly recommend you to read [this section](https://docs.nestjs.com/pipes#class-validator) on how to use `class-validator` and `class-transformer` for the validation and deserialisation of JSON request bodies in the development of complex enterprise applications.
 
 ## Book Manager Module
 
 NestJS implements the Dependency Inversion principle; developers specify their component dependencies and NestJS uses
 its built-in dependency injector to inject those dependencies during component instantiation.
 
-So, how do we specify the dependencies of the components that compose the book manager sample application? There are two
-easy steps that we need to take: The first step consists of writing some decorators in the `MongooseBookRepository`
-and `BookController` classes, as I already did in the code definition for both. The former class specifies that its
-instances are `Injectable` to other components. It also specifies that to instantiate a book repository, NestJS needs to
-inject a Mongoose connection. This is done with the `InjectConnection` decorator related to the `connection` constructor
-input parameter.
+Book manager application component injection is defined at `AppModule`. First, it describes a Mongoose connection to a MongoDB replica set instance as a dynamic module `import` that is to be injected to an instance of `MongooseBookRepository`, as showed earlier at that class' constructor. Moreover, `MongooseBookRepository` is a `provider` to be injected to the `BookController`. The custom token specified both at the controller `bookRepository` constructor parameter and the `provider` (i.e., `BOOK_REPOSITORY`) must match. Finally, `AppModule` determines `BookController` as the sole controller of the application.
 
-On another hand, the definition of `BookController` specifies that, during instantiation, the controller consumes an
-instance of a book `Repository` defined by the `BOOK_REPOSITORY` custom token. The definition of this custom token is
-part of the second step: writing the last required class `AppModule`. The definition of this class is as follows:
+Here is the definition of `AppModule`:
 
 ```typescript
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27016/book-repository'),
+    MongooseModule.forRoot('mongodb://localhost:27016/book-repository', {
+      directConnection: true,
+      replicaSet: 'rs0',
+    }),
   ],
   providers: [
     {
@@ -264,52 +258,47 @@ part of the second step: writing the last required class `AppModule`. The defini
 export class AppModule {}
 ```
 
-This class module specifies the Mongoose connection required to instantiate `MongooseBookRepository` at the `imports`
-property of the `Module` decorator. It also determines that any component dependent on a provider identified by
-the `BOOK_REPOSITORY` custom token is to get an instance of `MongooseBookRepository`. Finally, it determines
-that `BookController` is the sole controller for the book manager application.
-
 # Custom Repository Validation
 
-This application comes with some e2e tests that you may find useful when validating your own NestJS application. You may
-find the whole test infrastructure [here](./test/book.controller.test.ts).
+This application comes with a couple of unit tests that you may find useful when creating the tests of your own NestJS application.
+The first test suite validates the [basic CRUD operations](../../README.md/#basic-crud-operations) included in `BookController` and is encoded at [book.controller.test.ts](./test/book.controller.test.ts). The second test suite validates the [transactional CRUD operations](../../README.md/#transactional-crud-operations) also written in `BookController` and is implemented in [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts).
 
-First of all, you need to create a testing module for your app. Here is a way you can follow to do so:
+As mentioned in `monguito`'s [main documentation](../../README.md), basic CRUD operations may run on a standalone MongoDB instance. However, transactional CRUD operations can only run on a MongoDB cluster such as replica set. Therefore, the nature of basic and transactional CRUD operations determines the configuration of the aforementioned test suites: [book.controller.test.ts](./test/book.controller.test.ts) works with an in-memory standalone MongoDB instance, whereas [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts) operates over an in-memory MongoDB replica set instance.
+
+Let's now focus on the module configuration and application initialisation for these test files. Keep in mind that, in both cases, you first need to create a testing module for your app.
+
+## Initialisation of Standalone MongoDB-based App
+
+Here is how you initialise the test application required to run the tests described at [book.controller.test.ts](./test/book.controller.test.ts):
 
 ```typescript
 let bookManager: INestApplication;
 
 beforeAll(async () => {
   const appModule = await Test.createTestingModule({
-    imports: [rootMongooseTestModule(), AppModule],
+    imports: [rootMongooseStandaloneMongoTestModule(), AppModule],
   }).compile();
+
+  await setupConnection();
 
   bookManager = appModule.createNestApplication();
   await bookManager.init();
-});
+}, timeout);
 ```
 
-You may want to create an instance of `MongoMemoryServer` (the main class exported by the library
-[`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server)) instead of a
-full-blown MongoDB instance. This instance is vital to inject the custom repository at `BookController` at test runtime.
-The creation of the instance is defined by the `rootMongooseTestModule` function included
-at [`mongo-server.ts`](../../test/util/mongo-server.ts). This is its implementation:
+`MongoMemoryServer` models an in-memory standalone MongoDB instance, pretty handy to substitute a full-blown MongoDB instance during validation. This class is part of the [`mongodb-memory-server` NPM dependency](https://www.npmjs.com/package/mongodb-memory-server) used on the book manager application. The creation of the instance is done at the `rootMongooseStandaloneMongoTestModule` function included at [`mongo-server.ts`](../../test/util/mongo-server.ts):
 
 ```typescript
+const dbName = 'test';
 let mongoServer: MongoMemoryServer;
 
-export const rootMongooseTestModule = (
+export const rootMongooseStandaloneMongoTestModule = (
   options: MongooseModuleOptions = {},
-  port = 27016,
-  dbName = 'book-repository',
 ) =>
   MongooseModule.forRootAsync({
     useFactory: async () => {
       mongoServer = await MongoMemoryServer.create({
-        instance: {
-          port,
-          dbName: dbName,
-        },
+        instance: { dbName, port: 27017 },
       });
       const mongoUri = mongoServer.getUri();
       return {
@@ -320,11 +309,52 @@ export const rootMongooseTestModule = (
   });
 ```
 
-You may perceive that the `port` and `dbName` input parameters match those of the database connection
-specified [earlier](#book-manager-module). This is no coincidence.
+## Initialisation of MongoDB Replica Set-based App
 
-Finally, you can then use the `mongoServer` instance to perform several explicit Mongoose-based DB operations such as
-those specified at [mongo-server.ts](../../test/util/mongo-server.ts).
+Here is how you initialise the test application required to run the tests described at [book.transactional-controller.test.ts](./test/book.transactional-controller.test.ts):
+
+```typescript
+let bookManager: INestApplication;
+
+beforeAll(async () => {
+  const appModule = await Test.createTestingModule({
+    imports: [rootMongooseReplicaSetMongoTestModule(), AppModule],
+  }).compile();
+
+  await setupConnection();
+
+  bookManager = appModule.createNestApplication();
+  await bookManager.init();
+}, timeout);
+```
+
+You may want to create an in-memory instance of MongoDB replica set, modelled by `MongoMemoryReplSet` (also included at [`mongodb-memory-server`](https://www.npmjs.com/package/mongodb-memory-server)), instead of a full-blown instance. The creation of the instance is done at the `rootMongooseReplicaSetMongoTestModule` function included at [`mongo-server.ts`](../../test/util/mongo-server.ts):
+
+```typescript
+const dbName = 'test';
+let mongoServer: MongoMemoryServer;
+
+export const rootMongooseReplicaSetMongoTestModule = (
+  options: MongooseModuleOptions = {},
+) =>
+  MongooseModule.forRootAsync({
+    useFactory: async () => {
+      mongoServer = await MongoMemoryReplSet.create({
+        instanceOpts: [{ port: 27016 }],
+        replSet: { name: 'rs0', dbName, count: 1 },
+      });
+      const mongoUri = mongoServer.getUri();
+      return {
+        uri: mongoUri,
+        ...options,
+      };
+    },
+  });
+```
+
+## Connection Setup
+
+You may have appreciated the invocation of `setupConnection` before the initialisation of both testing applications. This function tells Mongoose to connect to the pertaining MongoDB instance (standalone or replica set). You may find the details of this function as well as some other validation helper functions at [`mongo-server.ts`](../../test/util/mongo-server.ts).
 
 ## Run the Tests
 

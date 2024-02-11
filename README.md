@@ -29,11 +29,11 @@
 
 # What is `monguito`?
 
-`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the Abstract [Repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [Polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
+`monguito` is a lightweight and type-safe [MongoDB](https://www.mongodb.com/) handling library for [Node.js](https://nodejs.org/) applications that implements both the abstract [repository](https://www.martinfowler.com/eaaCatalog/repository.html) and the [polymorphic](https://www.mongodb.com/developer/products/mongodb/polymorphic-pattern/) patterns.
 
-It allows developers to define any custom MongoDB repository in a fast, easy, and structured manner, releasing them from having to write basic CRUD operations, while decoupling domain from persistence logic. Despite its small size, it includes several optional features such as seamless audit data handling support.
+It allows you (dear developer) to define any custom MongoDB repository in a fast, easy, and structured manner, releasing you from having to write all the boilerplate code for basic CRUD operations, and also decoupling your domain layer from the persistence logic. Moreover, despite its small size, it includes several optional features such as seamless audit data handling support.
 
-Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
+Last but not least, `monguito` wraps [Mongoose](https://mongoosejs.com/), a very popular and solid MongoDB ODM for Node.js applications. `monguito` enables you to use any Mongoose feature such as [aggregation pipelines](https://mongoosejs.com/docs/api/aggregate.html) or [middleware functions](https://mongoosejs.com/docs/middleware.html). Furthermore, it leverages Mongoose [schemas](https://mongoosejs.com/docs/guide.html) to enable developers focus on their own persistance models, leaving everything else to the library.
 
 # Getting Started
 
@@ -94,27 +94,28 @@ const books: Book[] = bookRepository.findAll();
 
 No more leaking of the persistence logic into your domain/application logic! 🤩
 
-## Polymorphic Domain Model Specification
+### Polymorphic Domain Model Specification
 
 `MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype
 and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorphic domain models is hidden
 at `MongooseRepository`; all that is required is that `MongooseRepository` receives a map describing the domain model.
 Each map entry key relates to a domain object type, and the related entry value is a reference to the constructor and
 the database [schema](https://mongoosejs.com/docs/guide.html) of such domain object. The `Default` key is mandatory and
-relates to the supertype, while the rest of the keys relate to the subtypes. Beware that subtype keys are named after
-the type name. If it so happens that you do not have any subtype in your domain model, no problem! Just specify the
-domain object that your custom repository is to handle as the sole map key-value, and you are done.
+relates to the supertype, while the rest of the keys relate to the subtypes.
 
-Regarding schemas: We believe that writing your own database schemas is a good practice, as opposed of using decorators
-at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
-rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
-properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
+Beware that subtype keys are named after the type name. If it so happens that you do not have any subtype in your domain
+model, no problem! Just specify the domain object that your custom repository is to handle as the sole map key-value,
+and you are done.
 
 # Supported Database Operations
 
-Let's have a look to `Repository`, the generic interface implemented by `MongooseRepository`. Keep in mind that the current
-semantics for these operations are those provided at `MongooseRepository`. If you want any of these operations to behave
-differently then you must override it at your custom repository implementation.
+The library supports two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the former are inherently atomic, the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+
+Let's now explore these two kinds of operations in detail.
+
+## Basic CRUD Operations
+
+`Repository` is the generic interface implemented by `MongooseRepository`. Its definition is as follows:
 
 ```typescript
 type PartialEntityWithId<T> = { id: string } & Partial<T>;
@@ -124,7 +125,7 @@ interface Repository<T extends Entity> {
   findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
-    userId?: string,
+    options?: SaveOptions,
   ) => Promise<S>;
   deleteById: (id: string) => Promise<boolean>;
 }
@@ -134,6 +135,9 @@ interface Repository<T extends Entity> {
 object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that the resulting values of the CRUD operations
 are of the type you expect.
 
+> [!NOTE]
+> Keep in mind that the current semantics for these operations are those provided at `MongooseRepository`; if you want any of these operations to behave differently then you must override it at your custom repository implementation.
+
 ### `findById`
 
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
@@ -142,16 +146,13 @@ This value wraps an actual entity or `null` in case that no entity matches the g
 The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
 clients. This type helps client code developers to easily reason about all possible result types without having to handle
 slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
-Effective Java. Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases.
-Check it out!
+[Effective Java](https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/). Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases. Check it out!
 
 ### `findAll`
 
-Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some
-additional and non-required search `options`:
+Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some extra search `options`:
 
-- `filters`: a [MongoDB entity field-based query](https://www.mongodb.com/docs/manual/tutorial/query-documents/)
-  to filter results
+- `filters`: a [MongoDB query](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
   to return results in some sorted order
 - `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular set of results.
@@ -159,36 +160,62 @@ additional and non-required search `options`:
 
 ### `save`
 
-Persists the given entity by either inserting or updating it and returns the persisted entity. It the entity does
-not specify an `id`, this function inserts the entity. Otherwise, this function expects the entity to exist in the
-collection; if it does, the function updates it or throwns exception if it does not.
+Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection.
 
-Trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_;
-only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
+Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
 
-Finally, this function specifies an optional `userId` argument to enable user audit data handling (read
-[this section](#built-in-audit-data-support) for further details).
+This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteById`
 
-Deletes an entity matching the given `id` if it exists. When it does, the function returns `true`. Otherwise, it returns `false`.
+Deletes an entity which `id` field value matches the given `id`. When it does, the function returns `true`. Otherwise, it returns `false`.
+
+## Transactional CRUD Operations
+
+Let's now explore the definition of `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface is an extension of `Repository`, thus includes all the basic CRUD operations. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
+
+```typescript
+export interface TransactionalRepository<T extends Entity>
+  extends Repository<T> {
+  saveAll: <S extends T>(
+    entities: (S | PartialEntityWithId<S>)[],
+    options?: SaveAllOptions,
+  ) => Promise<S[]>;
+
+  deleteAll: (options?: DeleteAllOptions) => Promise<number>;
+}
+```
+
+> [!WARNING]
+> The following operations are only guaranteed to be atomic when executed on a MongoDB cluster.
+
+### `saveAll`
+
+Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
+
+In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
+
+This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
+
+### `deleteAll`
+
+Deletes all the entities that match the MongoDB `filters` query specified within the `options` parameter. This operation returns the total amount of deleted entities.
+
+In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any entity, thus guaranteeing operation atomicity.
 
 # Examples
 
-You may find an example of how to instantiate and use a repository that performs CRUD operations over instances
-of `Book` and its aforementioned subtypes under [`book.repository.test.ts`](test/book.repository.test.ts). This is a
-complete set of unit test cases used to validate this project.
+You may find an example of how to instantiate and use a repository that performs basic CRUD operations over instances
+of `Book` and its aforementioned subtypes at [`book.repository.test.ts`](test/book.repository.test.ts). You may also find an example on `monguito`'s transactional CRUD operations at [`book.transactional-repository.test.ts`](test/book.transactional-repository.test.ts).
 
-Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit
-[`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, we
-recommend reading the following section.
+Moreover, if you are interested in knowing how to inject and use a custom repository in a NestJS application, visit [`nestjs-mongoose-book-manager`](examples/nestjs-mongoose-book-manager). But before jumping to that link, I recommend reading the following section.
 
 # Write Your Own Repository Interfaces
 
 If you are to inject your newly created repository into an application that uses a Node.js-based framework
 (e.g., [NestJS](https://nestjs.com/) or [Express](https://expressjs.com/)) then you may want to do some extra effort and
-follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) and _depend on
-abstractions, not implementations_. To do so, you simply need to add one extra artefact to your code:
+follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) to _depend on
+abstractions, not implementations_. Simply need to add one extra artefact to your code:
 
 ```typescript
 interface BookRepository extends Repository<Book> {
@@ -268,11 +295,16 @@ safely be `undefined` until the pertaining domain object instance is inserted (i
 database.
 
 The fact that `Entity` is an interface instead of an abstract class is not a coincidence; JavaScript is a single
-inheritance-based programming language, and we strongly believe that you are entitled to design the domain model at your
+inheritance-based programming language, and I strongly believe that you are entitled to design the domain model at your
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
 
-## Utilities to Define Your Custom Schemas
+## Define Your Custom Schemas
+
+I believe that writing your own database schemas is a good practice, as opposed of using decorators
+at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
+rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
+properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
 
 The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `monguito`
 to handle the required implementation details. This function is specially convenient when defining schemas for
@@ -362,7 +394,7 @@ class AuditableBook extends AuditableClass implements Entity {
 `monguito` will produce and save the audit data for any domain object implementing `Auditable` or extending
 `AuditableClass` that is to be stored in MongoDB invoking the repository `save` operation. The user audit data is
 optional; if you want `monguito` to handle it for you, simply invoke `save` with a value for the `userId` input
-parameter.
+parameter as `options` parameter.
 
 # Comparison to other Alternatives
 
@@ -375,7 +407,7 @@ models, but it implements the [Data Mapper](https://martinfowler.com/eaaCatalog/
 the Repository pattern, which in complex domain model scenarios results in query logic duplication. Moreover,
 `monguito` is also type-safe.
 
-Considering that Mongoose is currently the most mature MongoDB handling utility, we decided to keep it as `monguito`'s
+Considering that Mongoose is currently the most mature MongoDB handling utility, I decided to keep it as `monguito`'s
 foundation.
 
 # Project Validation

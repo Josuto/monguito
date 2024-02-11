@@ -1,14 +1,15 @@
-import { Test } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
 import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { AudioBook, PaperBook } from '../src/book';
 import {
   closeMongoConnection,
   deleteAll,
   insert,
-  rootMongooseTestModule,
+  rootMongooseStandaloneMongoTestModule,
+  setupConnection,
 } from './util/mongo-server';
-import { AudioBook, PaperBook } from '../src/book';
 
 const timeout = 30000;
 
@@ -18,8 +19,10 @@ describe('Given the book manager controller', () => {
 
   beforeAll(async () => {
     const appModule = await Test.createTestingModule({
-      imports: [rootMongooseTestModule(), AppModule],
+      imports: [rootMongooseStandaloneMongoTestModule(), AppModule],
     }).compile();
+
+    await setupConnection();
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
@@ -43,7 +46,7 @@ describe('Given the book manager controller', () => {
   });
 
   describe('when finding all books', () => {
-    it('then retrieves all the existent books', () => {
+    it('retrieves all the existent books', () => {
       return request(bookManager.getHttpServer())
         .get('/books')
         .expect(HttpStatus.OK)
@@ -55,7 +58,7 @@ describe('Given the book manager controller', () => {
 
   describe('when creating a new book', () => {
     describe('that is invalid', () => {
-      it('then returns a bad request HTTP status code', () => {
+      it('returns a bad request HTTP status code', () => {
         return request(bookManager.getHttpServer())
           .post('/books')
           .send()
@@ -64,7 +67,7 @@ describe('Given the book manager controller', () => {
     });
 
     describe('that is specifies an ID', () => {
-      it('then returns a bad request HTTP status code', () => {
+      it('returns a bad request HTTP status code', () => {
         const audioBookToStore = {
           id: '000000000000000000000000',
           title: 'The Sandman',
@@ -79,7 +82,7 @@ describe('Given the book manager controller', () => {
     });
 
     describe('that is valid', () => {
-      it('then returns the created book', () => {
+      it('returns the created book', () => {
         const audioBookToStore = {
           title: 'The Sandman',
           description: 'Fantastic fantasy audio book',
@@ -100,35 +103,36 @@ describe('Given the book manager controller', () => {
 
   describe('when updating a book', () => {
     describe('that is invalid', () => {
-      it('then returns a bad request HTTP status code', () => {
+      it('returns a bad request HTTP status code', () => {
+        const paperBookToUpdate = {
+          edition: 0,
+        };
         return request(bookManager.getHttpServer())
-          .patch('/books/')
-          .send()
+          .patch(`/books/${storedPaperBook.id}`)
+          .send(paperBookToUpdate)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('that is not stored', () => {
-      it('then returns a bad request HTTP status code', () => {
+      it('returns a bad request HTTP status code', () => {
         const paperBookToUpdate = {
-          id: '000000000000000000000000',
           edition: 4,
         };
         return request(bookManager.getHttpServer())
-          .patch('/books/')
+          .patch('/books/000000000000000000000000')
           .send(paperBookToUpdate)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('that is stored', () => {
-      it('then returns the created book', () => {
+      it('returns the updated book', () => {
         const paperBookToUpdate = {
-          id: storedPaperBook.id,
           edition: 4,
         };
         return request(bookManager.getHttpServer())
-          .patch('/books')
+          .patch(`/books/${storedPaperBook.id}`)
           .send(paperBookToUpdate)
           .expect(HttpStatus.OK)
           .expect((response) => {
@@ -145,7 +149,7 @@ describe('Given the book manager controller', () => {
 
   describe('when deleting a book', () => {
     describe('that is not stored', () => {
-      it('then returns false', () => {
+      it('returns false', () => {
         return request(bookManager.getHttpServer())
           .delete('/books/000000000000000000000000')
           .expect(HttpStatus.OK)
@@ -156,7 +160,7 @@ describe('Given the book manager controller', () => {
     });
 
     describe('that is stored', () => {
-      it('then returns true', () => {
+      it('returns true', () => {
         return request(bookManager.getHttpServer())
           .delete(`/books/${storedPaperBook.id}`)
           .expect(HttpStatus.OK)
@@ -172,6 +176,7 @@ describe('Given the book manager controller', () => {
   });
 
   afterAll(async () => {
+    await bookManager.close();
     await closeMongoConnection();
   }, timeout);
 });
