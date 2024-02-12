@@ -60,12 +60,8 @@
     "prepare": "husky install"
   },
   "peerDependencies": {
-    "mongoose": ">= 7.1.0",
+    "mongoose": ">= 8.1.0",
     "typescript-optional": ">= 3.0.0-alpha.3"
-  },
-  "dependencies": {
-    "mongoose": "^8.0.0",
-    "typescript-optional": "^3.0.0-alpha.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
@@ -84,6 +80,8 @@
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.0.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "mongoose": "^8.1.0",
+    "typescript-optional": "^3.0.0-alpha.3"
   }
 }
