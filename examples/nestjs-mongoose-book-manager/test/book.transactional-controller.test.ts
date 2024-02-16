@@ -6,6 +6,7 @@ import { AudioBook, PaperBook } from '../src/book';
 import {
   closeMongoConnection,
   deleteAll,
+  findAll,
   findOne,
   insert,
   rootMongooseReplicaSetMongoTestModule,
@@ -29,24 +30,24 @@ describe('Given the book manager controller', () => {
     await bookManager.init();
   }, timeout);
 
-  beforeEach(async () => {
-    const paperBookToStore = new PaperBook({
-      title: 'Effective Java',
-      description: 'Great book on the Java programming language',
-      edition: 2,
-    });
-    const storedPaperBookId = await insert(
-      paperBookToStore,
-      'books',
-      PaperBook.name,
-    );
-    storedPaperBook = new PaperBook({
-      ...paperBookToStore,
-      id: storedPaperBookId,
-    });
-  });
-
   describe('when saving a list of books', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      const storedPaperBookId = await insert(
+        paperBookToStore,
+        'books',
+        PaperBook.name,
+      );
+      storedPaperBook = new PaperBook({
+        ...paperBookToStore,
+        id: storedPaperBookId,
+      });
+    });
+
     describe('that includes an invalid book', () => {
       it('returns a bad request HTTP status code', async () => {
         const booksToStore = [
@@ -64,11 +65,10 @@ describe('Given the book manager controller', () => {
           .send(booksToStore)
           .then(async (result) => {
             expect(result.status).toEqual(HttpStatus.BAD_REQUEST);
-            expect(await findOne({ title: 'Accelerate' }, 'books')).toBeNull();
-            const updatedPaperBook = await findOne(
-              { title: 'Effective Java' },
-              'books',
-            );
+            expect(await findOne('books', { title: 'Accelerate' })).toBeNull();
+            const updatedPaperBook = await findOne('books', {
+              title: 'Effective Java',
+            });
             expect(updatedPaperBook).toBeDefined();
             expect(updatedPaperBook!.edition).toBe(2);
           });
@@ -94,12 +94,11 @@ describe('Given the book manager controller', () => {
           .then(async (result) => {
             expect(result.status).toEqual(HttpStatus.CREATED);
             expect(
-              await findOne({ title: 'Accelerate' }, 'books'),
+              await findOne('books', { title: 'Accelerate' }),
             ).toBeDefined();
-            const updatedPaperBook = await findOne(
-              { title: 'Effective Java' },
-              'books',
-            );
+            const updatedPaperBook = await findOne('books', {
+              title: 'Effective Java',
+            });
             expect(updatedPaperBook).toBeDefined();
             expect(updatedPaperBook!.edition).toBe(3);
           });
@@ -108,15 +107,32 @@ describe('Given the book manager controller', () => {
   });
 
   describe('when deleting all books', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      const audioBookToStore = new AudioBook({
+        title: 'The Sandman',
+        description: 'Fantastic fantasy audio book',
+        hostingPlatforms: ['Audible'],
+      });
+      await insert(paperBookToStore, 'books', PaperBook.name);
+      await insert(audioBookToStore, 'books', AudioBook.name);
+    });
+
     it('deletes all books', async () => {
       return request(bookManager.getHttpServer())
         .delete('/books')
         .then(async (result) => {
           expect(result.status).toEqual(HttpStatus.OK);
-          expect(result.text).toBe('1');
-          expect(
-            await findOne({ title: 'Effective Java' }, 'books'),
-          ).toBeNull();
+          expect(result.text).toBe('2');
+
+          const storedBooks = await findAll('books');
+          storedBooks.forEach((book) => {
+            expect(book.isDeleted).toBe(true);
+          });
         });
     });
   });

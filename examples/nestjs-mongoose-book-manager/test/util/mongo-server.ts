@@ -55,8 +55,15 @@ export const insert = async (
     .then((result) => result.insertedId.toString());
 };
 
-export const findOne = async (filter: any, collection: string) => {
+export const findOne = async (collection: string, filter?: any) => {
   return await mongoose.connection.db.collection(collection).findOne(filter);
+};
+
+export const findAll = async (collection: string, filter?: any) => {
+  return await mongoose.connection.db
+    .collection(collection)
+    .find(filter)
+    .toArray();
 };
 
 export const deleteAll = async (collections: string[]) => {

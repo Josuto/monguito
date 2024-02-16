@@ -21,6 +21,7 @@ import {
   SearchOptions,
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
+import { runInTransaction } from './util/transaction';
 
 export {
   Auditable,
@@ -45,4 +46,5 @@ export {
   ValidationException,
   extendSchema,
   isAuditable,
+  runInTransaction,
 };

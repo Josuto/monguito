@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { ClientSession, Connection } from 'mongoose';
 import {
+  DeleteAllOptions,
   IllegalArgumentException,
   MongooseTransactionalRepository,
   TransactionalRepository,
+  runInTransaction,
 } from 'monguito';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
@@ -31,5 +33,26 @@ export class MongooseBookRepository
       .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
       .exec()
       .then((book) => !!book);
+  }
+
+  async deleteAll(options?: DeleteAllOptions): Promise<number> {
+    if (options?.filters === null) {
+      throw new IllegalArgumentException('Null filters are disallowed');
+    }
+    return await runInTransaction(
+      async (session: ClientSession) => {
+        const books = await this.findAll({
+          filters: options?.filters,
+          session,
+        });
+        const booksToDelete = books.map((book) => {
+          book.isDeleted = true;
+          return book;
+        });
+        const deletedBooks = await this.saveAll(booksToDelete, { session });
+        return deletedBooks.length;
+      },
+      { connection: this.connection },
+    );
   }
 }
