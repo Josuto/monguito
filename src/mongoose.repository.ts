@@ -1,5 +1,4 @@
 import mongoose, {
-  ClientSession,
   Connection,
   HydratedDocument,
   Model,
@@ -15,7 +14,12 @@ import {
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
-import { SaveOptions, SearchOptions } from './util/operation-options';
+import {
+  DeleteByIdOptions,
+  FindAllOptions,
+  FindByIdOptions,
+  SaveOptions,
+} from './util/operation-options';
 
 /**
  * Models a domain object instance constructor.
@@ -98,14 +102,16 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async deleteById(id: string): Promise<boolean> {
+  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const isDeleted = await this.entityModel.findByIdAndDelete(id);
+    const isDeleted = await this.entityModel.findByIdAndDelete(id, {
+      session: options?.session,
+    });
     return !!isDeleted;
   }
 
   /** @inheritdoc */
-  async findAll<S extends T>(options?: SearchOptions): Promise<S[]> {
+  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
     if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
       throw new IllegalArgumentException(
         'The given page number must be a positive number',
@@ -125,6 +131,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
+        .session(options?.session ?? null)
         .exec();
       return documents.map((document) => this.instantiateFrom(document) as S);
     } catch (error) {
@@ -136,9 +143,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findById<S extends T>(id: string): Promise<Optional<S>> {
+  async findById<S extends T>(
+    id: string,
+    options?: FindByIdOptions,
+  ): Promise<Optional<S>> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const document = await this.entityModel.findById(id).exec();
+    const document = await this.entityModel
+      .findById(id)
+      .session(options?.session ?? null)
+      .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
   }
 
@@ -154,21 +167,14 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       console.warn(
         "The 'userId' property is deprecated. Use 'options.userId' instead.",
       );
+      options = { ...options, userId };
     }
     try {
       let document;
       if (!entity.id) {
-        document = await this.insert(
-          entity as S,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        document = await this.insert(entity as S, options);
       } else {
-        document = await this.update(
-          entity as PartialEntityWithId<S>,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        document = await this.update(entity as PartialEntityWithId<S>, options);
       }
       if (document) return this.instantiateFrom(document) as S;
       throw new IllegalArgumentException(
@@ -234,8 +240,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private async insert<S extends T>(
     entity: S,
-    userId?: string,
-    session?: ClientSession,
+    options?: SaveOptions,
   ): Promise<HydratedDocument<S>> {
     const entityClassName = entity['constructor']['name'];
     if (!this.typeMap.has(entityClassName)) {
@@ -244,8 +249,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       );
     }
     this.setDiscriminatorKeyOn(entity);
-    const document = this.createDocumentAndSetUserId(entity, userId);
-    return (await document.save({ session })) as HydratedDocument<S>;
+    const document = this.createDocumentAndSetUserId(entity, options?.userId);
+    return (await document.save({
+      session: options?.session,
+    })) as HydratedDocument<S>;
   }
 
   private setDiscriminatorKeyOn<S extends T>(
@@ -270,17 +277,16 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private async update<S extends T>(
     entity: PartialEntityWithId<S>,
-    userId?: string,
-    session?: ClientSession,
+    options?: SaveOptions,
   ): Promise<HydratedDocument<S> | null> {
     const document = await this.entityModel
       .findById<HydratedDocument<S>>(entity.id)
-      .session(session ?? null);
+      .session(options?.session ?? null);
     if (document) {
       document.set(entity);
       document.isNew = false;
       if (isAuditable(document)) {
-        if (userId) document.$locals.userId = userId;
+        if (options?.userId) document.$locals.userId = options.userId;
         document.__v = (document.__v ?? 0) + 1;
       }
       return (await document.save()) as HydratedDocument<S>;

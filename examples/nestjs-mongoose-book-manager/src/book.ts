@@ -4,14 +4,9 @@ export class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
-  isDeleted: boolean;
+  isDeleted?: boolean;
 
-  constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    isDeleted?: boolean;
-  }) {
+  constructor(book: Book) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
@@ -22,13 +17,7 @@ export class Book implements Entity {
 export class PaperBook extends Book {
   readonly edition: number;
 
-  constructor(paperBook: {
-    id?: string;
-    title: string;
-    description: string;
-    edition: number;
-    isDeleted?: boolean;
-  }) {
+  constructor(paperBook: PaperBook) {
     super(paperBook);
     this.edition = paperBook.edition;
   }
@@ -37,13 +26,7 @@ export class PaperBook extends Book {
 export class AudioBook extends Book {
   readonly hostingPlatforms: string[];
 
-  constructor(audioBook: {
-    id?: string;
-    title: string;
-    description: string;
-    hostingPlatforms: string[];
-    isDeleted?: boolean;
-  }) {
+  constructor(audioBook: AudioBook) {
     super(audioBook);
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
