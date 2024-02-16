@@ -13,7 +13,12 @@ import {
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
-import { SaveOptions, SearchOptions } from './util/operation-options';
+import {
+  DeleteByIdOptions,
+  FindAllOptions,
+  FindByIdOptions,
+  SaveOptions,
+} from './util/operation-options';
 import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 
 /**
@@ -39,14 +44,16 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async deleteById(id: string): Promise<boolean> {
+  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const isDeleted = await this.entityModel.findByIdAndDelete(id);
+    const isDeleted = await this.entityModel.findByIdAndDelete(id, {
+      session: options?.session,
+    });
     return !!isDeleted;
   }
 
   /** @inheritdoc */
-  async findAll<S extends T>(options?: SearchOptions): Promise<S[]> {
+  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
     if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
       throw new IllegalArgumentException(
         'The given page number must be a positive number',
@@ -66,6 +73,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
+        .session(options?.session ?? null)
         .exec();
       return documents.map((document) => this.instantiateFrom(document) as S);
     } catch (error) {
@@ -77,9 +85,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findById<S extends T>(id: string): Promise<Optional<S>> {
+  async findById<S extends T>(
+    id: string,
+    options?: FindByIdOptions,
+  ): Promise<Optional<S>> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const document = await this.entityModel.findById(id).exec();
+    const document = await this.entityModel
+      .findById(id)
+      .session(options?.session ?? null)
+      .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
   }
 
@@ -103,18 +117,13 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       console.warn(
         "The 'userId' property is deprecated and will be removed from monguito on the next major version release. Use 'options.userId' instead.",
       );
+      options = { ...options, userId };
     }
     try {
       if (!entity.id) {
-        return await this.insert(entity as S, {
-          userId: userId ?? options?.userId,
-          session: options?.session,
-        });
+        return await this.insert(entity as S, options);
       } else {
-        return await this.update(entity as PartialEntityWithId<S>, {
-          userId: userId ?? options?.userId,
-          session: options?.session,
-        });
+        return await this.update(entity as PartialEntityWithId<S>, options);
       }
     } catch (error) {
       if (

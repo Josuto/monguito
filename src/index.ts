@@ -11,9 +11,9 @@ import {
 } from './util/exceptions';
 import {
   DeleteAllOptions,
+  FindAllOptions,
   SaveAllOptions,
   SaveOptions,
-  SearchOptions,
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 import { Constructor, TypeData, TypeMap } from './util/type-map';
@@ -27,6 +27,7 @@ export {
   Constructor,
   DeleteAllOptions,
   Entity,
+  FindAllOptions,
   IllegalArgumentException,
   MongooseRepository,
   MongooseTransactionalRepository,
@@ -34,7 +35,6 @@ export {
   Repository,
   SaveAllOptions,
   SaveOptions,
-  SearchOptions,
   TransactionalRepository,
   TypeData,
   TypeMap,

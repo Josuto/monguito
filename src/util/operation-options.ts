@@ -58,11 +58,16 @@ export class Pageable {
  * @property {any=} sortBy (optional) the sorting criteria for the search.
  * @property {Pageable=} pageable (optional) paging configuration.
  */
-export type SearchOptions = {
+export type FindAllOptions = {
   filters?: any;
   sortBy?: any;
   pageable?: Pageable;
 } & TransactionOptions;
+
+/**
+ * Specifies options for the `findById` operation;
+ */
+export type FindByIdOptions = TransactionOptions;
 
 /**
  * Specifies options for the `save` operation.
@@ -81,3 +86,8 @@ export type SaveAllOptions = AuditOptions & TransactionOptions;
 export type DeleteAllOptions = {
   filters?: any;
 } & TransactionOptions;
+
+/**
+ * Specifies options for the `deleteById` operation;
+ */
+export type DeleteByIdOptions = TransactionOptions;
