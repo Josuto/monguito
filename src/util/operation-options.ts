@@ -5,7 +5,7 @@ import { IllegalArgumentException } from './exceptions';
  * Specifies options required to peform transactional operations.
  * @property {ClientSession=} session (optional) a Mongoose session required in operations to run within a transaction.
  */
-type TransactionOptions = {
+export type TransactionOptions = {
   session?: ClientSession;
 };
 
@@ -13,7 +13,7 @@ type TransactionOptions = {
  * Specifies options required to perform audit on side effect operation execution.
  * @property {string=} userId (optional) the id of the user performing the operation.
  */
-type AuditOptions = {
+export type AuditOptions = {
   userId?: string;
 };
 
@@ -62,7 +62,7 @@ export type SearchOptions = {
   filters?: any;
   sortBy?: any;
   pageable?: Pageable;
-};
+} & TransactionOptions;
 
 /**
  * Specifies options for the `save` operation.
@@ -72,7 +72,7 @@ export type SaveOptions = AuditOptions & TransactionOptions;
 /**
  * Specifies options for the `saveAll` operation.
  */
-export type SaveAllOptions = AuditOptions;
+export type SaveAllOptions = AuditOptions & TransactionOptions;
 
 /**
  * Specifies options for the `deleteAll` operation.
@@ -80,4 +80,4 @@ export type SaveAllOptions = AuditOptions;
  */
 export type DeleteAllOptions = {
   filters?: any;
-};
+} & TransactionOptions;

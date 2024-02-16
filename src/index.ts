@@ -17,6 +17,7 @@ import {
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 import { Constructor, TypeData, TypeMap } from './util/type-map';
+import { runInTransaction } from './util/transaction';
 
 export {
   Auditable,
@@ -41,4 +42,5 @@ export {
   ValidationException,
   extendSchema,
   isAuditable,
+  runInTransaction,
 };
