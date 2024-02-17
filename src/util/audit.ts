@@ -24,9 +24,9 @@ export abstract class AuditableClass implements Auditable {
    * @param {Auditable} entity the entity to create the auditable persistable domain object from.
    */
   constructor(entity: Auditable) {
-    this.createdAt = entity.createdAt;
+    this.createdAt = entity.createdAt ? new Date(entity.createdAt) : undefined;
     this.createdBy = entity.createdBy;
-    this.updatedAt = entity.updatedAt;
+    this.updatedAt = entity.updatedAt ? new Date(entity.updatedAt) : undefined;
     this.updatedBy = entity.updatedBy;
     this.version = entity.version;
   }
