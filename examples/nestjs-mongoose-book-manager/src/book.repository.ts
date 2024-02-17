@@ -9,8 +9,11 @@ import {
   TransactionalRepository,
   runInTransaction,
 } from 'monguito';
+import { AuditOptions } from '../../../dist/util/operation-options';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
+
+type SoftDeleteAllOptions = DeleteAllOptions & AuditOptions;
 
 @Injectable()
 export class MongooseBookRepository
@@ -37,7 +40,7 @@ export class MongooseBookRepository
       .then((book) => !!book);
   }
 
-  async deleteAll(options?: DeleteAllOptions): Promise<number> {
+  async deleteAll(options?: SoftDeleteAllOptions): Promise<number> {
     if (options?.filters === null) {
       throw new IllegalArgumentException('Null filters are disallowed');
     }
