@@ -3,6 +3,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { ClientSession, Connection } from 'mongoose';
 import {
   DeleteAllOptions,
+  DeleteByIdOptions,
   IllegalArgumentException,
   MongooseTransactionalRepository,
   TransactionalRepository,
@@ -27,10 +28,11 @@ export class MongooseBookRepository
     );
   }
 
-  async deleteById(id: string): Promise<boolean> {
+  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
       .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
+      .session(options?.session)
       .exec()
       .then((book) => !!book);
   }
@@ -52,7 +54,7 @@ export class MongooseBookRepository
         const deletedBooks = await this.saveAll(booksToDelete, { session });
         return deletedBooks.length;
       },
-      { connection: this.connection },
+      { ...options, connection: this.connection },
     );
   }
 }

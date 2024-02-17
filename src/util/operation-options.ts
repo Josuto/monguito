@@ -1,13 +1,5 @@
-import { ClientSession } from 'mongoose';
 import { IllegalArgumentException } from './exceptions';
-
-/**
- * Specifies options required to peform transactional operations.
- * @property {ClientSession=} session (optional) a Mongoose session required in operations to run within a transaction.
- */
-export type TransactionOptions = {
-  session?: ClientSession;
-};
+import { TransactionOptions } from './transaction';
 
 /**
  * Specifies options required to perform audit on side effect operation execution.

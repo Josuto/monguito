@@ -11,13 +11,15 @@ import {
 } from './util/exceptions';
 import {
   DeleteAllOptions,
+  DeleteByIdOptions,
   FindAllOptions,
+  FindByIdOptions,
   SaveAllOptions,
   SaveOptions,
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
 import { Constructor, TypeData, TypeMap } from './util/type-map';
-import { runInTransaction } from './util/transaction';
+import { TransactionOptions, runInTransaction } from './util/transaction';
 
 export {
   Auditable,
@@ -26,8 +28,10 @@ export {
   BaseSchema,
   Constructor,
   DeleteAllOptions,
+  DeleteByIdOptions,
   Entity,
   FindAllOptions,
+  FindByIdOptions,
   IllegalArgumentException,
   MongooseRepository,
   MongooseTransactionalRepository,
@@ -35,6 +39,7 @@ export {
   Repository,
   SaveAllOptions,
   SaveOptions,
+  TransactionOptions,
   TransactionalRepository,
   TypeData,
   TypeMap,
