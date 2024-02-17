@@ -1,7 +1,6 @@
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import { MongoMemoryReplSet, MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import { Entity } from '../../../../src';
 
 const dbName = 'test';
 let mongoServer: MongoMemoryServer | MongoMemoryReplSet;
@@ -39,33 +38,6 @@ export const rootMongooseReplicaSetMongoTestModule = (
     },
   });
 
-type EntityWithOptionalDiscriminatorKey = Entity & { __t?: string };
-
-export const insert = async (
-  entity: EntityWithOptionalDiscriminatorKey,
-  collection: string,
-  discriminatorKey?: string,
-) => {
-  if (discriminatorKey) {
-    entity['__t'] = discriminatorKey;
-  }
-  return mongoose.connection.db
-    .collection(collection)
-    .insertOne(entity)
-    .then((result) => result.insertedId.toString());
-};
-
-export const findOne = async (collection: string, filter?: any) => {
-  return await mongoose.connection.db.collection(collection).findOne(filter);
-};
-
-export const findAll = async (collection: string, filter?: any) => {
-  return await mongoose.connection.db
-    .collection(collection)
-    .find(filter)
-    .toArray();
-};
-
 export const deleteAll = async (collections: string[]) => {
   await Promise.all(
     collections.map((c) => mongoose.connection.db.collection(c).deleteMany({})),
@@ -76,6 +48,7 @@ export const deleteAll = async (collections: string[]) => {
 export const setupConnection = async () => {
   if (!mongoServer) return;
   await mongoose.connect(mongoServer.getUri(), { dbName });
+  return mongoose.connection;
 };
 
 export const closeMongoConnection = async () => {
