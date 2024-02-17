@@ -6,14 +6,16 @@ import mongoose, { ClientSession, Connection } from 'mongoose';
 type DbCallback<T> = (session: ClientSession) => Promise<T>;
 
 /**
- * Specifies some transaction options, specifically the Mongoose connection object to create a transaction
- * session from and the maximum amount of times that the callback function is to be retried in the case of
- * any MongoDB transient transaction error.
+ * Specifies some transaction options.
+ * @property {Connection=} connection (optional) a Mongoose session required by operations that are to run within a transaction.
+ * @property {ClientSession=} session (optional) a transaction session, meaning that the transaction is meant to run within another transaction.
  */
-type TransactionOptions = {
+export type TransactionOptions = {
   connection?: Connection;
-  retries?: number;
+  session?: ClientSession;
 };
+
+const MAX_RETRIES = 3;
 
 /**
  * Runs the provided callback function within a transaction and commits the changes to the database
@@ -26,22 +28,13 @@ export async function runInTransaction<T>(
   callback: DbCallback<T>,
   options?: TransactionOptions,
 ): Promise<T> {
+  if (options?.session) return callback(options.session);
   return await recursiveRunIntransaction(callback, 0, options);
 }
 
-async function startSession(connection?: Connection): Promise<ClientSession> {
-  if (connection) {
-    return await connection.startSession();
-  } else {
-    return await mongoose.connection.startSession();
-  }
-}
-
-const DEFAULT_MAX_RETRIES = 3;
-
 async function recursiveRunIntransaction<T>(
   callback: DbCallback<T>,
-  attempt: number,
+  retries: number,
   options?: TransactionOptions,
 ): Promise<T> {
   const session = await startSession(options?.connection);
@@ -52,11 +45,8 @@ async function recursiveRunIntransaction<T>(
     return result;
   } catch (error) {
     await session.abortTransaction();
-    if (
-      isTransientTransactionError(error) &&
-      attempt < (options?.retries ?? DEFAULT_MAX_RETRIES)
-    ) {
-      return recursiveRunIntransaction(callback, ++attempt, options);
+    if (isTransientTransactionError(error) && retries < MAX_RETRIES) {
+      return recursiveRunIntransaction(callback, ++retries, options);
     }
     throw error;
   } finally {
@@ -64,12 +54,15 @@ async function recursiveRunIntransaction<T>(
   }
 }
 
-/**
- * Determines whether the given error is a transient transaction error or not.
- * Transient transaction errors can be safely retried.
- * @param error the given error.
- * @returns `true` if the given error is a transient transaction error, `false otherwise`.
- */
+async function startSession(connection?: Connection): Promise<ClientSession> {
+  if (connection) {
+    return await connection.startSession();
+  } else {
+    return await mongoose.connection.startSession();
+  }
+}
+
+// Transient transaction errors can be safely retried.
 function isTransientTransactionError(error: any): boolean {
   return error.message.includes('does not match any in-progress transactions');
 }

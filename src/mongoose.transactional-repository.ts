@@ -41,7 +41,7 @@ export abstract class MongooseTransactionalRepository<
               }),
           ),
         ),
-      { connection: this.connection },
+      { ...options, connection: this.connection },
     );
   }
 
@@ -54,7 +54,7 @@ export abstract class MongooseTransactionalRepository<
       async (session: ClientSession) =>
         (await this.entityModel.deleteMany(options?.filters, { session }))
           .deletedCount,
-      { connection: this.connection },
+      { ...options, connection: this.connection },
     );
   }
 }
