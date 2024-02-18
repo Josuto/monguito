@@ -23,7 +23,7 @@
 - [Supported Database Operations](#supported-database-operations)
 - [Examples](#examples)
 - [Write Your Own Repository Interfaces](#write-your-own-repository-interfaces)
-- [Some Important Implementation Details](#some-important-implementation-details)
+- [Extra Utilities](#extra-utilities)
 - [Comparison to other Alternatives](#comparison-to-other-alternatives)
 - [Contributors](#contributors)
 
@@ -247,7 +247,7 @@ class MongooseBookRepository
 }
 ```
 
-# Some Important Implementation Details
+# Extra Utilities
 
 ## The Entity Interface
 
@@ -395,6 +395,17 @@ class AuditableBook extends AuditableClass implements Entity {
 `AuditableClass` that is to be stored in MongoDB invoking the repository `save` operation. The user audit data is
 optional; if you want `monguito` to handle it for you, simply invoke `save` with a value for the `userId` input
 parameter as `options` parameter.
+
+## Create your Custom Transactional Operations
+
+> [!WARNING]
+> Custom transactional operations are only guaranteed to be atomic when executed on a MongoDB cluster.
+
+Mongoose provides the means to write database operations that are to run in a transaction. For each custom transactional operation, the procedure consists of (1) creating a transaction session, (2) invoking a callback function specifying the database operation(s) at hand, (3) if success commiting the transaction, (4) aborting the transaction under operation failure, and finally (5) ending the session.
+
+This is a pretty cumbersome procedure to follow. `monguito` includes `runInTransaction`, a function that removes this procedural boilerplate and lets you focus on defining your transactional operations. This function receives a `callback` function representing your custom transactional operation and some transactional `options` parameter. You can use this parameter to specify a MongoDB `connection` to create a new transaction session from, or a reference to a transaction `session`, useful when you want to run your custom operation within an already existent session.
+
+As an example of a custom transactional operation, you may see an overriden version of `deleteAll` that performs soft deletion of entities [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository).
 
 # Comparison to other Alternatives
 
