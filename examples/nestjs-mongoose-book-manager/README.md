@@ -43,64 +43,49 @@ The application domain model is pretty simple: `Book` is a supertype that specif
 and `AudioBook`. Here is its definition:
 
 ```typescript
-export class Book implements Entity {
+type AuditableBookType = Book & Auditable;
+
+export class Book extends AuditableClass implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
-  isDeleted: boolean;
+  isDeleted?: boolean;
 
-  constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    isDeleted?: boolean;
-  }) {
+  constructor(book: AuditableBookType) {
+    super(book);
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
     this.isDeleted = book.isDeleted ?? false;
   }
-
-  markAsDeleted() {
-    this.isDeleted = true;
-  }
 }
+
+type AuditablePaperBookType = PaperBook & Auditable;
 
 export class PaperBook extends Book {
   readonly edition: number;
 
-  constructor(paperBook: {
-    id?: string;
-    title: string;
-    description: string;
-    edition: number;
-    isDeleted?: boolean;
-  }) {
+  constructor(paperBook: AuditablePaperBookType) {
     super(paperBook);
     this.edition = paperBook.edition;
   }
 }
 
+type AuditableAudioBookType = AudioBook & Auditable;
+
 export class AudioBook extends Book {
   readonly hostingPlatforms: string[];
 
-  constructor(audioBook: {
-    id?: string;
-    title: string;
-    description: string;
-    hostingPlatforms: string[];
-    isDeleted?: boolean;
-  }) {
+  constructor(audioBook: AuditableAudioBookType) {
     super(audioBook);
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }
 }
 ```
 
-`Entity` is an interface created to assist developers in the implementation of type-safe domain models. It specifies
-an `id` field that all `Book` or subclass instances must include. This is because `id` is assumed to be the primary key
-of any stored book. However, you do not need to implement `Entity` if you do not want to; simply make sure that your
-superclass includes an `id` field in its definition.
+`Entity` is an interface created to assist developers in the implementation of type-safe domain models. You can find further details on `Entity` in [this section](../../README.md/#the-entity-interface) of `monguito` documentation.
+
+Moreover, by extending `AuditableClass`, the book domain model enables `monguito`'s audit capabilities. This topic is fully covered in [this other section](../../README.md/#built-in-audit-data-support) of the main documentation.
 
 ## Book Repository
 
@@ -109,6 +94,9 @@ additional database operation, there is no need to create a custom repository in
 directly implement the `TransactionalRepository` interface. The definition of `MongooseBookRepository` is as follows:
 
 ```typescript
+type SoftDeleteAllOptions = DeleteAllOptions & AuditOptions;
+type SoftDeleteByIdOptions = DeleteByIdOptions & AuditOptions;
+
 @Injectable()
 export class MongooseBookRepository
   extends MongooseTransactionalRepository<Book>
@@ -125,12 +113,37 @@ export class MongooseBookRepository
     );
   }
 
-  async deleteById(id: string): Promise<boolean> {
+  async deleteById(
+    id: string,
+    options?: SoftDeleteByIdOptions,
+  ): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
       .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
+      .session(options?.session)
       .exec()
       .then((book) => !!book);
+  }
+
+  async deleteAll(options?: SoftDeleteAllOptions): Promise<number> {
+    if (options?.filters === null) {
+      throw new IllegalArgumentException('The given filters must be valid');
+    }
+    return await runInTransaction(
+      async (session: ClientSession) => {
+        const books = await this.findAll({
+          filters: options?.filters,
+          session,
+        });
+        const booksToDelete = books.map((book) => {
+          book.isDeleted = true;
+          return book;
+        });
+        const deletedBooks = await this.saveAll(booksToDelete, { session });
+        return deletedBooks.length;
+      },
+      { ...options, connection: this.connection },
+    );
   }
 }
 ```
@@ -144,8 +157,9 @@ This implementation of `MongooseBookRepository` overrides the `deleteById` opera
 (i.e., `MongooseTransactionalRepository`'s extension), also modifying its semantics; while `MongooseRepository.deleteById()`
 performs hard book deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that
 this operation updates the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include
-this field in its definition. You may find the full definition of the book domain model used by this sample application
-[here](src/book.ts).
+this field in its definition. Besides, this version of `deleteById` supports the audit of deleted books. For example, clients of the operation can specify who is requesting its execution via the `options.userId` input parameter.
+
+Similarly, `MongooseBookRepository` overrides the `deleteAll` operation to perform soft deletion of all the entities that match the value of the optional `filters` property specified at the `options` input parameter. As with `deleteById`, `deleteAll` also supports the audit of deleted books. Finally, you may notice that the logic of this operation is wrapped as a callback function sent to `runInTransaction` as input parameter to guarantee its atomicity. Please visit [this section](../../README.md/#create-your-custom-transactional-operations) of the main documentation for further details on `runInTransaction`.
 
 ## Book Controller
 
