@@ -14,6 +14,7 @@ import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 
 type SoftDeleteAllOptions = DeleteAllOptions & AuditOptions;
+type SoftDeleteByIdOptions = DeleteByIdOptions & AuditOptions;
 
 @Injectable()
 export class MongooseBookRepository
@@ -31,7 +32,10 @@ export class MongooseBookRepository
     );
   }
 
-  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
+  async deleteById(
+    id: string,
+    options?: SoftDeleteByIdOptions,
+  ): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
       .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
