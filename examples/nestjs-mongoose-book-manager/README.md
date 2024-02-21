@@ -157,9 +157,11 @@ This implementation of `MongooseBookRepository` overrides the `deleteById` opera
 (i.e., `MongooseTransactionalRepository`'s extension), also modifying its semantics; while `MongooseRepository.deleteById()`
 performs hard book deletion, `MongooseBookRepository.deleteById()` performs soft book deletion. You may realise that
 this operation updates the value of the book field `isDeleted` to `true`. In order to achieve it, `Book` must include
-this field in its definition. Besides, this version of `deleteById` supports the audit of deleted books. For example, clients of the operation can specify who is requesting its execution via the `options.userId` input parameter.
+this field in its definition.
 
-Similarly, `MongooseBookRepository` overrides the `deleteAll` operation to perform soft deletion of all the entities that match the value of the optional `filters` property specified at the `options` input parameter. As with `deleteById`, `deleteAll` also supports the audit of deleted books. Finally, you may notice that the logic of this operation is wrapped as a callback function sent to `runInTransaction` as input parameter to guarantee its atomicity. Please visit [this section](../../README.md/#create-your-custom-transactional-operations) of the main documentation for further details on `runInTransaction`.
+Besides, this soft deletion version `deleteById` supports audit of deleted books. This is achieved by augmenting `DeleteAllOptions` (i.e., the original type for `deleteById` options) with `AuditOptions`. This way, clients of the operation can specify who is requesting its execution via the `options.userId` input parameter. This is precisely how you can extend any operation `options` type with any extra property of your liking.
+
+Similarly, `MongooseBookRepository` overrides the `deleteAll` operation to perform soft deletion of all the entities that match the value of the optional `filters` property specified at the `options` input parameter. As with `deleteById`, the soft deletion version of `deleteAll` also supports audit of deleted books. Finally, you may notice that the logic of this operation is wrapped as a callback function sent to `runInTransaction` as input parameter to guarantee its atomicity. Please visit [this section](../../README.md/#create-your-custom-transactional-operations) of the main documentation for further details on `runInTransaction`.
 
 ## Book Controller
 
