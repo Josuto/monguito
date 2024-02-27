@@ -4217,10 +4217,8 @@ mongoose@^8.1.3:
     sift "16.0.1"
 
 "monguito@link:../..":
-  version "4.4.0"
-  dependencies:
-    mongoose "^8.1.3"
-    typescript-optional "3.0.0-alpha.3"
+  version "0.0.0"
+  uid ""
 
 mpath@0.9.0:
   version "0.9.0"
