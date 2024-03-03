@@ -1,5 +1,4 @@
 import mongoose, {
-  ClientSession,
   Connection,
   HydratedDocument,
   Model,
@@ -157,17 +156,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
     try {
       if (!entity.id) {
-        return await this.insert(
-          entity as S,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        return await this.insert(entity as S, {
+          userId: userId ?? options?.userId,
+          session: options?.session,
+        });
       } else {
-        return await this.update(
-          entity as PartialEntityWithId<S>,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        return await this.update(entity as PartialEntityWithId<S>, {
+          userId: userId ?? options?.userId,
+          session: options?.session,
+        });
       }
     } catch (error) {
       if (
@@ -229,8 +226,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   protected async insert<S extends T>(
     entity: S,
-    userId?: string,
-    session?: ClientSession,
+    options?: SaveOptions,
   ): Promise<S> {
     const entityClassName = entity['constructor']['name'];
     if (!this.typeMap.has(entityClassName)) {
@@ -239,9 +235,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       );
     }
     this.setDiscriminatorKeyOn(entity);
-    const document = this.createDocumentAndSetUserId(entity, userId);
+    const document = this.createDocumentAndSetUserId(entity, options?.userId);
     const insertedDocument = (await document.save({
-      session,
+      session: options?.session,
     })) as HydratedDocument<S>;
     return this.instantiateFrom(insertedDocument) as S;
   }
@@ -268,21 +264,20 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   protected async update<S extends T>(
     entity: PartialEntityWithId<S>,
-    userId?: string,
-    session?: ClientSession,
+    options?: SaveOptions,
   ): Promise<S> {
     const document = await this.entityModel
       .findById<HydratedDocument<S>>(entity.id)
-      .session(session ?? null);
+      .session(options?.session ?? null);
     if (document) {
       document.set(entity);
       document.isNew = false;
       if (isAuditable(document)) {
-        if (userId) document.$locals.userId = userId;
+        if (options?.userId) document.$locals.userId = options?.userId;
         document.__v = (document.__v ?? 0) + 1;
       }
       const updatedDocument = (await document.save({
-        session,
+        session: options?.session,
       })) as HydratedDocument<S>;
       return this.instantiateFrom(updatedDocument) as S;
     }
