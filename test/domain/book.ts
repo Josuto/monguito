@@ -19,6 +19,10 @@ export class Book implements Entity {
     this.description = book.description;
     this.isbn = book.isbn;
   }
+
+  toString(): string {
+    return `${this.isbn} - ${this.title}`;
+  }
 }
 
 export type PaperBookType = BookType & { edition: number };
@@ -32,7 +36,7 @@ export class PaperBook extends Book {
   }
 }
 
-export type AudioBookType = Book & {
+export type AudioBookType = BookType & {
   hostingPlatforms: string[];
   format?: string;
 };
