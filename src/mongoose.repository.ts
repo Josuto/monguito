@@ -152,28 +152,23 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       throw new IllegalArgumentException('The given entity must be valid');
     if (userId) {
       console.warn(
-        "The 'userId' property is deprecated. Use 'options.userId' instead.",
+        "The 'userId' property is deprecated and will be removed from monguito on the next major version release. Use 'options.userId' instead.",
       );
     }
     try {
-      let document;
       if (!entity.id) {
-        document = await this.insert(
+        return await this.insert(
           entity as S,
           userId ?? options?.userId,
           options?.session,
         );
       } else {
-        document = await this.update(
+        return await this.update(
           entity as PartialEntityWithId<S>,
           userId ?? options?.userId,
           options?.session,
         );
       }
-      if (document) return this.instantiateFrom(document) as S;
-      throw new IllegalArgumentException(
-        `There is no document matching the given ID '${entity.id}'. New entities cannot not specify an ID`,
-      );
     } catch (error) {
       if (
         error.message.includes('validation failed') ||
@@ -232,11 +227,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return entityModel;
   }
 
-  private async insert<S extends T>(
+  protected async insert<S extends T>(
     entity: S,
     userId?: string,
     session?: ClientSession,
-  ): Promise<HydratedDocument<S>> {
+  ): Promise<S> {
     const entityClassName = entity['constructor']['name'];
     if (!this.typeMap.has(entityClassName)) {
       throw new IllegalArgumentException(
@@ -245,7 +240,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
     this.setDiscriminatorKeyOn(entity);
     const document = this.createDocumentAndSetUserId(entity, userId);
-    return (await document.save({ session })) as HydratedDocument<S>;
+    const insertedDocument = (await document.save({
+      session,
+    })) as HydratedDocument<S>;
+    return this.instantiateFrom(insertedDocument) as S;
   }
 
   private setDiscriminatorKeyOn<S extends T>(
@@ -268,11 +266,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return document;
   }
 
-  private async update<S extends T>(
+  protected async update<S extends T>(
     entity: PartialEntityWithId<S>,
     userId?: string,
     session?: ClientSession,
-  ): Promise<HydratedDocument<S> | null> {
+  ): Promise<S> {
     const document = await this.entityModel
       .findById<HydratedDocument<S>>(entity.id)
       .session(session ?? null);
@@ -283,8 +281,13 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         if (userId) document.$locals.userId = userId;
         document.__v = (document.__v ?? 0) + 1;
       }
-      return (await document.save()) as HydratedDocument<S>;
+      const updatedDocument = (await document.save({
+        session,
+      })) as HydratedDocument<S>;
+      return this.instantiateFrom(updatedDocument) as S;
     }
-    return null;
+    throw new IllegalArgumentException(
+      `There is no document matching the given ID '${entity.id}'`,
+    );
   }
 }
