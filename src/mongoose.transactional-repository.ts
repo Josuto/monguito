@@ -67,9 +67,10 @@ export abstract class MongooseTransactionalRepository<
     entity: PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
+    const updateOperation = super.update.bind(this);
     return await runInTransaction(
       async (session: ClientSession) =>
-        await super.update(entity, {
+        await updateOperation(entity, {
           userId: options?.userId,
           session: options?.session ?? session,
         }),
