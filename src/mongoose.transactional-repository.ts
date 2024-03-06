@@ -4,7 +4,11 @@ import { PartialEntityWithId } from './repository';
 import { TransactionalRepository } from './transactional-repository';
 import { Entity } from './util/entity';
 import { IllegalArgumentException } from './util/exceptions';
-import { DeleteAllOptions, SaveAllOptions } from './util/operation-options';
+import {
+  DeleteAllOptions,
+  SaveAllOptions,
+  SaveOptions,
+} from './util/operation-options';
 import { runInTransaction } from './util/transaction';
 
 /**
@@ -54,6 +58,22 @@ export abstract class MongooseTransactionalRepository<
       async (session: ClientSession) =>
         (await this.entityModel.deleteMany(options?.filters, { session }))
           .deletedCount,
+      { connection: this.connection },
+    );
+  }
+
+  /** @inheritdoc */
+  protected async update<S extends T>(
+    entity: PartialEntityWithId<S>,
+    options?: SaveOptions,
+  ): Promise<S> {
+    const updateOperation = super.update.bind(this);
+    return await runInTransaction(
+      async (session: ClientSession) =>
+        await updateOperation(entity, {
+          userId: options?.userId,
+          session: options?.session ?? session,
+        }),
       { connection: this.connection },
     );
   }

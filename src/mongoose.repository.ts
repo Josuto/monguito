@@ -1,5 +1,4 @@
 import mongoose, {
-  ClientSession,
   Connection,
   HydratedDocument,
   Model,
@@ -152,28 +151,21 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       throw new IllegalArgumentException('The given entity must be valid');
     if (userId) {
       console.warn(
-        "The 'userId' property is deprecated. Use 'options.userId' instead.",
+        "The 'userId' property is deprecated and will be removed from monguito on the next major version release. Use 'options.userId' instead.",
       );
     }
     try {
-      let document;
       if (!entity.id) {
-        document = await this.insert(
-          entity as S,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        return await this.insert(entity as S, {
+          userId: userId ?? options?.userId,
+          session: options?.session,
+        });
       } else {
-        document = await this.update(
-          entity as PartialEntityWithId<S>,
-          userId ?? options?.userId,
-          options?.session,
-        );
+        return await this.update(entity as PartialEntityWithId<S>, {
+          userId: userId ?? options?.userId,
+          session: options?.session,
+        });
       }
-      if (document) return this.instantiateFrom(document) as S;
-      throw new IllegalArgumentException(
-        `There is no document matching the given ID '${entity.id}'. New entities cannot not specify an ID`,
-      );
     } catch (error) {
       if (
         error.message.includes('validation failed') ||
@@ -232,11 +224,19 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return entityModel;
   }
 
-  private async insert<S extends T>(
+  /**
+   * Inserts an entity.
+   * @param {S} entity the entity to insert.
+   * @param {SaveOptions=} options (optional) insert operation options.
+   * @returns {Promise<S>} the inserted entity.
+   * @throws {IllegalArgumentException} if the given entity is `undefined` or `null`.
+   */
+  protected async insert<S extends T>(
     entity: S,
-    userId?: string,
-    session?: ClientSession,
-  ): Promise<HydratedDocument<S>> {
+    options?: SaveOptions,
+  ): Promise<S> {
+    if (!entity)
+      throw new IllegalArgumentException('The given entity must be valid');
     const entityClassName = entity['constructor']['name'];
     if (!this.typeMap.has(entityClassName)) {
       throw new IllegalArgumentException(
@@ -244,8 +244,11 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       );
     }
     this.setDiscriminatorKeyOn(entity);
-    const document = this.createDocumentAndSetUserId(entity, userId);
-    return (await document.save({ session })) as HydratedDocument<S>;
+    const document = this.createDocumentAndSetUserId(entity, options?.userId);
+    const insertedDocument = (await document.save({
+      session: options?.session,
+    })) as HydratedDocument<S>;
+    return this.instantiateFrom(insertedDocument) as S;
   }
 
   private setDiscriminatorKeyOn<S extends T>(
@@ -268,23 +271,36 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     return document;
   }
 
-  private async update<S extends T>(
+  /**
+   * Updates an entity.
+   * @param {S} entity the entity to update.
+   * @param {SaveOptions=} options (optional) update operation options.
+   * @returns {Promise<S>} the updated entity.
+   * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or specifies an `id` not matching any existing entity.
+   */
+  protected async update<S extends T>(
     entity: PartialEntityWithId<S>,
-    userId?: string,
-    session?: ClientSession,
-  ): Promise<HydratedDocument<S> | null> {
+    options?: SaveOptions,
+  ): Promise<S> {
+    if (!entity)
+      throw new IllegalArgumentException('The given entity must be valid');
     const document = await this.entityModel
       .findById<HydratedDocument<S>>(entity.id)
-      .session(session ?? null);
+      .session(options?.session ?? null);
     if (document) {
       document.set(entity);
       document.isNew = false;
       if (isAuditable(document)) {
-        if (userId) document.$locals.userId = userId;
+        if (options?.userId) document.$locals.userId = options?.userId;
         document.__v = (document.__v ?? 0) + 1;
       }
-      return (await document.save()) as HydratedDocument<S>;
+      const updatedDocument = (await document.save({
+        session: options?.session,
+      })) as HydratedDocument<S>;
+      return this.instantiateFrom(updatedDocument) as S;
     }
-    return null;
+    throw new IllegalArgumentException(
+      `There is no document matching the given ID '${entity.id}'`,
+    );
   }
 }
