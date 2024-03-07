@@ -11,7 +11,7 @@
 ![Min code size](https://img.shields.io/bundlephobia/minzip/monguito)
 [![CI](https://github.com/josuto/monguito/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/monguito/actions/workflows/pipeline.yml)
 [![NPM](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
-[![Downloads stat](https://img.shields.io/npm/dt/node-abstract-repository)](http://www.npmtrends.com/node-abstract-repository)
+[![Downloads stat](https://img.shields.io/npm/dt/monguito)](http://www.npmtrends.com/monguito)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](https://makeapullrequest.com)
 
 </div>
@@ -159,6 +159,9 @@ Returns an array including all the persisted entities, or an empty array otherwi
   Both values must be a whole positive number to achieve the desired outcome
 
 ### `save`
+
+> [!WARNING]
+> The version of `save` specified at `MongooseRepository` is not [atomic](#supported-database-operations). If you are to execute it in a concurrent environment, make sure that your custom repository extends `MongooseTransactionalRepository` instead.
 
 Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection.
 
