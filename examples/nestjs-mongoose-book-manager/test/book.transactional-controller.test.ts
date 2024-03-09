@@ -33,6 +33,61 @@ describe('Given the book manager controller', () => {
     bookRepository = new MongooseBookRepository(connection!);
   }, timeout);
 
+  describe('when updating a book', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      storedPaperBook = await bookRepository.save(paperBookToStore);
+    });
+
+    describe('that is invalid', () => {
+      it('returns a bad request HTTP status code', () => {
+        const paperBookToUpdate = {
+          edition: 0,
+        };
+        return request(bookManager.getHttpServer())
+          .patch(`/books/${storedPaperBook.id}`)
+          .send(paperBookToUpdate)
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('that is not stored', () => {
+      it('returns a bad request HTTP status code', () => {
+        const paperBookToUpdate = {
+          edition: 4,
+        };
+        return request(bookManager.getHttpServer())
+          .patch('/books/000000000000000000000000')
+          .send(paperBookToUpdate)
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('that is stored', () => {
+      it('returns the updated book', () => {
+        const paperBookToUpdate = {
+          edition: 4,
+        };
+        return request(bookManager.getHttpServer())
+          .patch(`/books/${storedPaperBook.id}`)
+          .send(paperBookToUpdate)
+          .expect(HttpStatus.OK)
+          .expect((response) => {
+            const updatedPaperBook = response.body as PaperBook;
+            expect(updatedPaperBook).toMatchObject(paperBookToUpdate);
+            expect(updatedPaperBook.title).toBe(storedPaperBook.title);
+            expect(updatedPaperBook.description).toBe(
+              storedPaperBook.description,
+            );
+          });
+      });
+    });
+  });
+
   describe('when saving a list of books', () => {
     beforeEach(async () => {
       const paperBookToStore = new PaperBook({

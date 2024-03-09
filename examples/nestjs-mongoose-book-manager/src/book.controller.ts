@@ -59,10 +59,10 @@ export class BookController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() book: PartialBook,
+    @Body() book: Partial<Book>,
   ): Promise<Book> {
-    book.id = id;
-    return this.save(book);
+    const bookToUpdate = { ...book, id };
+    return this.save(bookToUpdate);
   }
 
   @Post('/all')
