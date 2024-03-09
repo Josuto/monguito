@@ -1,17 +1,15 @@
-import { Entity } from 'monguito';
+import { Auditable, AuditableClass, Entity } from 'monguito';
 
-export class Book implements Entity {
+type AuditableBookType = Book & Auditable;
+
+export class Book extends AuditableClass implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
-  isDeleted: boolean;
+  isDeleted?: boolean;
 
-  constructor(book: {
-    id?: string;
-    title: string;
-    description: string;
-    isDeleted?: boolean;
-  }) {
+  constructor(book: AuditableBookType) {
+    super(book);
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
@@ -19,31 +17,23 @@ export class Book implements Entity {
   }
 }
 
+type AuditablePaperBookType = PaperBook & Auditable;
+
 export class PaperBook extends Book {
   readonly edition: number;
 
-  constructor(paperBook: {
-    id?: string;
-    title: string;
-    description: string;
-    edition: number;
-    isDeleted?: boolean;
-  }) {
+  constructor(paperBook: AuditablePaperBookType) {
     super(paperBook);
     this.edition = paperBook.edition;
   }
 }
 
+type AuditableAudioBookType = AudioBook & Auditable;
+
 export class AudioBook extends Book {
   readonly hostingPlatforms: string[];
 
-  constructor(audioBook: {
-    id?: string;
-    title: string;
-    description: string;
-    hostingPlatforms: string[];
-    isDeleted?: boolean;
-  }) {
+  constructor(audioBook: AuditableAudioBookType) {
     super(audioBook);
     this.hostingPlatforms = audioBook.hostingPlatforms;
   }

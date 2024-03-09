@@ -28,7 +28,8 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
         const auditableBook = await bookRepository.save(
           bookToInsert,
-          createdBy,
+          undefined,
+          { userId: createdBy },
         );
         expect(auditableBook.createdAt).toBeDefined();
         expect(auditableBook.updatedAt).toBeDefined();
@@ -49,7 +50,8 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
         const auditableBook = await bookRepository.save(
           bookToInsert,
-          createdBy,
+          undefined,
+          { userId: createdBy },
         );
         expect(auditableBook.createdAt).toBeDefined();
         expect(auditableBook.updatedAt).toBeDefined();
@@ -71,7 +73,11 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           'Building and Scaling High Performing Technology Organizations',
         isbn: '1942788339',
       });
-      storedAuditableBook = await bookRepository.save(auditableBook, createdBy);
+      storedAuditableBook = await bookRepository.save(
+        auditableBook,
+        undefined,
+        { userId: createdBy },
+      );
     });
 
     describe('that is of supertype AuditableBook', () => {
@@ -82,7 +88,11 @@ describe('Given an instance of auditable book repository and a user ID', () => {
             'A Novel About IT, DevOps, and Helping Your Business Win',
         } as AuditableBook;
 
-        const auditableBook = await bookRepository.save(bookToUpdate, '5678');
+        const auditableBook = await bookRepository.save(
+          bookToUpdate,
+          undefined,
+          { userId: '5678' },
+        );
 
         expect(auditableBook.createdAt).toEqual(storedAuditableBook.createdAt);
         expect(auditableBook.updatedAt?.getTime()).toBeGreaterThan(
@@ -107,7 +117,8 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
         storedAuditablePaperBook = await bookRepository.save(
           auditablePaperBook,
-          createdBy,
+          undefined,
+          { userId: createdBy },
         );
       });
 
@@ -119,7 +130,8 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
         const auditableBook = await bookRepository.save(
           bookToUpdate,
-          updatedBy,
+          undefined,
+          { userId: updatedBy },
         );
         expect(auditableBook.createdAt).toEqual(
           storedAuditablePaperBook.createdAt,
