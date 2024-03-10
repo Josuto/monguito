@@ -22,10 +22,15 @@ import { SaveOptions, SearchOptions } from './util/operation-options';
 export type Constructor<T extends Entity> = new (...args: any) => T;
 
 /**
+ * Models an abstract domain root object instance constructor.
+ */
+export type AbsConstructor<T extends Entity> = abstract new (...args: any) => T;
+
+/**
  * Models some domain object type data.
  */
 export type TypeData<T extends Entity> = {
-  type: Constructor<T>;
+  type: Constructor<T> | AbsConstructor<T>;
   schema: Schema;
 };
 
@@ -193,6 +198,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const entityKey = document.get('__t') ?? 'Default';
     const constructor = this.typeMap.get(entityKey)?.type;
     if (constructor) {
+      // @ts-expect-error - safe as no abstract class instance can be stored in the first place
       return new constructor(document.toObject()) as S;
     }
     throw new UndefinedConstructorException(
