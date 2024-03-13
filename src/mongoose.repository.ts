@@ -19,39 +19,48 @@ import { SaveOptions, SearchOptions } from './util/operation-options';
 /**
  * Models a domain object instance constructor.
  */
-export type Constructor<T extends Entity> = new (...args: any) => T;
+export type Constructor<T> = new (...args: any) => T;
 
 /**
- * Models an abstract domain root object instance constructor.
+ * Models an abstract domain object supertype instance constructor.
  */
-export type AbsConstructor<T extends Entity> = abstract new (...args: any) => T;
+export type AbsConstructor<T> = abstract new (...args: any) => T;
 
 /**
- * Models some domain object type data.
+ * Models the data of a domain object subtype.
  */
-export type TypeData<T extends Entity> = {
+export type TypeData<T> = {
   type: Constructor<T>;
   schema: Schema;
 };
 
 /**
- * Models some domain root object type data.
+ * Models the data of a domain object supertype.
  */
-export type SupertypeData<T extends Entity> = {
+export type SupertypeData<T> = {
   type: Constructor<T> | AbsConstructor<T>;
   schema: Schema;
 };
 
 /**
- * Models a map of domain object types supported by a custom repository.
+ * Models a map of domain object subtypes supported by a custom repository.
  */
-export type TypeMap<T extends Entity> = { Default: SupertypeData<T> } & {
-  [typeName: string]: TypeData<T>;
+export type SubtypeMap<T> = {
+  [key: string]: TypeData<T extends infer U ? U : never>;
 };
 
+/**
+ * Models a map of domain object supertype and subtypes supported by a custom repository.
+ */
+export type TypeMap<T extends Entity> =
+  | {
+      ['Default']: SupertypeData<T>;
+    }
+  | SubtypeMap<T>;
+
 class InnerTypeMap<T extends Entity> {
-  readonly default: SupertypeData<T>;
   readonly types: string[];
+  readonly default: SupertypeData<T>;
   readonly data: TypeData<T>[];
 
   constructor(map: TypeMap<T>) {
@@ -60,7 +69,7 @@ class InnerTypeMap<T extends Entity> {
         'The given map must include domain supertype data',
       );
     }
-    this.default = map.Default;
+    this.default = map.Default as SupertypeData<T>;
     this.types = Object.keys(map).filter((key) => key !== 'Default');
     this.data = Object.entries(map).reduce((accumulator, entry) => {
       if (entry[0] !== 'Default') {
