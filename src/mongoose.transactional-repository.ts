@@ -1,5 +1,5 @@
 import { ClientSession, Connection, UpdateQuery } from 'mongoose';
-import { MongooseRepository, TypeMap } from './mongoose.repository';
+import { MongooseRepository } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
 import { TransactionalRepository } from './transactional-repository';
 import { Entity } from './util/entity';
@@ -10,6 +10,7 @@ import {
   SaveOptions,
 } from './util/operation-options';
 import { runInTransaction } from './util/transaction';
+import { TypeMap } from './util/type-map';
 
 /**
  * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
