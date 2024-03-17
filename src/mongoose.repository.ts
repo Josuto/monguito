@@ -2,7 +2,6 @@ import mongoose, {
   Connection,
   HydratedDocument,
   Model,
-  Schema,
   UpdateQuery,
 } from 'mongoose';
 import { Optional } from 'typescript-optional';
@@ -15,64 +14,7 @@ import {
   ValidationException,
 } from './util/exceptions';
 import { SaveOptions, SearchOptions } from './util/operation-options';
-
-/**
- * Models a domain object instance constructor.
- */
-export type Constructor<T extends Entity> = new (...args: any) => T;
-
-/**
- * Models some domain object type data.
- */
-export type TypeData<T extends Entity> = {
-  type: Constructor<T>;
-  schema: Schema;
-};
-
-/**
- * Models a map of domain object types supported by a custom repository.
- */
-export interface TypeMap<T extends Entity> {
-  [type: string]: TypeData<T>;
-}
-
-class InnerTypeMap<T extends Entity> {
-  readonly types: string[];
-  readonly data: TypeData<T>[];
-
-  constructor(map: TypeMap<T>) {
-    this.types = Object.keys(map);
-    this.data = Object.values(map);
-  }
-
-  get(type: string): TypeData<T> | undefined {
-    const index = this.types.indexOf(type);
-    return index !== -1 ? this.data[index] : undefined;
-  }
-
-  getSupertypeData(): TypeData<T> | undefined {
-    return this.get('Default');
-  }
-
-  getSupertypeName(): string | undefined {
-    return this.getSupertypeData()?.type.name;
-  }
-
-  getSubtypesData(): TypeData<T>[] {
-    const subtypeData: TypeData<T>[] = [];
-    for (const key of this.types) {
-      const value = this.get(key);
-      if (value && key !== 'Default') {
-        subtypeData.push(value);
-      }
-    }
-    return subtypeData;
-  }
-
-  has(type: string): boolean {
-    return type === this.getSupertypeName() || this.types.indexOf(type) !== -1;
-  }
-}
+import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 
 /**
  * Abstract Mongoose-based implementation of the {@link Repository} interface.
@@ -80,7 +22,7 @@ class InnerTypeMap<T extends Entity> {
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
-  private readonly typeMap: InnerTypeMap<T>;
+  private readonly typeMap: TypeMapImpl<T>;
   protected readonly entityModel: Model<T>;
 
   /**
@@ -92,7 +34,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     typeMap: TypeMap<T>,
     protected readonly connection?: Connection,
   ) {
-    this.typeMap = new InnerTypeMap(typeMap);
+    this.typeMap = new TypeMapImpl(typeMap);
     this.entityModel = this.createEntityModel(connection);
   }
 
@@ -190,10 +132,13 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     document: HydratedDocument<S> | null,
   ): S | null {
     if (!document) return null;
-    const entityKey = document.get('__t') ?? 'Default';
-    const constructor = this.typeMap.get(entityKey)?.type;
+    const entityKey = document.get('__t');
+    const constructor: Constructor<S> | undefined = entityKey
+      ? (this.typeMap.getSubtypeData(entityKey)?.type as Constructor<S>)
+      : (this.typeMap.getSupertypeData().type as Constructor<S>);
     if (constructor) {
-      return new constructor(document.toObject()) as S;
+      // safe instantiation as no abstract class instance can be stored in the first place
+      return new constructor(document.toObject());
     }
     throw new UndefinedConstructorException(
       `There is no registered instance constructor for the document with ID ${document.id}`,
@@ -203,10 +148,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   private createEntityModel(connection?: Connection) {
     let entityModel;
     const supertypeData = this.typeMap.getSupertypeData();
-    if (!supertypeData)
-      throw new UndefinedConstructorException(
-        'No super type constructor is registered',
-      );
     if (connection) {
       entityModel = connection.model<T>(
         supertypeData.type.name,

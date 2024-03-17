@@ -1,9 +1,4 @@
-import {
-  Constructor,
-  MongooseRepository,
-  TypeData,
-  TypeMap,
-} from './mongoose.repository';
+import { MongooseRepository } from './mongoose.repository';
 import { MongooseTransactionalRepository } from './mongoose.transactional-repository';
 import { PartialEntityWithId, Repository } from './repository';
 import { TransactionalRepository } from './transactional-repository';
@@ -21,6 +16,7 @@ import {
   SearchOptions,
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
+import { Constructor, TypeData, TypeMap } from './util/type-map';
 
 export {
   Auditable,
