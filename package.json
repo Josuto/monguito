@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "4.6.0",
+  "version": "4.6.1",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": {
     "name": "Josu Martinez",
@@ -36,8 +36,11 @@
   "type": "module",
   "source": "./src/index.ts",
   "exports": {
-    "require": "./dist/repo.cjs",
-    "default": "./dist/repo.modern.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/repo.cjs",
+      "default": "./dist/repo.modern.js"
+    }
   },
   "main": "./dist/repo.cjs",
   "module": "./dist/repo.module.js",
