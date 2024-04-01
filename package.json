@@ -1,15 +1,23 @@
 {
   "name": "monguito",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": {
     "name": "Josu Martinez",
     "email": "josu.martinez@gmail.com"
   },
   "license": "MIT",
+  "homepage": "https://github.com/josuto/monguito#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/josuto/monguito.git"
+  },
+  "bugs": {
+    "url": "https://github.com/josuto/monguito/issues",
+    "email": "josu.martinez@gmail.com"
+  },
+  "engines": { 
+    "node": ">=18.18.0" 
   },
   "keywords": [
     "node",
