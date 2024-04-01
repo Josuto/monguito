@@ -109,7 +109,7 @@ and you are done.
 
 # Supported Database Operations
 
-The library supports two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while the most of the former are inherently atomic (all but [save](#save)), the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
+The library supports two kinds of CRUD operations: _basic_ and _transactional_. Both kinds specify [atomic](<https://en.wikipedia.org/wiki/Atomicity_(database_systems)>) operations; however, while most of the former are inherently atomic (all but [save](#save)), the latter require some transactional logic to ensure atomicity. Moreover, basic CRUD operations can be safely executed on a MongoDB standalone instance, but transactional CRUD operations are only atomic when run as part of a larger cluster e.g., a sharded cluster or a replica set. Using a MongoDB cluster in your production environment is, by the way, [the official recommendation](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/).
 
 Let's now explore these two kinds of operations in detail.
 
