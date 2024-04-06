@@ -36,7 +36,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.findById(undefined as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 
@@ -44,7 +44,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.findById(null as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 
@@ -86,7 +86,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.findOne(undefined as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 
@@ -94,7 +94,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.findOne(null as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 
@@ -162,7 +162,7 @@ describe('Given an instance of book repository', () => {
       it('throws an error', async () => {
         await expect(
           bookRepository.findByIsbn(undefined as unknown as string),
-        ).rejects.toThrowError();
+        ).rejects.toThrow();
       });
     });
 
@@ -170,7 +170,7 @@ describe('Given an instance of book repository', () => {
       it('throws an error', async () => {
         await expect(
           bookRepository.findByIsbn(null as unknown as string),
-        ).rejects.toThrowError();
+        ).rejects.toThrow();
       });
     });
 
@@ -270,7 +270,7 @@ describe('Given an instance of book repository', () => {
       describe('and such a value is invalid', () => {
         it('throws an exception', async () => {
           const sortBy = { title: 2 };
-          await expect(bookRepository.findAll({ sortBy })).rejects.toThrowError(
+          await expect(bookRepository.findAll({ sortBy })).rejects.toThrow(
             IllegalArgumentException,
           );
         });
@@ -326,9 +326,9 @@ describe('Given an instance of book repository', () => {
               pageNumber: undefined as unknown as number,
               offset: -1,
             };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -432,9 +432,9 @@ describe('Given an instance of book repository', () => {
               pageNumber: null as unknown as number,
               offset: -1,
             };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -506,9 +506,9 @@ describe('Given an instance of book repository', () => {
               pageNumber: -1,
               offset: undefined as unknown as number,
             };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -518,54 +518,54 @@ describe('Given an instance of book repository', () => {
               pageNumber: -1,
               offset: null as unknown as number,
             };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
         describe('and the offset is a negative number', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: -1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
         describe('and the offset is zero', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 0 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
         describe('and the offset is one', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
         describe('and the offset is equals to the amount of all of the stored books', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 3 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
         describe('and the offset is bigger than the amount of all of the stored books', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: -1, offset: 4 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
       });
@@ -606,9 +606,9 @@ describe('Given an instance of book repository', () => {
         describe('and the offset is a negative number', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: 0, offset: -1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -697,9 +697,9 @@ describe('Given an instance of book repository', () => {
         describe('and the offset is a negative number', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: 1, offset: -1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -788,9 +788,9 @@ describe('Given an instance of book repository', () => {
         describe('and the offset is a negative number', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: 3, offset: -1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -869,9 +869,9 @@ describe('Given an instance of book repository', () => {
         describe('and the offset is a negative number', () => {
           it('throws an exception', async () => {
             const pageable = { pageNumber: 4, offset: -1 };
-            await expect(
-              bookRepository.findAll({ pageable }),
-            ).rejects.toThrowError(IllegalArgumentException);
+            await expect(bookRepository.findAll({ pageable })).rejects.toThrow(
+              IllegalArgumentException,
+            );
           });
         });
 
@@ -934,7 +934,7 @@ describe('Given an instance of book repository', () => {
     describe('which type is not registered in the repository', () => {
       it('throws an exception', async () => {
         const bookToInsert = electronicBookFixture();
-        await expect(bookRepository.save(bookToInsert)).rejects.toThrowError(
+        await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
           IllegalArgumentException,
         );
       });
@@ -945,7 +945,7 @@ describe('Given an instance of book repository', () => {
         it('throws an exception', async () => {
           await expect(
             bookRepository.save(undefined as unknown as Book),
-          ).rejects.toThrowError('The given entity must be valid');
+          ).rejects.toThrow('The given entity must be valid');
         });
       });
 
@@ -953,7 +953,7 @@ describe('Given an instance of book repository', () => {
         it('throws an exception', async () => {
           await expect(
             bookRepository.save(null as unknown as Book),
-          ).rejects.toThrowError('The given entity must be valid');
+          ).rejects.toThrow('The given entity must be valid');
         });
       });
 
@@ -970,9 +970,9 @@ describe('Given an instance of book repository', () => {
                 '00007032a61c4eda79230000',
               );
 
-              await expect(
-                bookRepository.save(bookToInsert),
-              ).rejects.toThrowError(IllegalArgumentException);
+              await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
+                IllegalArgumentException,
+              );
             });
           });
 
@@ -985,9 +985,9 @@ describe('Given an instance of book repository', () => {
                   isbn: undefined,
                 });
 
-                await expect(
-                  bookRepository.save(bookToInsert),
-                ).rejects.toThrowError(ValidationException);
+                await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
+                  ValidationException,
+                );
               });
             });
 
@@ -1017,9 +1017,9 @@ describe('Given an instance of book repository', () => {
                 isbn: undefined,
               });
 
-              await expect(
-                bookRepository.save(bookToInsert),
-              ).rejects.toThrowError(ValidationException);
+              await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
+                ValidationException,
+              );
             });
           });
 
@@ -1066,9 +1066,9 @@ describe('Given an instance of book repository', () => {
                   isbn: undefined as unknown as string,
                 } as Book;
 
-                await expect(
-                  bookRepository.save(bookToUpdate),
-                ).rejects.toThrowError(ValidationException);
+                await expect(bookRepository.save(bookToUpdate)).rejects.toThrow(
+                  ValidationException,
+                );
               });
             });
 
@@ -1144,9 +1144,9 @@ describe('Given an instance of book repository', () => {
                   isbn: undefined as unknown as string,
                 } as AudioBook;
 
-                await expect(
-                  bookRepository.save(bookToUpdate),
-                ).rejects.toThrowError(ValidationException);
+                await expect(bookRepository.save(bookToUpdate)).rejects.toThrow(
+                  ValidationException,
+                );
               });
             });
 
@@ -1180,9 +1180,9 @@ describe('Given an instance of book repository', () => {
                   storedAudioBook.id,
                 );
 
-                await expect(
-                  bookRepository.save(bookToUpdate),
-                ).rejects.toThrowError(ValidationException);
+                await expect(bookRepository.save(bookToUpdate)).rejects.toThrow(
+                  ValidationException,
+                );
               });
             });
 
@@ -1217,7 +1217,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.deleteById(undefined as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 
@@ -1225,7 +1225,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.deleteById(undefined as unknown as string),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
       });
     });
 

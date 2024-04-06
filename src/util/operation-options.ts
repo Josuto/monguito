@@ -54,8 +54,8 @@ export class Pageable {
 
 /**
  * Specifies options for the `findAll` operation.
- * @property {any=} filters (optional) filters for the search.
- * @property {any=} sortBy (optional) sorting criteria for the search.
+ * @property {any=} filters (optional) some filters for the search.
+ * @property {any=} sortBy (optional) the sorting criteria for the search.
  * @property {Pageable=} pageable (optional) paging configuration.
  */
 export type SearchOptions = {

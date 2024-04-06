@@ -1,11 +1,6 @@
 import { Entity } from '../../src/util/entity';
 
-export type BookType = {
-  id?: string;
-  title: string;
-  description: string;
-  isbn: string;
-};
+export type BookType = Omit<Book, 'toString'>;
 
 export class Book implements Entity {
   readonly id?: string;
@@ -25,7 +20,7 @@ export class Book implements Entity {
   }
 }
 
-export type PaperBookType = BookType & { edition: number };
+export type PaperBookType = Omit<PaperBook, 'toString'>;
 
 export class PaperBook extends Book {
   readonly edition: number;
@@ -36,10 +31,7 @@ export class PaperBook extends Book {
   }
 }
 
-export type AudioBookType = BookType & {
-  hostingPlatforms: string[];
-  format?: string;
-};
+export type AudioBookType = Omit<AudioBook, 'toString'>;
 
 export class AudioBook extends Book {
   readonly hostingPlatforms: string[];
@@ -52,7 +44,7 @@ export class AudioBook extends Book {
   }
 }
 
-export type ElectronicBookType = BookType & { extension: string };
+export type ElectronicBookType = Omit<ElectronicBook, 'toString'>;
 
 export class ElectronicBook extends Book {
   readonly extension: string;
