@@ -81,6 +81,82 @@ describe('Given an instance of book repository', () => {
     });
   });
 
+  describe('when searching a book by some filters', () => {
+    describe('by an undefined filter', () => {
+      it('throws an exception', async () => {
+        await expect(
+          bookRepository.findOne(undefined as unknown as string),
+        ).rejects.toThrowError(IllegalArgumentException);
+      });
+    });
+
+    describe('by a null filter', () => {
+      it('throws an exception', async () => {
+        await expect(
+          bookRepository.findOne(null as unknown as string),
+        ).rejects.toThrowError(IllegalArgumentException);
+      });
+    });
+
+    describe('by a filter matching no book', () => {
+      it('retrieves an empty book', async () => {
+        const book = await bookRepository.findOne({ title: 'The Hobbit' });
+        expect(book).toEqual(Optional.empty());
+      });
+    });
+
+    describe('by a filter matching one or more books', () => {
+      beforeEach(async () => {
+        const paperBookToStore = paperBookFixture();
+        const audioBookToStore = audioBookFixture();
+
+        const storedPaperBookId = await insert(
+          paperBookToStore,
+          'books',
+          PaperBook.name,
+        );
+        storedPaperBook = new PaperBook({
+          ...paperBookToStore,
+          id: storedPaperBookId,
+        });
+
+        const storedAudioBookId = await insert(
+          audioBookToStore,
+          'books',
+          AudioBook.name,
+        );
+        storedAudioBook = new AudioBook({
+          ...audioBookToStore,
+          id: storedAudioBookId,
+        });
+      });
+
+      describe('by a filter matching one book', () => {
+        it('retrieves the book', async () => {
+          const book = await bookRepository.findOne({
+            title: storedPaperBook.title,
+          });
+          expect(book.isPresent()).toBe(true);
+          expect(book.get()).toEqual(storedPaperBook);
+        });
+      });
+
+      describe('by a filter matching several books', () => {
+        it('retrieves the first book inserted', async () => {
+          const book = await bookRepository.findOne({
+            title: { $exists: true },
+          });
+          expect(book.isPresent()).toBe(true);
+          expect(book.get()).toEqual(storedPaperBook);
+        });
+      });
+
+      afterEach(async () => {
+        await deleteAll('books');
+      });
+    });
+  });
+
   describe('when searching a book by a custom field value', () => {
     describe('and the search value is undefined', () => {
       it('throws an error', async () => {

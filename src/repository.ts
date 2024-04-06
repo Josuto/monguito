@@ -24,6 +24,14 @@ export interface Repository<T extends Entity> {
   findById: <S extends T>(id: string) => Promise<Optional<S>>;
 
   /**
+   * Finds an entity by some filters.
+   * @param {any} filters some filters for the search.
+   * @returns {Promise<Optional<S>>} the entity or null.
+   * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
+   */
+  findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
+
+  /**
    * Finds all entities.
    * @param {SearchOptions} options (optional) search operation options.
    * @returns {Promise<S[]>} all entities.
