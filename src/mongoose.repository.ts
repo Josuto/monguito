@@ -84,6 +84,14 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
+  async findOne<S extends T>(filters: any): Promise<Optional<S>> {
+    if (!filters)
+      throw new IllegalArgumentException('The given filters must be valid');
+    const document = await this.entityModel.findOne(filters).exec();
+    return Optional.ofNullable(this.instantiateFrom(document) as S);
+  }
+
+  /** @inheritdoc */
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
     userId?: string,
