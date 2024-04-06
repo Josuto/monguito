@@ -48,7 +48,7 @@ describe('Given an instance of book repository', () => {
           bookFixture({ isbn: '1942788340' }),
           undefined as unknown as Book,
         ];
-        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrowError(
+        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
         expect(await findOne({}, 'books')).toBeNull();
@@ -61,7 +61,7 @@ describe('Given an instance of book repository', () => {
           bookFixture({ isbn: '1942788340' }),
           null as unknown as Book,
         ];
-        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrowError(
+        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
         expect(await findOne({}, 'books')).toBeNull();
@@ -74,7 +74,7 @@ describe('Given an instance of book repository', () => {
           bookFixture({ isbn: '1942788340' }),
           electronicBookFixture({ isbn: '1942788341' }),
         ];
-        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrowError(
+        await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
         expect(await findOne({}, 'books')).toBeNull();
@@ -92,7 +92,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
               expect(await findOne({}, 'books')).toBeNull();
             });
           });
@@ -118,7 +118,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
               expect(await findOne({}, 'books')).toBeNull();
             });
           });
@@ -178,7 +178,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
 
               const storedBooks = await bookRepository.findAll();
               expect(storedBooks).toEqual([storedPaperBook1, storedPaperBook2]);
@@ -246,7 +246,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
 
               const storedBooks = await bookRepository.findAll();
               expect(storedBooks).toEqual([storedBook, storedPaperBook]);
@@ -306,7 +306,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
 
               const storedBooks = await bookRepository.findAll();
               expect(storedBooks).toEqual([storedPaperBook]);
@@ -377,7 +377,7 @@ describe('Given an instance of book repository', () => {
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
-              ).rejects.toThrowError(ValidationException);
+              ).rejects.toThrow(ValidationException);
 
               const storedBooks = await bookRepository.findAll();
               expect(storedBooks).toEqual([storedPaperBook]);
@@ -481,7 +481,7 @@ describe('Given an instance of book repository', () => {
       it('throws an exception', async () => {
         await expect(
           bookRepository.deleteAll({ filters: null as unknown as object }),
-        ).rejects.toThrowError(IllegalArgumentException);
+        ).rejects.toThrow(IllegalArgumentException);
 
         const storedBooks = await bookRepository.findAll();
         expect(storedBooks).toEqual([storedBook, storedPaperBook]);
