@@ -82,7 +82,7 @@ class MongooseBookRepository extends MongooseRepository<Book> {
 
 That's it! `MongooseBookRepository` is a custom repository that inherits a series of CRUD operations and adds its own
 e.g., `findByIsbn`. It extends `MongooseRepository`, a generic template that specifies several basic CRUD operations
-e.g., `findById`, `findAll`, `save`, and `deleteById`. Besides, you can use the protected `entityModel` defined
+i.e., `findById`, `findOne`, `findAll`, `save`, and `deleteById`. Besides, you can use the protected `entityModel` defined
 at `MongooseRepository` to execute any Mongoose operation you wish, as it happens at the definition of `findByIsbn`.
 
 Here is an example on how to create and use an instance of the custom `MongooseBookRepository`:
@@ -122,6 +122,7 @@ type PartialEntityWithId<T> = { id: string } & Partial<T>;
 
 interface Repository<T extends Entity> {
   findById: <S extends T>(id: string) => Promise<Optional<S>>;
+  findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
   findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
@@ -143,10 +144,15 @@ are of the type you expect.
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `id`.
 This value wraps an actual entity or `null` in case that no entity matches the given `id`.
 
-The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
-clients. This type helps client code developers to easily reason about all possible result types without having to handle
-slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
-[Effective Java](https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/). Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases. Check it out!
+> [!NOTE]
+> The `Optional` type is meant to create awareness about the nullable nature of the operation result on the custom repository
+> clients. This type helps client code developers to easily reason about all possible result types without having to handle
+> slippery `null` values or exceptions (i.e., the alternatives to `Optional`), as mentioned by Joshua Bloch in his book
+> [Effective Java](https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/). Furthermore, the `Optional` API is quite complete and includes many elegant solutions to handle all use cases. Check it out!
+
+### `findOne`
+
+Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `filters` parameter values. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` in case that no entity matches the given conditions.
 
 ### `findAll`
 
@@ -257,20 +263,13 @@ class MongooseBookRepository
 Here is a possible definition for the aforementioned polymorphic book domain model:
 
 ```typescript
-type BookType = {
-  id?: string;
-  title: string;
-  description: string;
-  isbn: string;
-};
-
 class Book implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
   readonly isbn: string;
 
-  constructor(book: BookType) {
+  constructor(book: Book) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
@@ -278,12 +277,10 @@ class Book implements Entity {
   }
 }
 
-type PaperBookType = BookType & { edition: number };
-
 class PaperBook extends Book {
   readonly edition: number;
 
-  constructor(paperBook: PaperBookType) {
+  constructor(paperBook: PaperBook) {
     super(paperBook);
     this.edition = paperBook.edition;
   }
@@ -346,8 +343,6 @@ This approach is particularly useful for those domain objects that inherit the m
 an example of the use of `Auditable`:
 
 ```typescript
-type AuditableBookType = BookType & Auditable;
-
 class AuditableBook implements Entity, Auditable {
   readonly id?: string;
   readonly title: string;
@@ -358,7 +353,7 @@ class AuditableBook implements Entity, Auditable {
   readonly updatedAt?: Date;
   readonly updatedBy?: string;
 
-  constructor(book: AuditableBookType) {
+  constructor(book: AuditableBook) {
     this.id = book.id;
     this.title = book.title;
     this.description = book.description;
@@ -376,15 +371,13 @@ class, you can make it inherit from `AuditableClass`. This is an abstract class 
 `Auditable` and both declares and instantiates all the audit data for you. You may then use `AuditableClass` as follows:
 
 ```typescript
-type AuditableBookType = BookType & Auditable;
-
 class AuditableBook extends AuditableClass implements Entity {
   readonly id?: string;
   readonly title: string;
   readonly description: string;
   readonly isbn: string;
 
-  constructor(book: AuditableBookType) {
+  constructor(book: AuditableBook) {
     super(book);
     this.id = book.id;
     this.title = book.title;
