@@ -34,6 +34,15 @@ describe('Given the book manager controller', () => {
   }, timeout);
 
   describe('when updating a book', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      storedPaperBook = await bookRepository.save(paperBookToStore);
+    });
+
     describe('that is invalid', () => {
       it('returns a bad request HTTP status code', () => {
         const paperBookToUpdate = {
