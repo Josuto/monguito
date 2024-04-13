@@ -40,7 +40,7 @@ export abstract class MongooseTransactionalRepository<
         await Promise.all(
           entities.map(
             async (entity) =>
-              await this.save(entity, undefined, {
+              await this.save(entity, {
                 userId: options?.userId,
                 session,
               }),

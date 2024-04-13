@@ -95,7 +95,7 @@ describe('Given the book manager controller', () => {
         description: 'Great book on the Java programming language',
         edition: 2,
       });
-      storedPaperBook = await bookRepository.save(paperBookToStore, undefined, {
+      storedPaperBook = await bookRepository.save(paperBookToStore, {
         userId,
       });
     });
@@ -167,8 +167,8 @@ describe('Given the book manager controller', () => {
         description: 'Fantastic fantasy audio book',
         hostingPlatforms: ['Audible'],
       });
-      await bookRepository.save(paperBookToStore, undefined, { userId });
-      await bookRepository.save(audioBookToStore, undefined, { userId });
+      await bookRepository.save(paperBookToStore, { userId });
+      await bookRepository.save(audioBookToStore, { userId });
     });
 
     it('deletes all books', async () => {
