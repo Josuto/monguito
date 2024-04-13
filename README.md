@@ -121,14 +121,17 @@ Let's now explore these two kinds of operations in detail.
 type PartialEntityWithId<T> = { id: string } & Partial<T>;
 
 interface Repository<T extends Entity> {
-  findById: <S extends T>(id: string) => Promise<Optional<S>>;
+  findById: <S extends T>(
+    id: string,
+    options?: FindByIdOptions,
+  ) => Promise<Optional<S>>;
   findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
-  findAll: <S extends T>(options?: SearchOptions) => Promise<S[]>;
+  findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
     options?: SaveOptions,
   ) => Promise<S>;
-  deleteById: (id: string) => Promise<boolean>;
+  deleteById: (id: string, options?: DeleteByIdOptions) => Promise<boolean>;
 }
 ```
 
@@ -392,7 +395,7 @@ class AuditableBook extends AuditableClass implements Entity {
 optional; if you want `monguito` to handle it for you, simply invoke `save` with a value for the `userId` input
 parameter as `options` parameter.
 
-## Create your Custom Transactional Operations
+## Custom Transactional Operations
 
 > [!WARNING]
 > Custom transactional operations are only guaranteed to be atomic when executed on a MongoDB cluster.
