@@ -31,8 +31,7 @@
     "mongoose": "^8.2.4",
     "monguito": "link:../../",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "typescript-optional": "3.0.0-alpha.3"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

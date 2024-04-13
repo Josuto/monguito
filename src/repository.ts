@@ -51,7 +51,6 @@ export interface Repository<T extends Entity> {
   /**
    * Saves (insert or update) an entity.
    * @param {S | PartialEntityWithId<S>} entity the entity to save.
-   * @param {string=} userId (optional) the ID of the user executing the action. DEPRECATED! use 'options.userId' instead
    * @param {SaveOptions=} options (optional) save operation options.
    * @returns {Promise<S>} the saved entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or
@@ -60,10 +59,6 @@ export interface Repository<T extends Entity> {
    */
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
-    /**
-     * @deprecated This property is deprecated. Use 'options.userId' instead.
-     */
-    userId?: string,
     options?: SaveOptions,
   ) => Promise<S>;
 

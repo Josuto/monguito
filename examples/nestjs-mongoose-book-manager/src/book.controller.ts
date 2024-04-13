@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -40,6 +41,13 @@ export class BookController {
     @Inject('BOOK_REPOSITORY')
     private readonly bookRepository: TransactionalRepository<Book>,
   ) {}
+
+  @Get(':id')
+  async findById(@Param('id') id: string): Promise<Book> {
+    return (await this.bookRepository.findById(id)).orElseThrow(
+      () => new NotFoundException(`Book with ID ${id} not found`),
+    );
+  }
 
   @Get()
   async findAll(): Promise<Book[]> {

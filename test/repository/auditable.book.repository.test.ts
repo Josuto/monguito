@@ -26,11 +26,9 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           isbn: '9780321601919',
         });
 
-        const auditableBook = await bookRepository.save(
-          bookToInsert,
-          undefined,
-          { userId: createdBy },
-        );
+        const auditableBook = await bookRepository.save(bookToInsert, {
+          userId: createdBy,
+        });
         expect(auditableBook.createdAt).toBeDefined();
         expect(auditableBook.updatedAt).toBeDefined();
         expect(auditableBook.createdBy).toEqual(createdBy);
@@ -48,11 +46,9 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           isbn: '9780321834577',
         });
 
-        const auditableBook = await bookRepository.save(
-          bookToInsert,
-          undefined,
-          { userId: createdBy },
-        );
+        const auditableBook = await bookRepository.save(bookToInsert, {
+          userId: createdBy,
+        });
         expect(auditableBook.createdAt).toBeDefined();
         expect(auditableBook.updatedAt).toBeDefined();
         expect(auditableBook.createdBy).toEqual(createdBy);
@@ -73,11 +69,9 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           'Building and Scaling High Performing Technology Organizations',
         isbn: '1942788339',
       });
-      storedAuditableBook = await bookRepository.save(
-        auditableBook,
-        undefined,
-        { userId: createdBy },
-      );
+      storedAuditableBook = await bookRepository.save(auditableBook, {
+        userId: createdBy,
+      });
     });
 
     describe('that is of supertype AuditableBook', () => {
@@ -88,11 +82,9 @@ describe('Given an instance of auditable book repository and a user ID', () => {
             'A Novel About IT, DevOps, and Helping Your Business Win',
         } as AuditableBook;
 
-        const auditableBook = await bookRepository.save(
-          bookToUpdate,
-          undefined,
-          { userId: '5678' },
-        );
+        const auditableBook = await bookRepository.save(bookToUpdate, {
+          userId: '5678',
+        });
 
         expect(auditableBook.createdAt).toEqual(storedAuditableBook.createdAt);
         expect(auditableBook.updatedAt?.getTime()).toBeGreaterThan(
@@ -117,7 +109,6 @@ describe('Given an instance of auditable book repository and a user ID', () => {
 
         storedAuditablePaperBook = await bookRepository.save(
           auditablePaperBook,
-          undefined,
           { userId: createdBy },
         );
       });
@@ -128,11 +119,9 @@ describe('Given an instance of auditable book repository and a user ID', () => {
           edition: 4,
         } as AuditablePaperBook;
 
-        const auditableBook = await bookRepository.save(
-          bookToUpdate,
-          undefined,
-          { userId: updatedBy },
-        );
+        const auditableBook = await bookRepository.save(bookToUpdate, {
+          userId: updatedBy,
+        });
         expect(auditableBook.createdAt).toEqual(
           storedAuditablePaperBook.createdAt,
         );

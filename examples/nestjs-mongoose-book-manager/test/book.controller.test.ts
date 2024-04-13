@@ -38,7 +38,7 @@ describe('Given the book manager controller', () => {
       description: 'Great book on the Java programming language',
       edition: 3,
     });
-    storedPaperBook = await bookRepository.save(paperBookToStore, undefined, {
+    storedPaperBook = await bookRepository.save(paperBookToStore, {
       userId: '1234',
     });
   });

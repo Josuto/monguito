@@ -108,17 +108,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /** @inheritdoc */
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
-    userId?: string,
     options?: SaveOptions,
   ): Promise<S> {
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
-    if (userId) {
-      console.warn(
-        "The 'userId' property is deprecated and will be removed from monguito on the next major version release. Use 'options.userId' instead.",
-      );
-      options = { ...options, userId };
-    }
     try {
       if (!entity.id) {
         return await this.insert(entity as S, options);

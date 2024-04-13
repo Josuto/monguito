@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "4.8.0",
+  "version": "5.0.0",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": {
     "name": "Josu Martinez",
@@ -70,8 +70,10 @@
     "test:e2e": "jest --config examples/nestjs-mongoose-book-manager/test-util/jest-e2e.json",
     "prepare": "husky"
   },
+  "peerDependencies": {
+    "mongoose": ">= 8.0.0"
+  },
   "dependencies": {
-    "mongoose": "^8.2.4",
     "typescript-optional": "3.0.0-alpha.3"
   },
   "devDependencies": {
@@ -88,6 +90,7 @@
     "lint-staged": "^15.2.2",
     "microbundle": "^0.15.1",
     "mongodb-memory-server": "^9.1.8",
+    "mongoose": "^8.2.4",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
