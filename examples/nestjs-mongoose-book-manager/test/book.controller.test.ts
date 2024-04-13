@@ -1,12 +1,13 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
+import { Repository } from '../../../dist';
 import { AppModule } from '../src/app.module';
-import { AudioBook, PaperBook } from '../src/book';
+import { AudioBook, Book, PaperBook } from '../src/book';
+import { MongooseBookRepository } from '../src/book.repository';
 import {
   closeMongoConnection,
   deleteAll,
-  insert,
   rootMongooseStandaloneMongoTestModule,
   setupConnection,
 } from './util/mongo-server';
@@ -16,16 +17,19 @@ const timeout = 30000;
 describe('Given the book manager controller', () => {
   let bookManager: INestApplication;
   let storedPaperBook: PaperBook;
+  let bookRepository: Repository<Book>;
 
   beforeAll(async () => {
     const appModule = await Test.createTestingModule({
       imports: [rootMongooseStandaloneMongoTestModule(), AppModule],
     }).compile();
 
-    await setupConnection();
+    const connection = await setupConnection();
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
+
+    bookRepository = new MongooseBookRepository(connection!);
   }, timeout);
 
   beforeEach(async () => {
@@ -34,14 +38,8 @@ describe('Given the book manager controller', () => {
       description: 'Great book on the Java programming language',
       edition: 3,
     });
-    const storedPaperBookId = await insert(
-      paperBookToStore,
-      'books',
-      PaperBook.name,
-    );
-    storedPaperBook = new PaperBook({
-      ...paperBookToStore,
-      id: storedPaperBookId,
+    storedPaperBook = await bookRepository.save(paperBookToStore, undefined, {
+      userId: '1234',
     });
   });
 
@@ -51,7 +49,8 @@ describe('Given the book manager controller', () => {
         .get('/books')
         .expect(HttpStatus.OK)
         .expect((res) => {
-          expect(res.body).toMatchObject([storedPaperBook]);
+          expect(res.body).toHaveLength(1);
+          expect(new PaperBook(res.body[0])).toMatchObject(storedPaperBook);
         });
     });
   });

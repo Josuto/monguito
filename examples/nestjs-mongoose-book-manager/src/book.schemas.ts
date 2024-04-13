@@ -1,7 +1,7 @@
-import { BaseSchema, extendSchema } from 'monguito';
+import { AuditableSchema, extendSchema } from 'monguito';
 
 export const BookSchema = extendSchema(
-  BaseSchema,
+  AuditableSchema,
   {
     title: { type: String, required: true },
     description: { type: String, required: false },

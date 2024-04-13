@@ -1,13 +1,13 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
+import { TransactionalRepository } from '../../../dist';
 import { AppModule } from '../src/app.module';
-import { AudioBook, PaperBook } from '../src/book';
+import { AudioBook, Book, PaperBook } from '../src/book';
+import { MongooseBookRepository } from '../src/book.repository';
 import {
   closeMongoConnection,
   deleteAll,
-  findOne,
-  insert,
   rootMongooseReplicaSetMongoTestModule,
   setupConnection,
 } from './util/mongo-server';
@@ -17,36 +17,32 @@ const timeout = 30000;
 describe('Given the book manager controller', () => {
   let bookManager: INestApplication;
   let storedPaperBook: PaperBook;
+  let bookRepository: TransactionalRepository<Book>;
+  const userId = '1234;';
 
   beforeAll(async () => {
     const appModule = await Test.createTestingModule({
       imports: [rootMongooseReplicaSetMongoTestModule(), AppModule],
     }).compile();
 
-    await setupConnection();
+    const connection = await setupConnection();
 
     bookManager = appModule.createNestApplication();
     await bookManager.init();
+
+    bookRepository = new MongooseBookRepository(connection!);
   }, timeout);
 
-  beforeEach(async () => {
-    const paperBookToStore = new PaperBook({
-      title: 'Effective Java',
-      description: 'Great book on the Java programming language',
-      edition: 2,
-    });
-    const storedPaperBookId = await insert(
-      paperBookToStore,
-      'books',
-      PaperBook.name,
-    );
-    storedPaperBook = new PaperBook({
-      ...paperBookToStore,
-      id: storedPaperBookId,
-    });
-  });
-
   describe('when updating a book', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      storedPaperBook = await bookRepository.save(paperBookToStore);
+    });
+
     describe('that is invalid', () => {
       it('returns a bad request HTTP status code', () => {
         const paperBookToUpdate = {
@@ -93,6 +89,17 @@ describe('Given the book manager controller', () => {
   });
 
   describe('when saving a list of books', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      storedPaperBook = await bookRepository.save(paperBookToStore, undefined, {
+        userId,
+      });
+    });
+
     describe('that includes an invalid book', () => {
       it('returns a bad request HTTP status code', async () => {
         const booksToStore = [
@@ -110,13 +117,9 @@ describe('Given the book manager controller', () => {
           .send(booksToStore)
           .then(async (result) => {
             expect(result.status).toEqual(HttpStatus.BAD_REQUEST);
-            expect(await findOne({ title: 'Accelerate' }, 'books')).toBeNull();
-            const updatedPaperBook = await findOne(
-              { title: 'Effective Java' },
-              'books',
-            );
-            expect(updatedPaperBook).toBeDefined();
-            expect(updatedPaperBook!.edition).toBe(2);
+
+            const storedBooks = await bookRepository.findAll();
+            expect(storedBooks).toMatchObject([storedPaperBook]);
           });
       });
     });
@@ -125,44 +128,60 @@ describe('Given the book manager controller', () => {
       it('returns the created books', async () => {
         const booksToStore = [
           {
+            id: storedPaperBook.id,
+            edition: 3,
+          } as Partial<PaperBook>,
+          {
             title: 'Accelerate',
             description: 'Building High Performing Technology Organizations',
             hostingPlatforms: ['Audible'],
           } as AudioBook,
-          {
-            id: storedPaperBook.id,
-            edition: 3,
-          } as Partial<PaperBook>,
         ];
         return request(bookManager.getHttpServer())
           .post('/books/all')
           .send(booksToStore)
           .then(async (result) => {
             expect(result.status).toEqual(HttpStatus.CREATED);
-            expect(
-              await findOne({ title: 'Accelerate' }, 'books'),
-            ).toBeDefined();
-            const updatedPaperBook = await findOne(
-              { title: 'Effective Java' },
-              'books',
-            );
-            expect(updatedPaperBook).toBeDefined();
-            expect(updatedPaperBook!.edition).toBe(3);
+
+            const storedBooks = await bookRepository.findAll();
+            expect(storedBooks.length).toBe(2);
+            storedBooks.forEach((book, index) => {
+              expect(book).toEqual(
+                expect.objectContaining(booksToStore[index]),
+              );
+            });
           });
       });
     });
   });
 
   describe('when deleting all books', () => {
+    beforeEach(async () => {
+      const paperBookToStore = new PaperBook({
+        title: 'Effective Java',
+        description: 'Great book on the Java programming language',
+        edition: 2,
+      });
+      const audioBookToStore = new AudioBook({
+        title: 'The Sandman',
+        description: 'Fantastic fantasy audio book',
+        hostingPlatforms: ['Audible'],
+      });
+      await bookRepository.save(paperBookToStore, undefined, { userId });
+      await bookRepository.save(audioBookToStore, undefined, { userId });
+    });
+
     it('deletes all books', async () => {
       return request(bookManager.getHttpServer())
         .delete('/books')
         .then(async (result) => {
           expect(result.status).toEqual(HttpStatus.OK);
-          expect(result.text).toBe('1');
-          expect(
-            await findOne({ title: 'Effective Java' }, 'books'),
-          ).toBeNull();
+          expect(result.text).toBe('2');
+
+          const storedBooks = await bookRepository.findAll();
+          storedBooks.forEach((book) => {
+            expect(book.isDeleted).toBe(true);
+          });
         });
     });
   });
