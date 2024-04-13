@@ -18,10 +18,18 @@ import {
   SaveOptions,
 } from './util/operation-options';
 import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
-import { Constructor, TypeData, TypeMap } from './util/type-map';
 import { TransactionOptions, runInTransaction } from './util/transaction';
+import {
+  AbsConstructor,
+  Constructor,
+  SubtypeData,
+  SubtypeMap,
+  SupertypeData,
+  TypeMap,
+} from './util/type-map';
 
 export {
+  AbsConstructor,
   Auditable,
   AuditableClass,
   AuditableSchema,
@@ -39,9 +47,11 @@ export {
   Repository,
   SaveAllOptions,
   SaveOptions,
+  SubtypeData,
+  SubtypeMap,
+  SupertypeData,
   TransactionOptions,
   TransactionalRepository,
-  TypeData,
   TypeMap,
   UndefinedConstructorException,
   ValidationException,
