@@ -14,6 +14,7 @@ import {
   DeleteByIdOptions,
   FindAllOptions,
   FindByIdOptions,
+  FindOneOptions,
   SaveAllOptions,
   SaveOptions,
 } from './util/operation-options';
@@ -40,6 +41,7 @@ export {
   Entity,
   FindAllOptions,
   FindByIdOptions,
+  FindOneOptions,
   IllegalArgumentException,
   MongooseRepository,
   MongooseTransactionalRepository,

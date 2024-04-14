@@ -17,6 +17,7 @@ import {
   DeleteByIdOptions,
   FindAllOptions,
   FindByIdOptions,
+  FindOneOptions,
   SaveOptions,
 } from './util/operation-options';
 import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
@@ -98,10 +99,16 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findOne<S extends T>(filters: any): Promise<Optional<S>> {
+  async findOne<S extends T>(
+    filters: any,
+    options?: FindOneOptions,
+  ): Promise<Optional<S>> {
     if (!filters)
       throw new IllegalArgumentException('The given filters must be valid');
-    const document = await this.entityModel.findOne(filters).exec();
+    const document = await this.entityModel
+      .findOne(filters)
+      .session(options?.session ?? null)
+      .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
   }
 
