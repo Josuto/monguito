@@ -126,7 +126,7 @@ interface Repository<T extends Entity> {
     options?: FindByIdOptions,
   ) => Promise<Optional<S>>;
   findOne: <S extends T>(
-    filters: any,
+    filters: any, // Deprecated since v5.0.1, use options.filters instead
     options?: FindOneOptions,
   ) => Promise<Optional<S>>;
   findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
@@ -208,7 +208,7 @@ export interface TransactionalRepository<T extends Entity>
 ```
 
 > [!NOTE]
-> To ensure operation atomicity you must use a MongoDB cluster (e.g., a replica set) and make your custom repository extend `MongooseTransactionalRepository`. All the inherited default CRUD operations (i.e., the operations specified at `Repository` and `TransactionalRepository`) will be then guranteed to be atomic when a client of your custom repository invokes them. If you want to add a custom atomic operation that composes any other default or custom operation to your repository, then use the [`runInTransaction`](#custom-transactional-operations) utility function. You can check the [soft deleteAll function](examples/nestjs-mongoose-book-manager/README.md#book-repository) as a custom atomic composite operation implementation example.
+> To ensure operation atomicity you must use a MongoDB cluster (e.g., a replica set) and make your custom repository extend `MongooseTransactionalRepository`. All the inherited default CRUD operations (i.e., the operations specified at `Repository` and `TransactionalRepository`) will be then guranteed to be atomic when a client of your custom repository invokes them. If you want to add a custom atomic operation that composes any other default or custom operation to your repository, then use the [`runInTransaction`](#custom-transactional-operations) utility function. You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic composite operation implementation example.
 
 ### `saveAll`
 
@@ -409,7 +409,7 @@ Mongoose provides the means to write database operations that are to run in a tr
 
 This is a pretty cumbersome procedure to follow. `monguito` includes `runInTransaction`, a function that removes this procedural boilerplate and lets you focus on defining your transactional operations. This function receives a `callback` function representing your custom transactional operation and some transactional `options` parameter. You can use this parameter to specify a MongoDB `connection` to create a new transaction session from, or a reference to a transaction `session`, useful when you want to run your custom operation within an already existent session.
 
-As an example of a custom transactional operation, you may see an overriden version of `deleteAll` that performs soft deletion of entities [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository).
+You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic operation implementation example.
 
 # Comparison to other Alternatives
 
