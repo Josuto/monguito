@@ -208,7 +208,7 @@ export interface TransactionalRepository<T extends Entity>
 ```
 
 > [!NOTE]
-> To ensure operation atomicity you must use a MongoDB cluster (e.g., a replica set) and make your custom repository extend `MongooseTransactionalRepository`. All the inherited default CRUD operations (i.e., the operations specified at `Repository` and `TransactionalRepository`) will be then guranteed to be atomic when a client of your custom repository invokes them. If you want to add a custom atomic operation that composes any other default or custom operation to your repository, then use the [`runInTransaction`](#custom-transactional-operations) utility function. You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic composite operation implementation example.
+> To ensure operation atomicity you must use a MongoDB cluster (e.g., a replica set) and make your custom repository extend `MongooseTransactionalRepository`. All the inherited default CRUD operations (i.e., the operations specified at `Repository` and `TransactionalRepository`) will be then guranteed to be atomic when a client of your custom repository invokes them. If you want to add a custom transactional operation that composes any other default or custom operation to your repository, then use the [`runInTransaction`](#custom-transactional-operations) utility function. You may want to check the implementation of a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as an example of a custom transactional composite operation.
 
 ### `saveAll`
 
@@ -405,11 +405,11 @@ parameter as `options` parameter.
 > [!WARNING]
 > Custom transactional operations are only guaranteed to be atomic when executed on a MongoDB cluster.
 
-Mongoose provides the means to write database operations that are to run in a transaction. For each custom transactional operation, the procedure consists of (1) creating a transaction session, (2) invoking a callback function specifying the database operation(s) at hand, (3) if success commiting the transaction, (4) aborting the transaction under operation failure, and finally (5) ending the session.
+Mongoose provides the means to write transactional operations i.e., database operations that compose other operations that are to run within one single transaction. For each transactional operation, the procedure consists of (1) creating a transaction session, (2) invoking a callback function specifying the actual database operation logic at hand, (3) if success commiting the transaction, (4) aborting the transaction under operation failure, and finally (5) ending the session.
 
-This is a pretty cumbersome procedure to follow. `monguito` includes `runInTransaction`, a function that removes this procedural boilerplate and lets you focus on defining your transactional operations. This function receives a `callback` function representing your custom transactional operation and some transactional `options` parameter. You can use this parameter to specify a MongoDB `connection` to create a new transaction session from, or a reference to a transaction `session`, useful when you want to run your custom operation within an already existent session.
+This is a pretty cumbersome procedure to follow. `monguito` includes `runInTransaction`, a utility function that removes all this procedural boilerplate and lets you focus on defining your operations actual logic. This function receives a `callback` function implementing such logic and some transactional `options` parameter. You can use this parameter to specify a MongoDB `connection` to create a new transaction session from, or a reference to an existing transaction `session`.
 
-You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic operation implementation example.
+You may want to check the implementation of a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as an example of a custom transactional operation.
 
 # Comparison to other Alternatives
 
