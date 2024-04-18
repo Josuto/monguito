@@ -34,7 +34,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Sets up the underlying configuration to enable database operation execution.
    * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
-   * @param {Connection=} connection (optional) a connection to an instance of MongoDB.
+   * @param {Connection=} connection (optional) a MongoDB instance connection.
    */
   protected constructor(
     typeMap: TypeMap<T>,
@@ -46,6 +46,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /** @inheritdoc */
   async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const isDeleted = await this.entityModel.findByIdAndDelete(id, {
       session: options?.session,
@@ -55,6 +59,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /** @inheritdoc */
   async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
       throw new IllegalArgumentException(
         'The given page number must be a positive number',
@@ -90,6 +98,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     id: string,
     options?: FindByIdOptions,
   ): Promise<Optional<S>> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const document = await this.entityModel
       .findById(id)
@@ -103,13 +115,16 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     filters: any,
     options?: FindOneOptions,
   ): Promise<Optional<S>> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
+    if (filters)
+      console.warn(
+        'Since v5.0.1 the "filters" parameter is deprecated. Use "options.filters" instead.',
+      );
     if (!filters && !options?.filters)
       throw new IllegalArgumentException('Missing search criteria (filters)');
-    if (filters) {
-      console.warn(
-        'Since v5.0.1, the "filters" parameter is deprecated. Use options.filters instead.',
-      );
-    }
     const document = await this.entityModel
       .findOne(options?.filters ?? filters)
       .session(options?.session ?? null)
@@ -122,6 +137,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     try {
@@ -198,6 +217,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S,
     options?: SaveOptions,
   ): Promise<S> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     const entityClassName = entity['constructor']['name'];
@@ -245,6 +268,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     const document = await this.entityModel

@@ -24,7 +24,7 @@ export abstract class MongooseTransactionalRepository<
   /**
    * Sets up the underlying configuration to enable database operation execution.
    * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
-   * @param {Connection=} connection (optional) a connection to an instance of MongoDB.
+   * @param {Connection=} connection (optional) a MongoDB instance connection.
    */
   protected constructor(typeMap: TypeMap<T>, connection?: Connection) {
     super(typeMap, connection);
@@ -35,6 +35,10 @@ export abstract class MongooseTransactionalRepository<
     entities: (S | PartialEntityWithId<S>)[],
     options?: SaveAllOptions,
   ): Promise<S[]> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     return await runInTransaction(
       async (session: ClientSession) =>
         await Promise.all(
@@ -52,6 +56,10 @@ export abstract class MongooseTransactionalRepository<
 
   /** @inheritdoc */
   async deleteAll(options?: DeleteAllOptions): Promise<number> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     if (options?.filters === null) {
       throw new IllegalArgumentException('Null filters are disallowed');
     }
@@ -68,6 +76,10 @@ export abstract class MongooseTransactionalRepository<
     entity: PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
     const updateOperation = super.update.bind(this);
     return await runInTransaction(
       async (session: ClientSession) =>
