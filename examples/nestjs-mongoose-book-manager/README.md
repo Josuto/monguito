@@ -127,7 +127,9 @@ export class MongooseBookRepository
 
   async deleteAll(options?: SoftDeleteAllOptions): Promise<number> {
     if (options?.filters === null) {
-      throw new IllegalArgumentException('The given filters must be valid');
+      throw new IllegalArgumentException(
+        'The given search criteria (filters) cannot be null',
+      );
     }
     return await runInTransaction(
       async (session: ClientSession) => {

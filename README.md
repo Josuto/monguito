@@ -125,7 +125,10 @@ interface Repository<T extends Entity> {
     id: string,
     options?: FindByIdOptions,
   ) => Promise<Optional<S>>;
-  findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
+  findOne: <S extends T>(
+    filters: any,
+    options?: FindOneOptions,
+  ) => Promise<Optional<S>>;
   findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,

@@ -103,10 +103,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     filters: any,
     options?: FindOneOptions,
   ): Promise<Optional<S>> {
-    if (!filters)
-      throw new IllegalArgumentException('The given filters must be valid');
+    if (!filters && !options?.filters)
+      throw new IllegalArgumentException('Missing search criteria (filters)');
+    if (filters) {
+      console.warn(
+        'Since v5.0.1, the "filters" parameter is deprecated. Use options.filters instead.',
+      );
+    }
     const document = await this.entityModel
-      .findOne(filters)
+      .findOne(options?.filters ?? filters)
       .session(options?.session ?? null)
       .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
