@@ -125,7 +125,10 @@ interface Repository<T extends Entity> {
     id: string,
     options?: FindByIdOptions,
   ) => Promise<Optional<S>>;
-  findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
+  findOne: <S extends T>(
+    filters: any, // Deprecated since v5.0.1, use options.filters instead
+    options?: FindOneOptions,
+  ) => Promise<Optional<S>>;
   findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
@@ -140,7 +143,10 @@ object type (e.g., `PaperBook` or `AudioBook`). This way, you can be sure that t
 are of the type you expect.
 
 > [!NOTE]
-> Keep in mind that the current semantics for these operations are those provided at `MongooseRepository`; if you want any of these operations to behave differently then you must override it at your custom repository implementation.
+> Keep in mind that the current semantics for these operations are those provided at `MongooseRepository`. If you want any of these operations to behave differently then you must override it at your custom repository implementation.
+
+> [!NOTE]
+> All CRUD operations include an `options` parameter as part of their signature. This parameter specifies some optional configuration options. There are two types of options: _behavioural_ and _transactional_. The former dictate the behaviour of the operation, thus influencing the operation result, while the later are required to execute the operation within a MongoDB transaction. You may read more about transactional options in the [following section](#transactional-crud-operations). This section focuses on behavioural options only.
 
 ### `findById`
 
@@ -157,11 +163,16 @@ This value wraps an actual entity or `null` in case that no entity matches the g
 
 Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `filters` parameter values. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` in case that no entity matches the given conditions.
 
+> [!WARNING]
+> Since v5.0.1 the `filters` parameter is now deprecated. Use the new behavioural `options.filters` option instead.
+
 ### `findAll`
 
-Returns an array including all the persisted entities, or an empty array otherwise. This operation accepts some extra search `options`:
+Returns an array including all the persisted entities, or an empty array otherwise.
 
-- `filters`: a [MongoDB query](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
+This operation accepts some optional behavioural options:
+
+- `filters`: a [MongoDB search criteria](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
   to return results in some sorted order
 - `pageable`: pagination data (i.e., `pageNumber` and `offset`) required to return a particular set of results.
@@ -169,14 +180,12 @@ Returns an array including all the persisted entities, or an empty array otherwi
 
 ### `save`
 
+Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection. Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
+
+This operation accepts `userId` as an optional behavioural option to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
+
 > [!WARNING]
 > The version of `save` specified at `MongooseRepository` is not [atomic](#supported-database-operations). If you are to execute it in a concurrent environment, make sure that your custom repository extends `MongooseTransactionalRepository` instead.
-
-Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection.
-
-Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
-
-This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteById`
 
@@ -198,22 +207,18 @@ export interface TransactionalRepository<T extends Entity>
 }
 ```
 
-> [!WARNING]
-> The following operations are only guaranteed to be atomic when executed on a MongoDB cluster.
+> [!NOTE]
+> To ensure operation atomicity you must use a MongoDB cluster (e.g., a replica set) and make your custom repository extend `MongooseTransactionalRepository`. All the inherited default CRUD operations (i.e., the operations specified at `Repository` and `TransactionalRepository`) will be then guranteed to be atomic when a client of your custom repository invokes them. If you want to add a custom atomic operation that composes any other default or custom operation to your repository, then use the [`runInTransaction`](#custom-transactional-operations) utility function. You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic composite operation implementation example.
 
 ### `saveAll`
 
-Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field.
+Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field. In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
 
-In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
-
-This operation accepts `userId` as an extra `options` parameter to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
+This operation accepts `userId` as an optional behavioural option to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteAll`
 
-Deletes all the entities that match the MongoDB `filters` query specified within the `options` parameter. This operation returns the total amount of deleted entities.
-
-In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any entity, thus guaranteeing operation atomicity.
+Deletes all the entities that match the MongoDB a given search criteria specified as `options.filters` behavioural option and returns the total amount of deleted entities. Beware that if no search criteria is provided, then `deleteAll` deletes all the stored entities. In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any stored entity, thus guaranteeing operation atomicity.
 
 # Examples
 
@@ -404,7 +409,7 @@ Mongoose provides the means to write database operations that are to run in a tr
 
 This is a pretty cumbersome procedure to follow. `monguito` includes `runInTransaction`, a function that removes this procedural boilerplate and lets you focus on defining your transactional operations. This function receives a `callback` function representing your custom transactional operation and some transactional `options` parameter. You can use this parameter to specify a MongoDB `connection` to create a new transaction session from, or a reference to a transaction `session`, useful when you want to run your custom operation within an already existent session.
 
-As an example of a custom transactional operation, you may see an overriden version of `deleteAll` that performs soft deletion of entities [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository).
+You may check a soft deletion-based version of `deleteAll` [here](examples/nestjs-mongoose-book-manager/README.md/#book-repository) as a custom atomic operation implementation example.
 
 # Comparison to other Alternatives
 

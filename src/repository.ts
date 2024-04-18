@@ -4,6 +4,7 @@ import {
   DeleteByIdOptions,
   FindAllOptions,
   FindByIdOptions,
+  FindOneOptions,
   SaveOptions,
 } from './util/operation-options';
 
@@ -34,11 +35,15 @@ export interface Repository<T extends Entity> {
 
   /**
    * Finds an entity by some filters.
-   * @param {any} filters some filters for the search.
+   * @param {any} filters some filters for the search - Deprecated since v5.0.1, use options.filters instead.
+   * @param {FindOneOptions=} options (optional) search operation options.
    * @returns {Promise<Optional<S>>} the entity or null.
    * @throws {IllegalArgumentException} if the given `filters` parameter is `undefined` or `null`.
    */
-  findOne: <S extends T>(filters: any) => Promise<Optional<S>>;
+  findOne: <S extends T>(
+    filters: any,
+    options?: FindOneOptions,
+  ) => Promise<Optional<S>>;
 
   /**
    * Finds all entities.

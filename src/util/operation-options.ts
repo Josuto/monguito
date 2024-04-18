@@ -62,6 +62,13 @@ export type FindAllOptions = {
 export type FindByIdOptions = TransactionOptions;
 
 /**
+ * Specifies options for the `findOne` operation;
+ */
+export type FindOneOptions = {
+  filters?: any;
+} & TransactionOptions;
+
+/**
  * Specifies options for the `save` operation.
  */
 export type SaveOptions = AuditOptions & TransactionOptions;

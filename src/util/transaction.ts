@@ -6,9 +6,9 @@ import mongoose, { ClientSession, Connection } from 'mongoose';
 type DbCallback<T> = (session: ClientSession) => Promise<T>;
 
 /**
- * Specifies some transaction options.
- * @property {Connection=} connection (optional) a Mongoose session required by operations that are to run within a transaction.
- * @property {ClientSession=} session (optional) a transaction session, meaning that the transaction is meant to run within another transaction.
+ * Specifies transaction options.
+ * @property {Connection=} connection (optional) a MongoDB connection, required to create a new transaction session.
+ * @property {ClientSession=} session (optional) a transaction session, required to run the operation within an existing transaction.
  */
 export type TransactionOptions = {
   connection?: Connection;
@@ -29,15 +29,15 @@ export async function runInTransaction<T>(
   options?: TransactionOptions,
 ): Promise<T> {
   if (options?.session) return callback(options.session);
-  return await recursiveRunIntransaction(callback, 0, options);
+  return await recursiveRunIntransaction(callback, 0, options?.connection);
 }
 
 async function recursiveRunIntransaction<T>(
   callback: DbCallback<T>,
   retries: number,
-  options?: TransactionOptions,
+  connection?: Connection,
 ): Promise<T> {
-  const session = await startSession(options?.connection);
+  const session = await startSession(connection);
   session.startTransaction();
   try {
     const result = await callback(session);
@@ -46,7 +46,7 @@ async function recursiveRunIntransaction<T>(
   } catch (error) {
     await session.abortTransaction();
     if (isTransientTransactionError(error) && retries < MAX_RETRIES) {
-      return recursiveRunIntransaction(callback, ++retries, options);
+      return recursiveRunIntransaction(callback, ++retries, connection);
     }
     throw error;
   } finally {
