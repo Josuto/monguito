@@ -1,4 +1,14 @@
-import { Schema, SchemaDefinition, SchemaOptions } from 'mongoose';
+import {
+  SchemaOptions as MongooseSchemaOptions,
+  Schema,
+  SchemaDefinition,
+} from 'mongoose';
+
+export type SchemaPlugin = { fn: (schema: Schema) => void; options?: any };
+
+export type SchemaOptions = MongooseSchemaOptions & {
+  plugins?: SchemaPlugin[];
+};
 
 /**
  * Base schema to be extended by all persistable domain object schemas.
@@ -35,9 +45,9 @@ export const AuditableSchema = extendSchema(
         delete result.__v;
       },
     },
+    plugins: [{ fn: setUserAuditData }],
   },
 );
-AuditableSchema.plugin(setUserAuditData);
 
 // Mongoose plugin definition
 function setUserAuditData(schema: Schema) {
@@ -52,8 +62,6 @@ function setUserAuditData(schema: Schema) {
     next();
   });
 }
-
-type Plugin = { fn: (schema: Schema) => void; opts?: undefined };
 
 /**
  * Creates a new schema from the given data.
@@ -94,17 +102,31 @@ export function extendSchema<T = object, S = object>(
       ...(isExtensionASchema ? extension.options : options),
     },
   );
+  registerPlugins(newSchema, baseSchema, extension, options);
+  return newSchema;
+}
+
+function registerPlugins<T = object, S = object>(
+  newSchema: Schema<T & S>,
+  baseSchema: Schema<T>,
+  extension: Schema<T> | SchemaDefinition<S>,
+  options?: SchemaOptions,
+): void {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  baseSchema.plugins.forEach((plugin: Plugin) => {
-    newSchema.plugin(plugin.fn, plugin.opts);
+  baseSchema.plugins.forEach((plugin: SchemaPlugin) => {
+    newSchema.plugin(plugin.fn, plugin.options);
   });
-  if (isExtensionASchema) {
+  if (extension instanceof Schema) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    extension.plugins.forEach((plugin: Plugin) => {
-      newSchema.plugin(plugin.fn, plugin.opts);
+    extension.plugins.forEach((plugin: SchemaPlugin) => {
+      newSchema.plugin(plugin.fn, plugin.options);
     });
   }
-  return newSchema;
+  if (options?.plugins) {
+    options.plugins.forEach((plugin: SchemaPlugin) => {
+      newSchema.plugin(plugin.fn, plugin.options);
+    });
+  }
 }

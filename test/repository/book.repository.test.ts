@@ -978,11 +978,24 @@ describe('Given an instance of book repository', () => {
 
           describe('and does not specify an ID', () => {
             describe('and some field values are invalid', () => {
+              beforeEach(async () => {
+                const bookToStore = bookFixture();
+                const storedBookId = await insert(bookToStore, 'books');
+                storedBook = new Book({
+                  ...bookToStore,
+                  id: storedBookId,
+                });
+              });
+
+              afterEach(async () => {
+                await deleteAll('books');
+              });
+
               it('throws an exception', async () => {
                 const bookToInsert = bookFixture({
-                  title: 'Modern Software Engineering',
+                  title: undefined, // Missing title
                   description: 'Build Better Software Faster',
-                  isbn: undefined,
+                  isbn: storedBook.isbn, // Duplicated ISBN
                 });
 
                 await expect(bookRepository.save(bookToInsert)).rejects.toThrow(

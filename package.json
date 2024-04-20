@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": {
     "name": "Josu Martinez",
@@ -16,8 +16,8 @@
     "url": "https://github.com/josuto/monguito/issues",
     "email": "josu.martinez@gmail.com"
   },
-  "engines": { 
-    "node": ">=18.18.0" 
+  "engines": {
+    "node": ">=18.18.0"
   },
   "keywords": [
     "node",
@@ -78,6 +78,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
+    "@types/mongoose-unique-validator": "^1.0.9",
     "@types/node": "^20.12.2",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
@@ -91,6 +92,7 @@
     "microbundle": "^0.15.1",
     "mongodb-memory-server": "^9.1.8",
     "mongoose": "^8.2.4",
+    "mongoose-unique-validator": "^5.0.0",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
