@@ -314,10 +314,9 @@ at your domain model. This is mainly to avoid marrying the underlying infrastruc
 rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
 properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
 
-`monguito` includes `BaseSchema`, a Mongoose schema that specifies some logic required to convert Mongoose documents
-into domain objects. You could implement such a function yourself or use the `extendSchema` utility function to extend
-`BaseSchema` with your schema definition. Moreover, `extendSchema` allows you to register any standalone Mongoose plugin
-of your liking into the resulting schema. This function also adds all the Mongoose plugins included in the input schemas
+`monguito` includes `BaseSchema`, a Mongoose schema that specifies some logic required to convert MongoDB documents
+to domain objects. You could implement such a function yourself or use the `extendSchema` utility function to extend
+`BaseSchema` with your schema definition. Moreover, `extendSchema` allows you to register any [standalone Mongoose plugin](https://plugins.mongoosejs.io/) of your liking into the resulting schema. This function automatically adds all the Mongoose plugins included in the input schemas
 to the resulting schema.
 
 The following example shows the convenience of using `extendSchema` to define schemas for polymorphic data structures,
