@@ -16,7 +16,7 @@ export type SchemaOptions = MongooseSchemaOptions & {
 export const BaseSchema = new Schema(
   {},
   {
-    // required to deserialize Entity objects
+    // required to deserialize domain objects
     toObject: {
       transform: (document: any, result: any) => {
         result.id = document.id;

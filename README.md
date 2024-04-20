@@ -307,19 +307,25 @@ inheritance-based programming language, and I strongly believe that you are enti
 will, with no dependencies to other libraries. But all that being said, you may decide not to use it at all, and that
 would be just fine. All you need to do is ensure that your domain objects specify an optional `id` field.
 
-## Define Your Custom Schemas
+## Define Your Own Schemas
 
-I believe that writing your own database schemas is a good practice, as opposed of using decorators
+I believe that writing your own database schemas is a good practice, as opposed to using decorators
 at your domain model. This is mainly to avoid marrying the underlying infrastructure, thus enabling you to easily get
 rid of this repository logic if something better comes in. It also allows you to have more control on the persistence
 properties of your domain objects. After all, database definition is a thing that Mongoose is really rock-solid about.
 
-The `extendSchema` function eases the specification of the Mongoose schemas of your domain model and let `monguito`
-to handle the required implementation details. This function is specially convenient when defining schemas for
-polymorphic data structures. The following example depicts the definition of `BookSchema`, `PaperBookSchema`,
-and `AudioBookSchema`:
+`monguito` includes `BaseSchema`, a Mongoose schema that specifies some logic required to convert Mongoose documents
+into domain objects. You could implement such a function yourself or use the `extendSchema` utility function to extend
+`BaseSchema` with your schema definition. Moreover, `extendSchema` allows you to register any standalone Mongoose plugin
+of your liking into the resulting schema. This function also adds all the Mongoose plugins included in the input schemas
+to the resulting schema.
+
+The following example shows the convenience of using `extendSchema` to define schemas for polymorphic data structures,
+as well as how to register a standalone Mongoose plugin:
 
 ```typescript
+import uniqueValidator from 'mongoose-unique-validator'; // import the standalone plugin
+
 const BookSchema = extendSchema(
   BaseSchema,
   {
@@ -327,7 +333,10 @@ const BookSchema = extendSchema(
     description: { type: String, required: false },
     isbn: { type: String, required: true, unique: true },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    plugins: [{ fn: uniqueValidator }], // register the plugin
+  },
 );
 
 const PaperBookSchema = extendSchema(BookSchema, {
@@ -338,9 +347,6 @@ const AudioBookSchema = extendSchema(BookSchema, {
   hostingPlatforms: { type: [{ type: String }], required: true },
 });
 ```
-
-Make sure that the schema for your supertype domain object extends from `BaseSchema`. It is required
-by `MongooseRepository` to properly deserialise your domain objects.
 
 ## Built-in Audit Data Support
 
