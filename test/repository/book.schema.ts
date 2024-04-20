@@ -1,12 +1,17 @@
 import { Schema } from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
 import { BaseSchema, extendSchema } from '../../src';
 import { AudioBook, Book, PaperBook } from '../domain/book';
 
-export const BookSchema: Schema<Book> = extendSchema(BaseSchema, {
-  title: { type: String, required: true },
-  description: { type: String, required: false },
-  isbn: { type: String, required: true, unique: true },
-});
+export const BookSchema: Schema<Book> = extendSchema(
+  BaseSchema,
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: false },
+    isbn: { type: String, required: true, unique: true },
+  },
+  { plugins: [{ fn: uniqueValidator }] },
+);
 
 export const PaperBookSchema: Schema<PaperBook> = extendSchema(
   BookSchema,

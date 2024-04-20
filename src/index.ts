@@ -18,8 +18,14 @@ import {
   SaveAllOptions,
   SaveOptions,
 } from './util/operation-options';
-import { AuditableSchema, BaseSchema, extendSchema } from './util/schema';
-import { TransactionOptions, runInTransaction } from './util/transaction';
+import {
+  AuditableSchema,
+  BaseSchema,
+  extendSchema,
+  SchemaOptions,
+  SchemaPlugin,
+} from './util/schema';
+import { runInTransaction, TransactionOptions } from './util/transaction';
 import {
   AbsConstructor,
   Constructor,
@@ -39,25 +45,27 @@ export {
   DeleteAllOptions,
   DeleteByIdOptions,
   Entity,
+  extendSchema,
   FindAllOptions,
   FindByIdOptions,
   FindOneOptions,
   IllegalArgumentException,
+  isAuditable,
   MongooseRepository,
   MongooseTransactionalRepository,
   PartialEntityWithId,
   Repository,
+  runInTransaction,
   SaveAllOptions,
   SaveOptions,
+  SchemaOptions,
+  SchemaPlugin,
   SubtypeData,
   SubtypeMap,
   SupertypeData,
-  TransactionOptions,
   TransactionalRepository,
+  TransactionOptions,
   TypeMap,
   UndefinedConstructorException,
   ValidationException,
-  extendSchema,
-  isAuditable,
-  runInTransaction,
 };

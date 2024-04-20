@@ -45,26 +45,30 @@ describe('Given an instance of book repository', () => {
     describe('that includes a book that is undefined', () => {
       it('throws an exception', async () => {
         const booksToStore = [
-          bookFixture({ isbn: '1942788340' }),
+          bookFixture({ isbn: '1942788344' }),
           undefined as unknown as Book,
         ];
         await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
-        expect(await findOne({}, 'books')).toBeNull();
+        expect(
+          await findOne({ isbn: booksToStore[0].isbn }, 'books'),
+        ).toBeNull();
       });
     });
 
     describe('that includes a book that is null', () => {
       it('throws an exception', async () => {
         const booksToStore = [
-          bookFixture({ isbn: '1942788340' }),
+          bookFixture({ isbn: '1942788345' }),
           null as unknown as Book,
         ];
         await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
-        expect(await findOne({}, 'books')).toBeNull();
+        expect(
+          await findOne({ isbn: booksToStore[0].isbn }, 'books'),
+        ).toBeNull();
       });
     });
 
@@ -77,7 +81,12 @@ describe('Given an instance of book repository', () => {
         await expect(bookRepository.saveAll(booksToStore)).rejects.toThrow(
           IllegalArgumentException,
         );
-        expect(await findOne({}, 'books')).toBeNull();
+        expect(
+          await findOne(
+            { isbn: { $in: [booksToStore[0].isbn, booksToStore[1].isbn] } },
+            'books',
+          ),
+        ).toBeNull();
       });
     });
 
@@ -87,13 +96,15 @@ describe('Given an instance of book repository', () => {
           describe('and some field values of one book are invalid', () => {
             it('throws an exception', async () => {
               const booksToStore = [
-                bookFixture({ isbn: '1942788340' }),
+                bookFixture({ isbn: '1942788346' }),
                 bookFixture({ isbn: undefined }),
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
               ).rejects.toThrow(ValidationException);
-              expect(await findOne({}, 'books')).toBeNull();
+              expect(
+                await findOne({ isbn: booksToStore[0].isbn }, 'books'),
+              ).toBeNull();
             });
           });
 
@@ -113,13 +124,15 @@ describe('Given an instance of book repository', () => {
           describe('and some field values of one book are invalid', () => {
             it('throws an exception', async () => {
               const booksToStore = [
-                bookFixture({ isbn: '1942788340' }),
+                bookFixture({ isbn: '1942788347' }),
                 paperBookFixture({ isbn: undefined }),
               ];
               await expect(
                 bookRepository.saveAll(booksToStore),
               ).rejects.toThrow(ValidationException);
-              expect(await findOne({}, 'books')).toBeNull();
+              expect(
+                await findOne({ isbn: booksToStore[0].isbn }, 'books'),
+              ).toBeNull();
             });
           });
 
