@@ -316,14 +316,14 @@ properties of your domain objects. After all, database definition is a thing tha
 
 `monguito` includes `BaseSchema`, a Mongoose schema that specifies some logic required to convert MongoDB documents
 to domain objects. You could implement such a function yourself or use the `extendSchema` utility function to extend
-`BaseSchema` with your schema definition. Moreover, `extendSchema` allows you to register any [standalone Mongoose plugin](https://plugins.mongoosejs.io/) of your liking into the resulting schema. This function automatically adds all the Mongoose plugins included in the input schemas
+`BaseSchema` with your schema definition. Moreover, `extendSchema` allows you to register any standalone [Mongoose plugin](https://plugins.mongoosejs.io/) of your liking into the resulting schema. This function automatically adds all the Mongoose plugins included in the input schemas
 to the resulting schema.
 
 The following example shows the convenience of using `extendSchema` to define schemas for polymorphic data structures,
 as well as how to register a standalone Mongoose plugin:
 
 ```typescript
-import uniqueValidator from 'mongoose-unique-validator'; // import the standalone plugin
+import uniqueValidator from 'mongoose-unique-validator';
 
 const BookSchema = extendSchema(
   BaseSchema,
