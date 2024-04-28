@@ -191,24 +191,32 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       throw new IllegalArgumentException(
         'The given entity cannot be null or undefined',
       );
-    const entityClassName = entity['constructor']['name'];
-    if (!this.typeMap.has(entityClassName)) {
-      throw new IllegalArgumentException(
-        `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
-      );
-    }
-    this.setDiscriminatorKeyOn(entity);
-    const document = this.createDocumentAndSetUserId(entity, options?.userId);
+    const document = this.createDocumentForInsertion(entity, options);
     const insertedDocument = (await document.save({
       session: options?.session,
     })) as HydratedDocument<S>;
     return this.instantiateFrom(insertedDocument) as S;
   }
 
-  private setDiscriminatorKeyOn<S extends T>(
+  private createDocumentForInsertion<S extends T>(
+    entity: S,
+    options?: SaveOptions,
+  ) {
+    this.setDiscriminatorKeyOnEntity(entity);
+    const document = new this.entityModel(entity);
+    this.setAuditableDataOnDocumentToInsert(document, entity, options?.userId);
+    return document;
+  }
+
+  private setDiscriminatorKeyOnEntity<S extends T>(
     entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
+    if (!this.typeMap.has(entityClassName)) {
+      throw new IllegalArgumentException(
+        `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
+      );
+    }
     const isSubtype = entityClassName !== this.typeMap.getSupertypeName();
     const hasEntityDiscriminatorKey = '__t' in entity;
     if (isSubtype && !hasEntityDiscriminatorKey) {
@@ -216,13 +224,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
   }
 
-  private createDocumentAndSetUserId<S extends T>(entity: S, userId?: string) {
-    const document = new this.entityModel(entity);
+  private setAuditableDataOnDocumentToInsert<S extends T>(
+    document: HydratedDocument<S>,
+    entity: S,
+    userId?: string,
+  ): void {
     if (isAuditable(entity)) {
       if (userId) document.$locals.userId = userId;
       document.__v = 0;
     }
-    return document;
   }
 
   /**
@@ -247,11 +257,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       .session(options?.session ?? null);
     if (document) {
       document.set(entity);
-      document.isNew = false;
-      if (isAuditable(document)) {
-        if (options?.userId) document.$locals.userId = options?.userId;
-        document.__v = (document.__v ?? 0) + 1;
-      }
+      this.setAuditableDataOnDocumentToUpdate(document, options?.userId);
       const updatedDocument = (await document.save({
         session: options?.session,
       })) as HydratedDocument<S>;
@@ -260,6 +266,17 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     throw new IllegalArgumentException(
       `There is no document matching the given ID '${entity.id}'`,
     );
+  }
+
+  private setAuditableDataOnDocumentToUpdate<S extends T>(
+    document: HydratedDocument<S>,
+    userId?: string,
+  ): void {
+    document.isNew = false;
+    if (isAuditable(document)) {
+      if (userId) document.$locals.userId = userId;
+      document.__v = (document.__v ?? 0) + 1;
+    }
   }
 
   /** @inheritdoc */
