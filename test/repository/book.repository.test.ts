@@ -945,7 +945,7 @@ describe('Given an instance of book repository', () => {
         it('throws an exception', async () => {
           await expect(
             bookRepository.save(undefined as unknown as Book),
-          ).rejects.toThrow('The given entity must be valid');
+          ).rejects.toThrow(IllegalArgumentException);
         });
       });
 
@@ -953,7 +953,7 @@ describe('Given an instance of book repository', () => {
         it('throws an exception', async () => {
           await expect(
             bookRepository.save(null as unknown as Book),
-          ).rejects.toThrow('The given entity must be valid');
+          ).rejects.toThrow(IllegalArgumentException);
         });
       });
 
@@ -1097,24 +1097,44 @@ describe('Given an instance of book repository', () => {
                 expect(book.id).toBe(storedBook.id);
                 expect(book.title).toBe(storedBook.title);
                 expect(book.description).toBe(bookToUpdate.description);
+                expect(book.isbn).toBe(storedBook.isbn);
               });
             });
           });
-          describe('and that specifies all the contents of the supertype', () => {
-            it('updates the book', async () => {
-              const bookToUpdate = bookFixture(
-                {
-                  title: 'Continuous Delivery',
-                  description:
-                    'Boost your development productivity via automation',
-                },
-                storedBook.id,
-              );
 
-              const book = await bookRepository.save(bookToUpdate);
-              expect(book.id).toBe(bookToUpdate.id);
-              expect(book.title).toBe(bookToUpdate.title);
-              expect(book.description).toBe(bookToUpdate.description);
+          describe('and that specifies all the contents of the supertype', () => {
+            describe('and some field values are invalid', () => {
+              it('throws an exception', async () => {
+                const bookToUpdate = audioBookFixture(
+                  {
+                    title: undefined,
+                  },
+                  storedBook.id,
+                );
+
+                await expect(bookRepository.save(bookToUpdate)).rejects.toThrow(
+                  ValidationException,
+                );
+              });
+            });
+
+            describe('and all field values are valid', () => {
+              it('updates the book', async () => {
+                const bookToUpdate = bookFixture(
+                  {
+                    title: 'Continuous Delivery',
+                    description:
+                      'Boost your development productivity via automation',
+                  },
+                  storedBook.id,
+                );
+
+                const book = await bookRepository.save(bookToUpdate);
+                expect(book.id).toBe(bookToUpdate.id);
+                expect(book.title).toBe(bookToUpdate.title);
+                expect(book.description).toBe(bookToUpdate.description);
+                expect(book.isbn).toBe(bookToUpdate.isbn);
+              });
             });
           });
         });
