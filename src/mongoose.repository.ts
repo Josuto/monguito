@@ -44,53 +44,24 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     this.entityModel = this.createEntityModel(connection);
   }
 
-  /** @inheritdoc */
-  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+  private createEntityModel(connection?: Connection) {
+    let entityModel;
+    const supertypeData = this.typeMap.getSupertypeData();
+    if (connection) {
+      entityModel = connection.model<T>(
+        supertypeData.type.name,
+        supertypeData.schema,
       );
-    if (!id) throw new IllegalArgumentException('The given ID must be valid');
-    const isDeleted = await this.entityModel.findByIdAndDelete(id, {
-      session: options?.session,
-    });
-    return !!isDeleted;
-  }
-
-  /** @inheritdoc */
-  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
-    if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
-      throw new IllegalArgumentException(
-        'The given page number must be a positive number',
+    } else {
+      entityModel = mongoose.model<T>(
+        supertypeData.type.name,
+        supertypeData.schema,
       );
     }
-    if (options?.pageable?.offset && options?.pageable?.offset < 0) {
-      throw new IllegalArgumentException(
-        'The given page offset must be a positive number',
-      );
+    for (const subtypeData of this.typeMap.getSubtypesData()) {
+      entityModel.discriminator(subtypeData.type.name, subtypeData.schema);
     }
-
-    const offset = options?.pageable?.offset ?? 0;
-    const pageNumber = options?.pageable?.pageNumber ?? 0;
-    try {
-      const documents = await this.entityModel
-        .find(options?.filters)
-        .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
-        .limit(offset)
-        .sort(options?.sortBy)
-        .session(options?.session ?? null)
-        .exec();
-      return documents.map((document) => this.instantiateFrom(document) as S);
-    } catch (error) {
-      throw new IllegalArgumentException(
-        'The given optional parameters must be valid',
-        error,
-      );
-    }
+    return entityModel;
   }
 
   /** @inheritdoc */
@@ -133,6 +104,42 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
+  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
+    if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
+      throw new IllegalArgumentException(
+        'The given page number must be a positive number',
+      );
+    }
+    if (options?.pageable?.offset && options?.pageable?.offset < 0) {
+      throw new IllegalArgumentException(
+        'The given page offset must be a positive number',
+      );
+    }
+
+    const offset = options?.pageable?.offset ?? 0;
+    const pageNumber = options?.pageable?.pageNumber ?? 0;
+    try {
+      const documents = await this.entityModel
+        .find(options?.filters)
+        .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
+        .limit(offset)
+        .sort(options?.sortBy)
+        .session(options?.session ?? null)
+        .exec();
+      return documents.map((document) => this.instantiateFrom(document) as S);
+    } catch (error) {
+      throw new IllegalArgumentException(
+        'The given optional parameters must be valid',
+        error,
+      );
+    }
+  }
+
+  /** @inheritdoc */
   async save<S extends T>(
     entity: S | PartialEntityWithId<S>,
     options?: SaveOptions,
@@ -142,7 +149,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
       );
     if (!entity)
-      throw new IllegalArgumentException('The given entity must be valid');
+      throw new IllegalArgumentException(
+        'The given entity cannot be null or undefined',
+      );
     try {
       if (!entity.id) {
         return await this.insert(entity as S, options);
@@ -164,49 +173,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /**
-   * Instantiates a persistable domain object from the given Mongoose Document.
-   * @param {HydratedDocument<S> | null} document the given Mongoose Document.
-   * @returns {S | null} the resulting persistable domain object instance.
-   * @throws {UndefinedConstructorException} if there is no constructor available.
-   */
-  protected instantiateFrom<S extends T>(
-    document: HydratedDocument<S> | null,
-  ): S | null {
-    if (!document) return null;
-    const entityKey = document.get('__t');
-    const constructor: Constructor<S> | undefined = entityKey
-      ? (this.typeMap.getSubtypeData(entityKey)?.type as Constructor<S>)
-      : (this.typeMap.getSupertypeData().type as Constructor<S>);
-    if (constructor) {
-      // safe instantiation as no abstract class instance can be stored in the first place
-      return new constructor(document.toObject());
-    }
-    throw new UndefinedConstructorException(
-      `There is no registered instance constructor for the document with ID ${document.id}`,
-    );
-  }
-
-  private createEntityModel(connection?: Connection) {
-    let entityModel;
-    const supertypeData = this.typeMap.getSupertypeData();
-    if (connection) {
-      entityModel = connection.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
-      );
-    } else {
-      entityModel = mongoose.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
-      );
-    }
-    for (const subtypeData of this.typeMap.getSubtypesData()) {
-      entityModel.discriminator(subtypeData.type.name, subtypeData.schema);
-    }
-    return entityModel;
-  }
-
-  /**
    * Inserts an entity.
    * @param {S} entity the entity to insert.
    * @param {SaveOptions=} options (optional) insert operation options.
@@ -222,25 +188,35 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
       );
     if (!entity)
-      throw new IllegalArgumentException('The given entity must be valid');
-    const entityClassName = entity['constructor']['name'];
-    if (!this.typeMap.has(entityClassName)) {
       throw new IllegalArgumentException(
-        `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
+        'The given entity cannot be null or undefined',
       );
-    }
-    this.setDiscriminatorKeyOn(entity);
-    const document = this.createDocumentAndSetUserId(entity, options?.userId);
+    const document = this.createDocumentForInsertion(entity, options);
     const insertedDocument = (await document.save({
       session: options?.session,
     })) as HydratedDocument<S>;
     return this.instantiateFrom(insertedDocument) as S;
   }
 
-  private setDiscriminatorKeyOn<S extends T>(
+  private createDocumentForInsertion<S extends T>(
+    entity: S,
+    options?: SaveOptions,
+  ) {
+    this.setDiscriminatorKeyOnEntity(entity);
+    const document = new this.entityModel(entity);
+    this.setAuditableDataOnDocumentToInsert(document, entity, options?.userId);
+    return document;
+  }
+
+  private setDiscriminatorKeyOnEntity<S extends T>(
     entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
+    if (!this.typeMap.has(entityClassName)) {
+      throw new IllegalArgumentException(
+        `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
+      );
+    }
     const isSubtype = entityClassName !== this.typeMap.getSupertypeName();
     const hasEntityDiscriminatorKey = '__t' in entity;
     if (isSubtype && !hasEntityDiscriminatorKey) {
@@ -248,13 +224,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
   }
 
-  private createDocumentAndSetUserId<S extends T>(entity: S, userId?: string) {
-    const document = new this.entityModel(entity);
+  private setAuditableDataOnDocumentToInsert<S extends T>(
+    document: HydratedDocument<S>,
+    entity: S,
+    userId?: string,
+  ): void {
     if (isAuditable(entity)) {
       if (userId) document.$locals.userId = userId;
       document.__v = 0;
     }
-    return document;
   }
 
   /**
@@ -279,11 +257,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       .session(options?.session ?? null);
     if (document) {
       document.set(entity);
-      document.isNew = false;
-      if (isAuditable(document)) {
-        if (options?.userId) document.$locals.userId = options?.userId;
-        document.__v = (document.__v ?? 0) + 1;
-      }
+      this.setAuditableDataOnDocumentToUpdate(document, options?.userId);
       const updatedDocument = (await document.save({
         session: options?.session,
       })) as HydratedDocument<S>;
@@ -291,6 +265,53 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     }
     throw new IllegalArgumentException(
       `There is no document matching the given ID '${entity.id}'`,
+    );
+  }
+
+  private setAuditableDataOnDocumentToUpdate<S extends T>(
+    document: HydratedDocument<S>,
+    userId?: string,
+  ): void {
+    document.isNew = false;
+    if (isAuditable(document)) {
+      if (userId) document.$locals.userId = userId;
+      document.__v = (document.__v ?? 0) + 1;
+    }
+  }
+
+  /** @inheritdoc */
+  async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
+    if (options?.connection)
+      console.warn(
+        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
+      );
+    if (!id) throw new IllegalArgumentException('The given ID must be valid');
+    const isDeleted = await this.entityModel.findByIdAndDelete(id, {
+      session: options?.session,
+    });
+    return !!isDeleted;
+  }
+
+  /**
+   * Instantiates a persistable domain object from the given Mongoose Document.
+   * @param {HydratedDocument<S> | null} document the given Mongoose Document.
+   * @returns {S | null} the resulting persistable domain object instance.
+   * @throws {UndefinedConstructorException} if there is no constructor available.
+   */
+  protected instantiateFrom<S extends T>(
+    document: HydratedDocument<S> | null,
+  ): S | null {
+    if (!document) return null;
+    const entityKey = document.get('__t');
+    const constructor: Constructor<S> | undefined = entityKey
+      ? (this.typeMap.getSubtypeData(entityKey)?.type as Constructor<S>)
+      : (this.typeMap.getSupertypeData().type as Constructor<S>);
+    if (constructor) {
+      // safe instantiation as no abstract class instance can be stored in the first place
+      return new constructor(document.toObject());
+    }
+    throw new UndefinedConstructorException(
+      `There is no registered instance constructor for the document with ID ${document.id}`,
     );
   }
 }
