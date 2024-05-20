@@ -2,6 +2,7 @@ import { ClientSession, Connection, UpdateQuery } from 'mongoose';
 import { MongooseRepository } from './mongoose.repository';
 import { PartialEntityWithId } from './repository';
 import { TransactionalRepository } from './transactional-repository';
+import { DomainModel } from './util/domain-model';
 import { Entity } from './util/entity';
 import { IllegalArgumentException } from './util/exceptions';
 import {
@@ -10,7 +11,6 @@ import {
   SaveOptions,
 } from './util/operation-options';
 import { runInTransaction } from './util/transaction';
-import { TypeMap } from './util/type-map';
 
 /**
  * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
@@ -23,11 +23,11 @@ export abstract class MongooseTransactionalRepository<
 {
   /**
    * Sets up the underlying configuration to enable database operation execution.
-   * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
+   * @param {DomainModel<T>} domainModel the domain model supported by this repository.
    * @param {Connection=} connection (optional) a MongoDB instance connection.
    */
-  protected constructor(typeMap: TypeMap<T>, connection?: Connection) {
-    super(typeMap, connection);
+  protected constructor(domainModel: DomainModel<T>, connection?: Connection) {
+    super(domainModel, connection);
   }
 
   /** @inheritdoc */

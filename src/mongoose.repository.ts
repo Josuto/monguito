@@ -7,6 +7,7 @@ import mongoose, {
 import { Optional } from 'typescript-optional';
 import { PartialEntityWithId, Repository } from './repository';
 import { isAuditable } from './util/audit';
+import { Constructor, DomainModel, DomainTree } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -20,7 +21,6 @@ import {
   FindOneOptions,
   SaveOptions,
 } from './util/operation-options';
-import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 
 /**
  * Abstract Mongoose-based implementation of the {@link Repository} interface.
@@ -28,25 +28,25 @@ import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
-  private readonly typeMap: TypeMapImpl<T>;
+  private readonly domainTree: DomainTree<T>;
   protected readonly entityModel: Model<T>;
 
   /**
    * Sets up the underlying configuration to enable database operation execution.
-   * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
+   * @param {DomainModel<T>} domainModel the domain model supported by this repository.
    * @param {Connection=} connection (optional) a MongoDB instance connection.
    */
   protected constructor(
-    typeMap: TypeMap<T>,
+    domainModel: DomainModel<T>,
     protected readonly connection?: Connection,
   ) {
-    this.typeMap = new TypeMapImpl(typeMap);
+    this.domainTree = new DomainTree(domainModel);
     this.entityModel = this.createEntityModel(connection);
   }
 
   private createEntityModel(connection?: Connection) {
     let entityModel;
-    const supertypeData = this.typeMap.getSupertypeData();
+    const supertypeData = this.domainTree.getSupertypeData();
     if (connection) {
       entityModel = connection.model<T>(
         supertypeData.type.name,
@@ -58,7 +58,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         supertypeData.schema,
       );
     }
-    for (const subtypeData of this.typeMap.getSubtypesData()) {
+    for (const subtypeData of this.domainTree.getSubtypeTree()) {
       entityModel.discriminator(subtypeData.type.name, subtypeData.schema);
     }
     return entityModel;
@@ -212,12 +212,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
-    if (!this.typeMap.has(entityClassName)) {
+    if (!this.domainTree.has(entityClassName)) {
       throw new IllegalArgumentException(
         `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
       );
     }
-    const isSubtype = entityClassName !== this.typeMap.getSupertypeName();
+    const isSubtype = entityClassName !== this.domainTree.getSupertypeName();
     const hasEntityDiscriminatorKey = '__t' in entity;
     if (isSubtype && !hasEntityDiscriminatorKey) {
       entity['__t'] = entityClassName;
@@ -304,8 +304,8 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     if (!document) return null;
     const entityKey = document.get('__t');
     const constructor: Constructor<S> | undefined = entityKey
-      ? (this.typeMap.getSubtypeData(entityKey)?.type as Constructor<S>)
-      : (this.typeMap.getSupertypeData().type as Constructor<S>);
+      ? (this.domainTree.getSubtypeData(entityKey)?.type as Constructor<S>)
+      : (this.domainTree.getSupertypeData().type as Constructor<S>);
     if (constructor) {
       // safe instantiation as no abstract class instance can be stored in the first place
       return new constructor(document.toObject());
