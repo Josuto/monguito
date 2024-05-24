@@ -18,19 +18,14 @@ export type AbsConstructor<T> = abstract new (...args: any) => T;
  */
 export interface DomainTypeData<T> {
   type: Constructor<T> | AbsConstructor<T>;
-  schema: Schema;
+  schema: Schema; // FIXME: should be Schema<T>;
 }
-
-/**
- * Models any subtype of a given type.
- */
-type InferSubtype<T> = T extends infer S ? S : never;
 
 /**
  * Domain model specification.
  */
 export interface DomainModel<T extends Entity> extends DomainTypeData<T> {
-  subtypes?: DomainModel<InferSubtype<T>>[];
+  subtypes?: DomainModel<T>[];
 }
 
 /**
@@ -39,7 +34,7 @@ export interface DomainModel<T extends Entity> extends DomainTypeData<T> {
 export class DomainTree<T extends Entity> implements DomainModel<T> {
   readonly type: Constructor<T> | AbsConstructor<T>;
   readonly schema: Schema<T>;
-  readonly subtypeTree?: DomainModel<InferSubtype<T>>[];
+  readonly subtypeTree?: DomainModel<T>[]; // FIXME: should be DomainTree<any_strict_subtype_of_T>[];
 
   constructor(domainModel: DomainModel<T>) {
     if (!domainModel.type || !domainModel.schema) {
@@ -55,7 +50,7 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     }
   }
 
-  getSubtypeData(type: string): DomainTypeData<InferSubtype<T>> | undefined {
+  getSubtypeData(type: string): DomainTypeData<T> | undefined {
     const subtypeData = this.subtypeTree?.find(
       (subtype) => subtype.type.name === type,
     );
@@ -75,7 +70,7 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     return this.getSupertypeData().type.name;
   }
 
-  getSubtypeTree(): DomainModel<InferSubtype<T>>[] {
+  getSubtypeTree(): DomainModel<T>[] {
     return this.subtypeTree || [];
   }
 
