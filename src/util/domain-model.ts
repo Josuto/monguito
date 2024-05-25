@@ -5,27 +5,40 @@ import { IllegalArgumentException } from './exceptions';
 /**
  * Models a domain type instance constructor.
  */
-export type Constructor<T> = new (...args: any) => T;
+type Constructor<T> = new (...args: any) => T;
 
 /**
  * Models an abstract domain type instance constructor.
  */
-
-export type AbsConstructor<T> = abstract new (...args: any) => T;
+type AbsConstructor<T> = abstract new (...args: any) => T;
 
 /**
  * Models some domain type data.
  */
-export interface DomainTypeData<T> {
+type DomainTypeData<T> = {
   type: Constructor<T> | AbsConstructor<T>;
-  schema: Schema; // FIXME: should be Schema<T>;
-}
+  schema: Schema;
+};
+
+/**
+ * Models some domain leaf type data.
+ */
+type DomainLeafTypeData<T> = { type: Constructor<T>; schema: Schema };
+
+/**
+ * Models some domain intermediate type data.
+ */
+type DomainIntermediateTypeData<T> = {
+  type: Constructor<T> | AbsConstructor<T>;
+  schema: Schema;
+  subtypes: (DomainIntermediateTypeData<T> | DomainLeafTypeData<T>)[];
+};
 
 /**
  * Domain model specification.
  */
 export interface DomainModel<T extends Entity> extends DomainTypeData<T> {
-  subtypes?: DomainModel<T>[]; // FIXME: should be DomainModel<any_strict_subtype_of_T>[];
+  subtypes?: (DomainIntermediateTypeData<T> | DomainLeafTypeData<T>)[];
 }
 
 /**
@@ -33,8 +46,8 @@ export interface DomainModel<T extends Entity> extends DomainTypeData<T> {
  */
 export class DomainTree<T extends Entity> implements DomainModel<T> {
   readonly type: Constructor<T> | AbsConstructor<T>;
-  readonly schema: Schema<T>;
-  readonly subtypeTree?: DomainModel<T>[]; // FIXME: should be DomainTree<any_strict_subtype_of_T>[];
+  readonly schema: Schema;
+  readonly subtypes: (DomainIntermediateTypeData<T> | DomainLeafTypeData<T>)[];
 
   constructor(domainModel: DomainModel<T>) {
     if (!domainModel.type || !domainModel.schema) {
@@ -44,19 +57,24 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     }
     this.type = domainModel.type;
     this.schema = domainModel.schema;
-    this.subtypeTree = [];
+    this.subtypes = [];
     for (const subtypeData of domainModel.subtypes ?? []) {
-      this.subtypeTree.push(new DomainTree(subtypeData));
+      this.subtypes.push(new DomainTree(subtypeData));
     }
   }
 
   getSubtypeData(type: string): DomainTypeData<T> | undefined {
-    const subtypeData = this.subtypeTree?.find(
+    const subtypeData = this.subtypes?.find(
       (subtype) => subtype.type.name === type,
     );
     if (subtypeData)
       return { type: subtypeData?.type, schema: subtypeData?.schema };
     else return undefined;
+  }
+
+  getSubtypeConstructor(type: string): Constructor<T> | undefined {
+    const subtypeData = this.getSubtypeData(type);
+    return subtypeData?.type as Constructor<T>;
   }
 
   getSupertypeData(): DomainTypeData<T> {
@@ -66,12 +84,16 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     };
   }
 
+  getSupertypeConstructor(): Constructor<T> | undefined {
+    return this.type as Constructor<T>;
+  }
+
   getSupertypeName(): string {
     return this.getSupertypeData().type.name;
   }
 
   getSubtypeTree(): DomainModel<T>[] {
-    return this.subtypeTree || [];
+    return this.subtypes || [];
   }
 
   has(type: string): boolean {

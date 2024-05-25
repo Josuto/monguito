@@ -7,7 +7,7 @@ import mongoose, {
 import { Optional } from 'typescript-optional';
 import { PartialEntityWithId, Repository } from './repository';
 import { isAuditable } from './util/audit';
-import { Constructor, DomainModel, DomainTree } from './util/domain-model';
+import { DomainModel, DomainTree } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -303,15 +303,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   ): S | null {
     if (!document) return null;
     const entityKey = document.get('__t');
-    const constructor: Constructor<S> | undefined = entityKey
-      ? (this.domainTree.getSubtypeData(entityKey)?.type as Constructor<S>)
-      : (this.domainTree.getSupertypeData().type as Constructor<S>);
+    const constructor = entityKey
+      ? this.domainTree.getSubtypeConstructor(entityKey)
+      : this.domainTree.getSupertypeConstructor();
     if (constructor) {
       // safe instantiation as no abstract class instance can be stored in the first place
-      return new constructor(document.toObject());
+      return new constructor(document.toObject()) as S;
     }
     throw new UndefinedConstructorException(
-      `There is no registered instance constructor for the document with ID ${document.id}`,
+      `There is no registered instance constructor for the document with ID ${document.id} or the constructor is abstract`,
     );
   }
 }
