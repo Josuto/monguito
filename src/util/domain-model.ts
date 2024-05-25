@@ -25,7 +25,7 @@ export interface DomainTypeData<T> {
  * Domain model specification.
  */
 export interface DomainModel<T extends Entity> extends DomainTypeData<T> {
-  subtypes?: DomainModel<T>[];
+  subtypes?: DomainModel<T>[]; // FIXME: should be DomainModel<any_strict_subtype_of_T>[];
 }
 
 /**
