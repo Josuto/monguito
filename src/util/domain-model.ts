@@ -63,13 +63,12 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     }
   }
 
-  getSubtypeData(type: string): DomainTypeData<T> | undefined {
-    const subtypeData = this.subtypes?.find(
-      (subtype) => subtype.type.name === type,
-    );
-    if (subtypeData)
-      return { type: subtypeData?.type, schema: subtypeData?.schema };
-    else return undefined;
+  getSubtypeTree(): DomainModel<T>[] {
+    return this.subtypes || [];
+  }
+
+  getSubtypeData(type: string): DomainModel<T> | undefined {
+    return this.subtypes?.find((subtype) => subtype.type.name === type);
   }
 
   getSubtypeConstructor(type: string): Constructor<T> | undefined {
@@ -77,23 +76,12 @@ export class DomainTree<T extends Entity> implements DomainModel<T> {
     return subtypeData?.type as Constructor<T>;
   }
 
-  getSupertypeData(): DomainTypeData<T> {
-    return {
-      type: this.type,
-      schema: this.schema,
-    };
-  }
-
   getSupertypeConstructor(): Constructor<T> | undefined {
     return this.type as Constructor<T>;
   }
 
   getSupertypeName(): string {
-    return this.getSupertypeData().type.name;
-  }
-
-  getSubtypeTree(): DomainModel<T>[] {
-    return this.subtypes || [];
+    return this.type.name;
   }
 
   has(type: string): boolean {

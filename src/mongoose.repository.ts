@@ -46,16 +46,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   private createEntityModel(connection?: Connection) {
     let entityModel;
-    const supertypeData = this.domainTree.getSupertypeData();
     if (connection) {
       entityModel = connection.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
+        this.domainTree.type.name,
+        this.domainTree.schema,
       );
     } else {
       entityModel = mongoose.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
+        this.domainTree.type.name,
+        this.domainTree.schema,
       );
     }
     for (const subtypeData of this.domainTree.getSubtypeTree()) {
