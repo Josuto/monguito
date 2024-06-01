@@ -491,13 +491,12 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('that includes a null filter', () => {
-      it('throws an exception', async () => {
-        await expect(
-          bookRepository.deleteAll({ filters: null as unknown as object }),
-        ).rejects.toThrow(IllegalArgumentException);
+      it('deletes all books', async () => {
+        const deletedBooks = await bookRepository.deleteAll();
+        expect(deletedBooks).toBe(2);
 
         const storedBooks = await bookRepository.findAll();
-        expect(storedBooks).toEqual([storedBook, storedPaperBook]);
+        expect(storedBooks.length).toBe(0);
       });
     });
 

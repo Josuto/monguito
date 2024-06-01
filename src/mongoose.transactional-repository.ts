@@ -4,7 +4,6 @@ import { PartialEntityWithId } from './repository';
 import { TransactionalRepository } from './transactional-repository';
 import { DomainModel } from './util/domain-model';
 import { Entity } from './util/entity';
-import { IllegalArgumentException } from './util/exceptions';
 import {
   DeleteAllOptions,
   SaveAllOptions,
@@ -52,9 +51,6 @@ export abstract class MongooseTransactionalRepository<
 
   /** @inheritdoc */
   async deleteAll(options?: DeleteAllOptions): Promise<number> {
-    if (options?.filters === null) {
-      throw new IllegalArgumentException('Null filters are disallowed');
-    }
     return await runInTransaction(
       async (session: ClientSession) =>
         (await this.entityModel.deleteMany(options?.filters, { session }))
