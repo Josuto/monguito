@@ -1,3 +1,4 @@
+import { FilterQuery } from 'mongoose';
 import { IllegalArgumentException } from './exceptions';
 import { TransactionOptions } from './transaction';
 
@@ -44,15 +45,19 @@ export class Pageable {
   }
 }
 
+export type SortOrder = {
+  [key: string]: 'asc' | 'desc' | 'ascending' | 'descending' | 1 | -1;
+};
+
 /**
  * Specifies options for the `findAll` operation.
- * @property {any=} filters (optional) some filters for the search.
- * @property {any=} sortBy (optional) the sorting criteria for the search.
+ * @property {FilterQuery=} filters (optional) some filters for the search.
+ * @property {string | SortOrder=} sortBy (optional) the sorting criteria for the search.
  * @property {Pageable=} pageable (optional) paging configuration.
  */
-export type FindAllOptions = {
-  filters?: any;
-  sortBy?: any;
+export type FindAllOptions<T> = {
+  filters?: FilterQuery<T>;
+  sortBy?: string | SortOrder;
   pageable?: Pageable;
 } & TransactionOptions;
 
@@ -64,8 +69,8 @@ export type FindByIdOptions = TransactionOptions;
 /**
  * Specifies options for the `findOne` operation;
  */
-export type FindOneOptions = {
-  filters?: any;
+export type FindOneOptions<T> = {
+  filters?: FilterQuery<T>;
 } & TransactionOptions;
 
 /**
@@ -80,10 +85,10 @@ export type SaveAllOptions = AuditOptions & TransactionOptions;
 
 /**
  * Specifies options for the `deleteAll` operation.
- * @property {any=} filters (optional) a MongoDB query object to select the entities to be deleted.
+ * @property {FilterQuery=} filters (optional) a MongoDB query object to select the entities to be deleted.
  */
-export type DeleteAllOptions = {
-  filters?: any;
+export type DeleteAllOptions<T> = {
+  filters?: FilterQuery<T>;
 } & TransactionOptions;
 
 /**

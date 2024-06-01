@@ -50,7 +50,7 @@ export abstract class MongooseTransactionalRepository<
   }
 
   /** @inheritdoc */
-  async deleteAll(options?: DeleteAllOptions): Promise<number> {
+  async deleteAll<S extends T>(options?: DeleteAllOptions<S>): Promise<number> {
     return await runInTransaction(
       async (session: ClientSession) =>
         (await this.entityModel.deleteMany(options?.filters, { session }))

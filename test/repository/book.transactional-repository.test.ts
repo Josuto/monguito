@@ -492,7 +492,9 @@ describe('Given an instance of book repository', () => {
 
     describe('that includes a null filter', () => {
       it('deletes all books', async () => {
-        const deletedBooks = await bookRepository.deleteAll();
+        const deletedBooks = await bookRepository.deleteAll({
+          filters: null as unknown as object,
+        });
         expect(deletedBooks).toBe(2);
 
         const storedBooks = await bookRepository.findAll();
