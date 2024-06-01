@@ -77,18 +77,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findOne<S extends T>(
-    filters: any,
-    options?: FindOneOptions,
-  ): Promise<Optional<S>> {
-    if (filters)
-      console.warn(
-        'Since v5.0.1 the "filters" parameter is deprecated. Use "options.filters" instead.',
-      );
-    if (!filters && !options?.filters)
-      throw new IllegalArgumentException('Missing search criteria (filters)');
+  async findOne<S extends T>(options?: FindOneOptions): Promise<Optional<S>> {
     const document = await this.entityModel
-      .findOne(options?.filters ?? filters)
+      .findOne(options?.filters ?? undefined)
       .session(options?.session ?? null)
       .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
