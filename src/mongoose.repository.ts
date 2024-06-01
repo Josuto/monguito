@@ -1,5 +1,6 @@
 import mongoose, {
   Connection,
+  FilterQuery,
   HydratedDocument,
   Model,
   UpdateQuery,
@@ -77,7 +78,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findOne<S extends T>(options?: FindOneOptions): Promise<Optional<S>> {
+  async findOne<S extends T>(
+    options?: FindOneOptions<S>,
+  ): Promise<Optional<S>> {
     const document = await this.entityModel
       .findOne(options?.filters ?? undefined)
       .session(options?.session ?? null)
@@ -86,7 +89,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   }
 
   /** @inheritdoc */
-  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
+  async findAll<S extends T>(options?: FindAllOptions<S>): Promise<S[]> {
     if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
       throw new IllegalArgumentException(
         'The given page number must be a positive number',
@@ -102,7 +105,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const pageNumber = options?.pageable?.pageNumber ?? 0;
     try {
       const documents = await this.entityModel
-        .find(options?.filters)
+        .find(options?.filters as FilterQuery<S>)
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)

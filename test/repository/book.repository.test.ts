@@ -135,7 +135,9 @@ describe('Given an instance of book repository', () => {
 
       describe('using a null filter', () => {
         it('returns an arbitrary book', async () => {
-          const book = await bookRepository.findOne({ filters: null });
+          const book = await bookRepository.findOne({
+            filters: null as unknown as object,
+          });
           expect(book.isPresent()).toBe(true);
           expect([storedPaperBook, storedAudioBook]).toContainEqual(book.get());
         });
@@ -277,7 +279,7 @@ describe('Given an instance of book repository', () => {
 
       describe('and such a value refers to an existing field in some Book type', () => {
         it('retrieves a list with all books matching the filter', async () => {
-          const filters = { __t: 'PaperBook' };
+          const filters = { title: 'Effective Java' };
           const books = await bookRepository.findAll({ filters });
           expect(books.length).toBe(1);
           expect(books).toEqual([storedPaperBook]);
@@ -286,19 +288,29 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and providing a value for the sort parameter', () => {
-      describe('and such a value is invalid', () => {
-        it('throws an exception', async () => {
-          const sortBy = { title: 2 };
-          await expect(bookRepository.findAll({ sortBy })).rejects.toThrow(
-            IllegalArgumentException,
-          );
+      describe('and such a value is the name of a book property', () => {
+        it('retrieves an ordered list with books', async () => {
+          const books = await bookRepository.findAll({
+            sortBy: 'title',
+          });
+          expect(books.length).toBe(3);
+          expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
         });
       });
 
-      describe('and such a value is valid', () => {
+      describe('and such a value is ascendent on a book property', () => {
         it('retrieves an ordered list with books', async () => {
-          const sortBy = { title: -1 };
-          const books = await bookRepository.findAll({ sortBy });
+          const books = await bookRepository.findAll({
+            sortBy: { title: 'asc' },
+          });
+          expect(books.length).toBe(3);
+          expect(books).toEqual([storedBook, storedPaperBook, storedAudioBook]);
+        });
+      });
+
+      describe('and such a value is descendent on a book property', () => {
+        it('retrieves an ordered list with books', async () => {
+          const books = await bookRepository.findAll({ sortBy: { title: -1 } });
           expect(books.length).toBe(3);
           expect(books).toEqual([storedAudioBook, storedPaperBook, storedBook]);
         });
@@ -936,11 +948,10 @@ describe('Given an instance of book repository', () => {
     describe('and providing a valid value for all optional parameters', () => {
       it('retrieves an ordered list with books matching the filter', async () => {
         const filters = { __t: ['PaperBook', 'AudioBook'] };
-        const sortBy = { title: -1 };
         const pageable = { pageNumber: 1, offset: 1 };
         const books = await bookRepository.findAll({
           filters,
-          sortBy,
+          sortBy: { title: -1 },
           pageable,
         });
         expect(books.length).toBe(1);
