@@ -3,7 +3,7 @@ import { MongooseTransactionalRepository } from './mongoose.transactional-reposi
 import { PartialEntityWithId, Repository } from './repository';
 import { TransactionalRepository } from './transactional-repository';
 import { Auditable, AuditableClass, isAuditable } from './util/audit';
-import { DomainModel, DomainTree } from './util/domain-model';
+import { DomainModel } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -18,6 +18,7 @@ import {
   FindOneOptions,
   SaveAllOptions,
   SaveOptions,
+  SortOrder,
 } from './util/operation-options';
 import {
   AuditableSchema,
@@ -36,7 +37,6 @@ export {
   DeleteAllOptions,
   DeleteByIdOptions,
   DomainModel,
-  DomainTree,
   Entity,
   extendSchema,
   FindAllOptions,
@@ -53,6 +53,7 @@ export {
   SaveOptions,
   SchemaOptions,
   SchemaPlugin,
+  SortOrder,
   TransactionalRepository,
   TransactionOptions,
   UndefinedConstructorException,
