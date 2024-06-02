@@ -7,11 +7,9 @@ type DbCallback<T> = (session: ClientSession) => Promise<T>;
 
 /**
  * Specifies transaction options.
- * @property {Connection=} connection (optional) a MongoDB connection, required to create a new transaction session.
- * @property {ClientSession=} session (optional) a transaction session, required to run the operation within an existing transaction.
+ * @property {ClientSession} session (optional) - a transaction session, required to run the operation within an existing transaction.
  */
 export type TransactionOptions = {
-  connection?: Connection;
   session?: ClientSession;
 };
 
@@ -22,11 +20,11 @@ const MAX_RETRIES = 3;
  * iff it has run successfully.
  *
  * @param {DbCallback<T>} callback a callback function that writes to and reads from the database using a session.
- * @param {TransactionOptions=} options (optional) some options about the transaction.
+ * @param {TransactionOptions} options (optional) some options about the transaction.
  */
 export async function runInTransaction<T>(
   callback: DbCallback<T>,
-  options?: TransactionOptions,
+  options?: TransactionOptions & { connection?: Connection },
 ): Promise<T> {
   if (options?.session) return callback(options.session);
   return await recursiveRunIntransaction(callback, 0, options?.connection);

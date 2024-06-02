@@ -14,7 +14,7 @@ export class IllegalArgumentException extends Exception {
   /**
    * Creates an `IllegalArgumentException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error=} error (optional) the wrapped error.
+   * @param {Error} error (optional) the wrapped error.
    */
   constructor(message: string, error?: Error) {
     super(message, error);
@@ -28,7 +28,7 @@ export class UndefinedConstructorException extends Exception {
   /**
    * Creates an `UndefinedConstructorException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error=} error (optional) the wrapped error.
+   * @param {Error} error (optional) the wrapped error.
    */
   constructor(message: string, error?: Error) {
     super(message, error);
@@ -42,7 +42,7 @@ export class ValidationException extends Exception {
   /**
    * Creates an `ValidationException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error=} error (optional) the wrapped error.
+   * @param {Error} error (optional) the wrapped error.
    */
   constructor(message: string, error?: Error) {
     super(message, error);

@@ -1,9 +1,9 @@
+import { Optional } from 'typescript-optional';
 import {
   IllegalArgumentException,
   MongooseRepository,
   Repository,
 } from '../../src';
-import { Optional } from 'typescript-optional';
 import { AudioBook, Book, PaperBook } from '../domain/book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schema';
 
@@ -17,9 +17,12 @@ export class MongooseBookRepository
 {
   constructor() {
     super({
-      Default: { type: Book, schema: BookSchema },
-      PaperBook: { type: PaperBook, schema: PaperBookSchema },
-      AudioBook: { type: AudioBook, schema: AudioBookSchema },
+      type: Book,
+      schema: BookSchema,
+      subtypes: [
+        { type: PaperBook, schema: PaperBookSchema },
+        { type: AudioBook, schema: AudioBookSchema },
+      ],
     });
   }
 
