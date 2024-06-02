@@ -23,7 +23,7 @@ export abstract class MongooseTransactionalRepository<
   /**
    * Sets up the underlying configuration to enable database operation execution.
    * @param {DomainModel<T>} domainModel the domain model supported by this repository.
-   * @param {Connection=} connection (optional) a MongoDB instance connection.
+   * @param {Connection} connection (optional) a MongoDB instance connection.
    */
   protected constructor(domainModel: DomainModel<T>, connection?: Connection) {
     super(domainModel, connection);

@@ -161,10 +161,7 @@ This value wraps an actual entity or `null` in case that no entity matches the g
 
 ### `findOne`
 
-Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `filters` parameter values. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` in case that no entity matches the given conditions.
-
-> [!WARNING]
-> Since v5.0.1 the `filters` parameter is now deprecated. Use the new behavioural `options.filters` option instead.
+Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `filters` parameter value. If no value is provided, then an arbitrary stored (if any) entity is returned. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` if no entity matches the given conditions.
 
 ### `findAll`
 
