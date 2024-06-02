@@ -13,7 +13,7 @@ import { AuditOptions } from '../../../dist/util/operation-options';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 
-type SoftDeleteAllOptions = DeleteAllOptions & AuditOptions;
+type SoftDeleteAllOptions = DeleteAllOptions<Book> & AuditOptions;
 type SoftDeleteByIdOptions = DeleteByIdOptions & AuditOptions;
 
 @Injectable()
