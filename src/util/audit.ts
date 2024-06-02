@@ -1,5 +1,10 @@
 /**
  * Models an auditable persistable domain object.
+ * @property {Date} createdAt - the date and time when the entity was created.
+ * @property {string} createdBy - the user who created the entity.
+ * @property {Date} updatedAt - the date and time when the entity was last updated.
+ * @property {string} updatedBy - the user who last updated the entity.
+ * @property {number} version - the version of the entity.
  */
 export interface Auditable {
   createdAt?: Date;

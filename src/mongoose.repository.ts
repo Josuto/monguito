@@ -35,7 +35,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Sets up the underlying configuration to enable database operation execution.
    * @param {DomainModel<T>} domainModel the domain model supported by this repository.
-   * @param {Connection=} connection (optional) a MongoDB instance connection.
+   * @param {Connection} connection (optional) a MongoDB instance connection.
    */
   protected constructor(
     domainModel: DomainModel<T>,
@@ -152,7 +152,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Inserts an entity.
    * @param {S} entity the entity to insert.
-   * @param {SaveOptions=} options (optional) insert operation options.
+   * @param {SaveOptions} options (optional) insert operation options.
    * @returns {Promise<S>} the inserted entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null`.
    */
@@ -211,7 +211,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Updates an entity.
    * @param {S} entity the entity to update.
-   * @param {SaveOptions=} options (optional) update operation options.
+   * @param {SaveOptions} options (optional) update operation options.
    * @returns {Promise<S>} the updated entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or specifies an `id` not matching any existing entity.
    */
