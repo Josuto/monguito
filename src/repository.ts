@@ -35,15 +35,11 @@ export interface Repository<T extends Entity> {
 
   /**
    * Finds an entity by some filters.
-   * @param {any} filters some filters for the search - Deprecated since v5.0.1, use options.filters instead.
    * @param {FindOneOptions=} options (optional) search operation options.
    * @returns {Promise<Optional<S>>} the entity or null.
    * @throws {IllegalArgumentException} if the given `filters` parameter is `undefined` or `null`.
    */
-  findOne: <S extends T>(
-    filters: any,
-    options?: FindOneOptions,
-  ) => Promise<Optional<S>>;
+  findOne: <S extends T>(options?: FindOneOptions<S>) => Promise<Optional<S>>;
 
   /**
    * Finds all entities.
@@ -51,7 +47,7 @@ export interface Repository<T extends Entity> {
    * @returns {Promise<S[]>} all entities.
    * @throws {IllegalArgumentException} if the given `options` specifies an invalid parameter.
    */
-  findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
+  findAll: <S extends T>(options?: FindAllOptions<S>) => Promise<S[]>;
 
   /**
    * Saves (insert or update) an entity.

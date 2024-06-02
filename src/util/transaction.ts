@@ -11,7 +11,6 @@ type DbCallback<T> = (session: ClientSession) => Promise<T>;
  * @property {ClientSession=} session (optional) a transaction session, required to run the operation within an existing transaction.
  */
 export type TransactionOptions = {
-  connection?: Connection;
   session?: ClientSession;
 };
 
@@ -26,7 +25,7 @@ const MAX_RETRIES = 3;
  */
 export async function runInTransaction<T>(
   callback: DbCallback<T>,
-  options?: TransactionOptions,
+  options?: TransactionOptions & { connection?: Connection },
 ): Promise<T> {
   if (options?.session) return callback(options.session);
   return await recursiveRunIntransaction(callback, 0, options?.connection);

@@ -28,5 +28,5 @@ export interface TransactionalRepository<T extends Entity>
    * @returns {number} the number of deleted entities.
    * @see {@link DeleteAllOptions}
    */
-  deleteAll: (options?: DeleteAllOptions) => Promise<number>;
+  deleteAll: <S extends T>(options?: DeleteAllOptions<S>) => Promise<number>;
 }
