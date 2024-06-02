@@ -8,11 +8,14 @@ import {
 export class MongooseAuditableBookRepository extends MongooseRepository<AuditableBook> {
   constructor() {
     super({
-      Default: { type: AuditableBook, schema: AuditableBookSchema },
-      AuditablePaperBook: {
-        type: AuditablePaperBook,
-        schema: AuditablePaperBookSchema,
-      },
+      type: AuditableBook,
+      schema: AuditableBookSchema,
+      subtypes: [
+        {
+          type: AuditablePaperBook,
+          schema: AuditablePaperBookSchema,
+        },
+      ],
     });
   }
 }

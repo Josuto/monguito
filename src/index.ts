@@ -3,6 +3,7 @@ import { MongooseTransactionalRepository } from './mongoose.transactional-reposi
 import { PartialEntityWithId, Repository } from './repository';
 import { TransactionalRepository } from './transactional-repository';
 import { Auditable, AuditableClass, isAuditable } from './util/audit';
+import { DomainModel, DomainTree } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -26,24 +27,16 @@ import {
   SchemaPlugin,
 } from './util/schema';
 import { runInTransaction, TransactionOptions } from './util/transaction';
-import {
-  AbsConstructor,
-  Constructor,
-  SubtypeData,
-  SubtypeMap,
-  SupertypeData,
-  TypeMap,
-} from './util/type-map';
 
 export {
-  AbsConstructor,
   Auditable,
   AuditableClass,
   AuditableSchema,
   BaseSchema,
-  Constructor,
   DeleteAllOptions,
   DeleteByIdOptions,
+  DomainModel,
+  DomainTree,
   Entity,
   extendSchema,
   FindAllOptions,
@@ -60,12 +53,8 @@ export {
   SaveOptions,
   SchemaOptions,
   SchemaPlugin,
-  SubtypeData,
-  SubtypeMap,
-  SupertypeData,
   TransactionalRepository,
   TransactionOptions,
-  TypeMap,
   UndefinedConstructorException,
   ValidationException,
 };

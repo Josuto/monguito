@@ -24,9 +24,12 @@ export class MongooseBookRepository
   constructor(@InjectConnection() connection: Connection) {
     super(
       {
-        Default: { type: Book, schema: BookSchema },
-        PaperBook: { type: PaperBook, schema: PaperBookSchema },
-        AudioBook: { type: AudioBook, schema: AudioBookSchema },
+        type: Book,
+        schema: BookSchema,
+        subtypes: [
+          { type: PaperBook, schema: PaperBookSchema },
+          { type: AudioBook, schema: AudioBookSchema },
+        ],
       },
       connection,
     );
