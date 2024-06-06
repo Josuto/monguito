@@ -10,7 +10,7 @@
   "homepage": "https://github.com/josuto/monguito#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/josuto/monguito.git"
+    "url": "git+https://github.com/josuto/monguito.git"
   },
   "bugs": {
     "url": "https://github.com/josuto/monguito/issues",
