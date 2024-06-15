@@ -1,5 +1,6 @@
 import mongoose, {
   Connection,
+  FilterQuery,
   HydratedDocument,
   Model,
   UpdateQuery,
@@ -7,6 +8,7 @@ import mongoose, {
 import { Optional } from 'typescript-optional';
 import { PartialEntityWithId, Repository } from './repository';
 import { isAuditable } from './util/audit';
+import { DomainModel, DomainTree } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
@@ -20,7 +22,6 @@ import {
   FindOneOptions,
   SaveOptions,
 } from './util/operation-options';
-import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 
 /**
  * Abstract Mongoose-based implementation of the {@link Repository} interface.
@@ -28,37 +29,36 @@ import { Constructor, TypeMap, TypeMapImpl } from './util/type-map';
 export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   implements Repository<T>
 {
-  private readonly typeMap: TypeMapImpl<T>;
+  private readonly domainTree: DomainTree<T>;
   protected readonly entityModel: Model<T>;
 
   /**
    * Sets up the underlying configuration to enable database operation execution.
-   * @param {TypeMap<T>} typeMap a map of domain object types supported by this repository.
-   * @param {Connection=} connection (optional) a MongoDB instance connection.
+   * @param {DomainModel<T>} domainModel the domain model supported by this repository.
+   * @param {Connection} connection (optional) a MongoDB instance connection.
    */
   protected constructor(
-    typeMap: TypeMap<T>,
+    domainModel: DomainModel<T>,
     protected readonly connection?: Connection,
   ) {
-    this.typeMap = new TypeMapImpl(typeMap);
+    this.domainTree = new DomainTree(domainModel);
     this.entityModel = this.createEntityModel(connection);
   }
 
   private createEntityModel(connection?: Connection) {
     let entityModel;
-    const supertypeData = this.typeMap.getSupertypeData();
     if (connection) {
       entityModel = connection.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
+        this.domainTree.type.name,
+        this.domainTree.schema,
       );
     } else {
       entityModel = mongoose.model<T>(
-        supertypeData.type.name,
-        supertypeData.schema,
+        this.domainTree.type.name,
+        this.domainTree.schema,
       );
     }
-    for (const subtypeData of this.typeMap.getSubtypesData()) {
+    for (const subtypeData of this.domainTree.getSubtypeTree()) {
       entityModel.discriminator(subtypeData.type.name, subtypeData.schema);
     }
     return entityModel;
@@ -69,10 +69,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     id: string,
     options?: FindByIdOptions,
   ): Promise<Optional<S>> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const document = await this.entityModel
       .findById(id)
@@ -83,32 +79,17 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /** @inheritdoc */
   async findOne<S extends T>(
-    filters: any,
-    options?: FindOneOptions,
+    options?: FindOneOptions<S>,
   ): Promise<Optional<S>> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
-    if (filters)
-      console.warn(
-        'Since v5.0.1 the "filters" parameter is deprecated. Use "options.filters" instead.',
-      );
-    if (!filters && !options?.filters)
-      throw new IllegalArgumentException('Missing search criteria (filters)');
     const document = await this.entityModel
-      .findOne(options?.filters ?? filters)
+      .findOne(options?.filters ?? undefined)
       .session(options?.session ?? null)
       .exec();
     return Optional.ofNullable(this.instantiateFrom(document) as S);
   }
 
   /** @inheritdoc */
-  async findAll<S extends T>(options?: FindAllOptions): Promise<S[]> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
+  async findAll<S extends T>(options?: FindAllOptions<S>): Promise<S[]> {
     if (options?.pageable?.pageNumber && options?.pageable?.pageNumber < 0) {
       throw new IllegalArgumentException(
         'The given page number must be a positive number',
@@ -124,7 +105,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const pageNumber = options?.pageable?.pageNumber ?? 0;
     try {
       const documents = await this.entityModel
-        .find(options?.filters)
+        .find(options?.filters as FilterQuery<S>)
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
@@ -144,10 +125,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
     if (!entity)
       throw new IllegalArgumentException(
         'The given entity cannot be null or undefined',
@@ -175,7 +152,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Inserts an entity.
    * @param {S} entity the entity to insert.
-   * @param {SaveOptions=} options (optional) insert operation options.
+   * @param {SaveOptions} options (optional) insert operation options.
    * @returns {Promise<S>} the inserted entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null`.
    */
@@ -183,10 +160,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S,
     options?: SaveOptions,
   ): Promise<S> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
     if (!entity)
       throw new IllegalArgumentException(
         'The given entity cannot be null or undefined',
@@ -212,12 +185,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: S | PartialEntityWithId<S>,
   ): void {
     const entityClassName = entity['constructor']['name'];
-    if (!this.typeMap.has(entityClassName)) {
+    if (!this.domainTree.has(entityClassName)) {
       throw new IllegalArgumentException(
         `The entity with name ${entityClassName} is not included in the setup of the custom repository`,
       );
     }
-    const isSubtype = entityClassName !== this.typeMap.getSupertypeName();
+    const isSubtype = entityClassName !== this.domainTree.getSupertypeName();
     const hasEntityDiscriminatorKey = '__t' in entity;
     if (isSubtype && !hasEntityDiscriminatorKey) {
       entity['__t'] = entityClassName;
@@ -238,7 +211,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   /**
    * Updates an entity.
    * @param {S} entity the entity to update.
-   * @param {SaveOptions=} options (optional) update operation options.
+   * @param {SaveOptions} options (optional) update operation options.
    * @returns {Promise<S>} the updated entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or specifies an `id` not matching any existing entity.
    */
@@ -246,10 +219,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     entity: PartialEntityWithId<S>,
     options?: SaveOptions,
   ): Promise<S> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
     if (!entity)
       throw new IllegalArgumentException('The given entity must be valid');
     const document = await this.entityModel
@@ -281,10 +250,6 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
 
   /** @inheritdoc */
   async deleteById(id: string, options?: DeleteByIdOptions): Promise<boolean> {
-    if (options?.connection)
-      console.warn(
-        'Since v5.0.1 "options.connection" is deprecated as is of no longer use.',
-      );
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     const isDeleted = await this.entityModel.findByIdAndDelete(id, {
       session: options?.session,
@@ -303,15 +268,15 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
   ): S | null {
     if (!document) return null;
     const entityKey = document.get('__t');
-    const constructor: Constructor<S> | undefined = entityKey
-      ? (this.typeMap.getSubtypeData(entityKey)?.type as Constructor<S>)
-      : (this.typeMap.getSupertypeData().type as Constructor<S>);
+    const constructor = entityKey
+      ? this.domainTree.getSubtypeConstructor(entityKey)
+      : this.domainTree.getSupertypeConstructor();
     if (constructor) {
       // safe instantiation as no abstract class instance can be stored in the first place
-      return new constructor(document.toObject());
+      return new constructor(document.toObject()) as S;
     }
     throw new UndefinedConstructorException(
-      `There is no registered instance constructor for the document with ID ${document.id}`,
+      `There is no registered instance constructor for the document with ID ${document.id} or the constructor is abstract`,
     );
   }
 }

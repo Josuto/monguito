@@ -77,7 +77,7 @@ export function extendSchema<T = object, S = object>(
  * Creates a new schema from the given data.
  * @param {Schema<T>} baseSchema the base schema.
  * @param {SchemaDefinition<S>} extension the schema definition to extend from.
- * @param {SchemaOptions=} options (optional) some schema options.
+ * @param {SchemaOptions} options (optional) some schema options.
  * @returns {Schema<T & S>} a new schema that integrates the contents of the given parameters.
  */
 export function extendSchema<T = object, S = object>(

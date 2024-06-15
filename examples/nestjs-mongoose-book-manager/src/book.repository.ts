@@ -13,7 +13,7 @@ import { AuditOptions } from '../../../dist/util/operation-options';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 
-type SoftDeleteAllOptions = DeleteAllOptions & AuditOptions;
+type SoftDeleteAllOptions = DeleteAllOptions<Book> & AuditOptions;
 type SoftDeleteByIdOptions = DeleteByIdOptions & AuditOptions;
 
 @Injectable()
@@ -24,9 +24,12 @@ export class MongooseBookRepository
   constructor(@InjectConnection() connection: Connection) {
     super(
       {
-        Default: { type: Book, schema: BookSchema },
-        PaperBook: { type: PaperBook, schema: PaperBookSchema },
-        AudioBook: { type: AudioBook, schema: AudioBookSchema },
+        type: Book,
+        schema: BookSchema,
+        subtypes: [
+          { type: PaperBook, schema: PaperBookSchema },
+          { type: AudioBook, schema: AudioBookSchema },
+        ],
       },
       connection,
     );
