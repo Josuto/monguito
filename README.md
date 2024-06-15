@@ -51,6 +51,12 @@ Or yarn:
 yarn add monguito
 ```
 
+Or pnpm:
+
+```shell
+pnpm add monguito
+```
+
 ## Usage
 
 Creating your repository with custom database operations is very straight forward. Say you want to create a custom
@@ -61,9 +67,12 @@ and `AudioBook`). Here's the implementation of a custom repository that deals wi
 class MongooseBookRepository extends MongooseRepository<Book> {
   constructor() {
     super({
-      Default: { type: Book, schema: BookSchema },
-      PaperBook: { type: PaperBook, schema: PaperBookSchema },
-      AudioBook: { type: AudioBook, schema: AudioBookSchema },
+      type: Book,
+      schema: BookSchema,
+      subtypes: [
+        { type: PaperBook, schema: PaperBookSchema },
+        { type: AudioBook, schema: AudioBookSchema },
+      ],
     });
   }
 
@@ -96,16 +105,11 @@ No more leaking of the persistence logic into your domain/application logic! ðŸ¤
 
 ### Polymorphic Domain Model Specification
 
-`MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype
-and `PaperBook` and `AudioBook` as subtypes. Code complexity to support polymorphic domain models is hidden
-at `MongooseRepository`; all that is required is that `MongooseRepository` receives a map describing the domain model.
-Each map entry key relates to a domain object type, and the related entry value is a reference to the constructor and
-the database [schema](https://mongoosejs.com/docs/guide.html) of such domain object. The `Default` key is mandatory and
-relates to the supertype, while the rest of the keys relate to the subtypes.
+`MongooseBookRepository` handles database operations over a _polymorphic_ domain model that defines `Book` as supertype and `PaperBook` and `AudioBook` as subtypes. This means that, while these subtypes may have a different structure from its supertype, `MongooseBookRepository` can write and read objects of `Book`, `PaperBook`, and `AudioBook` to and from the same collection `books`. Code complexity to support polymorphic domain models is hidden at `MongooseRepository`; all is required is that `MongooseRepository` receives an object describing the domain model.
 
-Beware that subtype keys are named after the type name. If it so happens that you do not have any subtype in your domain
-model, no problem! Just specify the domain object that your custom repository is to handle as the sole map key-value,
-and you are done.
+This object specifies the `type` and `schema` of the supertype (`Book` and `BookSchema`, respectively, in this case). The `schema` enables entity object validation on write operations. Regarding `type`, Monguito requires it to create an internal representation of the domain model. Additionally, when `type` does not refer to an abstract type, it also serves as a constructor that enables MongoDB document deserialisation into the entity instances returned by the CRUD operations included in Monguito's repositories (e.g., `MongooseRepository`). On another hand, the domain model subtypes (if any) are also encoded in the domain model object. `subtypes` is an array of objects that specify a `type` and `schema` for a domain model subtype, and (possibly) other `subtypes`. Hence, the domain model object is of a recursive nature, allowing developers to seamlessly represent any kind of domain model, no matter its complexity.
+
+Beware that any _leaf_ domain model type cannot be abstract! Leaf domain model types are susceptible of being instantiated during MongoDB document deserialisation; any abstract leaf domain model type will result in a TypeScript error. That would be the case if `PaperBook` is declared an abstract class, or if the domain model is composed by only `Book` and such a class is declared an abstract class.
 
 # Supported Database Operations
 
@@ -125,11 +129,8 @@ interface Repository<T extends Entity> {
     id: string,
     options?: FindByIdOptions,
   ) => Promise<Optional<S>>;
-  findOne: <S extends T>(
-    filters: any, // Deprecated since v5.0.1, use options.filters instead
-    options?: FindOneOptions,
-  ) => Promise<Optional<S>>;
-  findAll: <S extends T>(options?: FindAllOptions) => Promise<S[]>;
+  findOne: <S extends T>(options?: FindOneOptions<S>) => Promise<Optional<S>>;
+  findAll: <S extends T>(options?: FindAllOptions<S>) => Promise<S[]>;
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
     options?: SaveOptions,
@@ -161,13 +162,13 @@ This value wraps an actual entity or `null` in case that no entity matches the g
 
 ### `findOne`
 
-Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the given `filters` parameter value. If no value is provided, then an arbitrary stored (if any) entity is returned. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` if no entity matches the given conditions.
+Returns an [`Optional`](https://github.com/bromne/typescript-optional#readme) entity matching the value of some given `filters` option property. If no value is provided, then an arbitrary stored (if any) entity is returned. In case there are more than one matching entities, `findOne` returns the first entity satisfying the condition. The result value wraps an actual entity or `null` if no entity matches the given conditions.
 
 ### `findAll`
 
 Returns an array including all the persisted entities, or an empty array otherwise.
 
-This operation accepts some optional behavioural options:
+This operation accepts some option properties:
 
 - `filters`: a [MongoDB search criteria](https://www.mongodb.com/docs/manual/tutorial/query-documents/) to filter results
 - `sortBy`: a [MongoDB sort criteria](https://www.mongodb.com/docs/manual/reference/method/cursor.sort/#mongodb-method-cursor.sort)
@@ -179,7 +180,7 @@ This operation accepts some optional behavioural options:
 
 Persists the given entity by either inserting or updating it and returns the persisted entity. If the entity specifies an `id` field, this function updates it, unless it does not exist in the pertaining collection, in which case this operation results in an exception being thrown. Otherwise, if the entity does not specify an `id` field, it inserts it into the collection. Beware that trying to persist a new entity that includes a developer specified `id` is considered a _system invariant violation_; only Mongoose is able to produce MongoDB identifiers to prevent `id` collisions and undesired entity updates.
 
-This operation accepts `userId` as an optional behavioural option to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
+This operation accepts `userId` as an option property to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 > [!WARNING]
 > The version of `save` specified at `MongooseRepository` is not [atomic](#supported-database-operations). If you are to execute it in a concurrent environment, make sure that your custom repository extends `MongooseTransactionalRepository` instead.
@@ -200,7 +201,7 @@ export interface TransactionalRepository<T extends Entity>
     options?: SaveAllOptions,
   ) => Promise<S[]>;
 
-  deleteAll: (options?: DeleteAllOptions) => Promise<number>;
+  deleteAll: <S extends T>(options?: DeleteAllOptions<S>) => Promise<number>;
 }
 ```
 
@@ -211,11 +212,11 @@ export interface TransactionalRepository<T extends Entity>
 
 Persists the given list of entities by either inserting or updating them and returns the list of persisted entities. As with the `save` operation, `saveAll` inserts or updates each entity of the list based on the existence of the `id` field. In the event of any error, this operation rollbacks all its changes. In other words, it does not save any given entity, thus guaranteeing operation atomicity.
 
-This operation accepts `userId` as an optional behavioural option to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
+This operation accepts `userId` as an option property to enable user audit data handling (read [this section](#built-in-audit-data-support) for further details on this topic).
 
 ### `deleteAll`
 
-Deletes all the entities that match the MongoDB a given search criteria specified as `options.filters` behavioural option and returns the total amount of deleted entities. Beware that if no search criteria is provided, then `deleteAll` deletes all the stored entities. In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any stored entity, thus guaranteeing operation atomicity.
+Deletes all the entities matching value of some given `filters` option property and returns the total amount of deleted entities. Beware that if no value is provided for `filters` is provided, then `deleteAll` deletes all the stored entities. In the event of any error, this operation rollbacks all its changes. In other words, it does not delete any stored entity, thus guaranteeing operation atomicity.
 
 # Examples
 
@@ -229,7 +230,7 @@ Moreover, if you are interested in knowing how to inject and use a custom reposi
 If you are to inject your newly created repository into an application that uses a Node.js-based framework
 (e.g., [NestJS](https://nestjs.com/) or [Express](https://expressjs.com/)) then you may want to do some extra effort and
 follow the [Dependency Inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) to _depend on
-abstractions, not implementations_. Simply need to add one extra artefact to your code:
+abstractions, not implementations_. You simply need to add one extra artefact to your code:
 
 ```typescript
 interface BookRepository extends Repository<Book> {

@@ -105,9 +105,12 @@ export class MongooseBookRepository
   constructor(@InjectConnection() connection: Connection) {
     super(
       {
-        Default: { type: Book, schema: BookSchema },
-        PaperBook: { type: PaperBook, schema: PaperBookSchema },
-        AudioBook: { type: AudioBook, schema: AudioBookSchema },
+        type: Book,
+        schema: BookSchema,
+        subtypes: [
+          { type: PaperBook, schema: PaperBookSchema },
+          { type: AudioBook, schema: AudioBookSchema },
+        ],
       },
       connection,
     );
@@ -180,6 +183,13 @@ export class BookController {
     private readonly bookRepository: TransactionalRepository<Book>,
   ) {}
 
+  @Get(':id')
+  async findById(@Param('id') id: string): Promise<Book> {
+    return (await this.bookRepository.findById(id)).orElseThrow(
+      () => new NotFoundException(`Book with ID ${id} not found`),
+    );
+  }
+
   @Get()
   async findAll(): Promise<Book[]> {
     return this.bookRepository.findAll();
@@ -198,10 +208,10 @@ export class BookController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() book: PartialBook,
+    @Body() book: Partial<Book>,
   ): Promise<Book> {
-    book.id = id;
-    return this.save(book);
+    const bookToUpdate = { ...book, id };
+    return this.save(bookToUpdate);
   }
 
   @Post('/all')
@@ -232,7 +242,7 @@ export class BookController {
     try {
       return await this.bookRepository.save(book);
     } catch (error) {
-      throw new BadRequestException(error);
+      throw new BadRequestException('Bad request', { cause: error });
     }
   }
 }
