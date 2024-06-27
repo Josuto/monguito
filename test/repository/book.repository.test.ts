@@ -269,7 +269,16 @@ describe('Given an instance of book repository', () => {
     });
 
     describe('and providing a value for the filter parameter', () => {
-      describe('and such a field does not refer to an existing field in any Book type', () => {
+      describe('and the filters is null', () => {
+        it('retrieves a list with all books', async () => {
+          const books = await bookRepository.findAll({
+            filters: null as unknown as object,
+          });
+          expect(books.length).toBe(3);
+        });
+      });
+
+      describe('and the filters do not refer to an existing field in any Book type', () => {
         it('retrieves an empty list of books', async () => {
           const filters = { fruit: 'Banana' };
           const books = await bookRepository.findAll({ filters });
