@@ -1,9 +1,10 @@
 abstract class Exception extends Error {
-  readonly error?: Error;
-
-  constructor(message: string, error?: Error) {
-    super(message);
-    this.error = error;
+  constructor(message: string, cause?: Error) {
+    super(message, { cause });
+    this.name = this.constructor.name;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
 
@@ -14,10 +15,10 @@ export class IllegalArgumentException extends Exception {
   /**
    * Creates an `IllegalArgumentException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error} error (optional) the wrapped error.
+   * @param {Error} cause (optional) the wrapped error.
    */
-  constructor(message: string, error?: Error) {
-    super(message, error);
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
   }
 }
 
@@ -28,10 +29,10 @@ export class UndefinedConstructorException extends Exception {
   /**
    * Creates an `UndefinedConstructorException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error} error (optional) the wrapped error.
+   * @param {Error} cause (optional) the wrapped error.
    */
-  constructor(message: string, error?: Error) {
-    super(message, error);
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
   }
 }
 
@@ -42,9 +43,9 @@ export class ValidationException extends Exception {
   /**
    * Creates an `ValidationException`, optionally wrapping an error.
    * @param {string} message the message of the exception.
-   * @param {Error} error (optional) the wrapped error.
+   * @param {Error} cause (optional) the wrapped error.
    */
-  constructor(message: string, error?: Error) {
-    super(message, error);
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
   }
 }
