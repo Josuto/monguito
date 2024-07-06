@@ -13,8 +13,9 @@ export interface TransactionalRepository<T extends Entity>
    * @param {SaveAllOptions} options (optional) save operation options.
    * @returns {Promise<S[]>} the list of saved entities.
    * @throws {IllegalArgumentException} if any of the given entities is `undefined` or `null` or
-   * specifies an `id` not matching any existing entity.
+   * (when update) specifies an `id` not matching any existing entity.
    * @throws {ValidationException} if any of the given entities specifies a field with some invalid value.
+   * @see {@link SaveAllOptions}
    */
   saveAll: <S extends T>(
     entities: (S | PartialEntityWithId<S>)[],

@@ -27,6 +27,7 @@ export interface Repository<T extends Entity> {
    * @param {FindByIdOptions} options (optional) search operation options.
    * @returns {Promise<Optional<S>>} the entity or `null`.
    * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
+   * @see {@link FindByIdOptions}
    */
   findById: <S extends T>(
     id: string,
@@ -36,8 +37,9 @@ export interface Repository<T extends Entity> {
   /**
    * Finds an entity by some filters.
    * @param {FindOneOptions} options (optional) search operation options.
-   * @returns {Promise<Optional<S>>} the entity or `null`.
-   * @throws {IllegalArgumentException} if the given `filters` parameter is `undefined` or `null`.
+   * @returns {Promise<Optional<S>>} the entity or `null`. If no `option.filters` is specified,
+   * an arbitrary entity is returned.
+   * @see {@link FindOneOptions}
    */
   findOne: <S extends T>(options?: FindOneOptions<S>) => Promise<Optional<S>>;
 
@@ -46,6 +48,7 @@ export interface Repository<T extends Entity> {
    * @param {FindAllOptions} options (optional) search operation options.
    * @returns {Promise<S[]>} all entities.
    * @throws {IllegalArgumentException} if the given `options` specifies an invalid parameter.
+   * @see {@link FindAllOptions}
    */
   findAll: <S extends T>(options?: FindAllOptions<S>) => Promise<S[]>;
 
@@ -55,8 +58,9 @@ export interface Repository<T extends Entity> {
    * @param {SaveOptions} options (optional) save operation options.
    * @returns {Promise<S>} the saved entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or
-   * specifies an `id` not matching any existing entity.
+   * (when update) specifies an `id` not matching any existing entity.
    * @throws {ValidationException} if the given entity specifies a field with some invalid value.
+   * @see {@link SaveOptions}
    */
   save: <S extends T>(
     entity: S | PartialEntityWithId<S>,
@@ -69,6 +73,7 @@ export interface Repository<T extends Entity> {
    * @param {DeleteByIdOptions} options (optional) delete operation options.
    * @returns {Promise<boolean>} `true` if the entity was deleted, `false` otherwise.
    * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
+   * @see {@link DeleteByIdOptions}
    */
   deleteById: (id: string, options?: DeleteByIdOptions) => Promise<boolean>;
 }
