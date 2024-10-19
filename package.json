@@ -5,7 +5,10 @@
   "author": "Josu Martinez <josu.martinez@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/josuto/monguito#readme",
-  "repository": "https://github.com/josuto/monguito.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josuto/monguito.git"
+  },
   "bugs": {
     "url": "https://github.com/josuto/monguito/issues",
     "email": "josu.martinez@gmail.com"
