@@ -1,6 +1,6 @@
 {
   "name": "nestjs-mongoose-book-manager",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Sample NestJS application that uses monguito.",
   "author": "Josu Martinez",
   "private": true,
@@ -50,6 +50,7 @@
     "jest": "29.7.0",
     "mongodb-memory-server": "^10.1.2",
     "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "29.2.5",
