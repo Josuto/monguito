@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [20.x, 21.x]
+        node-version: [22.x, 23.x]
     steps:
       - name: Checkout Code 🛎️
         uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [20.x, 21.x]
+        node-version: [22.x, 23.x]
     steps:
       - name: Checkout Code 🛎️
         uses: actions/checkout@v4
