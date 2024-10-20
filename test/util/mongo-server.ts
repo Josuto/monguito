@@ -21,22 +21,22 @@ export const insert = async (
     entity['__t'] = discriminatorKey;
   }
 
-  return mongoose.connection.db
-    .collection(collection)
+  return mongoose.connection
+    .db!.collection(collection)
     .insertOne(entity)
     .then((result) => result.insertedId.toString());
 };
 
 export const findOne = async (filter: any, collection: string) => {
-  return await mongoose.connection.db.collection(collection).findOne(filter);
+  return await mongoose.connection.db!.collection(collection).findOne(filter);
 };
 
 export const findById = async (id: string, collection: string) => {
-  return await mongoose.connection.db.collection(collection).findOne({ id });
+  return await mongoose.connection.db!.collection(collection).findOne({ id });
 };
 
 export const deleteAll = async (collection: string) => {
-  await mongoose.connection.db.collection(collection).deleteMany({});
+  await mongoose.connection.db!.collection(collection).deleteMany({});
 };
 
 export const closeMongoConnection = async () => {
