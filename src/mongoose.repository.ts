@@ -244,7 +244,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     document.isNew = false;
     if (isAuditable(document)) {
       if (userId) document.$locals.userId = userId;
-      document.__v = (document.__v ?? 0) + 1;
+      document.__v = ((document.__v as number) ?? 0) + 1;
     }
   }
 
