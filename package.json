@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "6.1.1",
+  "version": "6.1.0",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": "Josu Martinez <josu.martinez@gmail.com>",
   "license": "MIT",
