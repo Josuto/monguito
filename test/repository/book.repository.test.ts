@@ -1037,9 +1037,14 @@ describe('Given an instance of book repository', () => {
                   isbn: storedBook.isbn, // Duplicated ISBN
                 });
 
-                await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
-                  ValidationException,
-                );
+                try {
+                  await bookRepository.save(bookToInsert);
+                } catch (error) {
+                  expect(error).toBeInstanceOf(ValidationException);
+                  expect(error.getRequiredFields()).toEqual(['title']);
+                  expect(error.getUniqueFields()).toEqual(['isbn']);
+                  expect(error.getInvalidFields()).toEqual(['title', 'isbn']);
+                }
               });
             });
 
@@ -1062,16 +1067,34 @@ describe('Given an instance of book repository', () => {
 
         describe('and that is of a subtype of Book', () => {
           describe('and some field values are invalid', () => {
+            beforeEach(async () => {
+              const bookToStore = paperBookFixture();
+              const storedBookId = await insert(bookToStore, 'books');
+              storedBook = new Book({
+                ...bookToStore,
+                id: storedBookId,
+              });
+            });
+
+            afterEach(async () => {
+              await deleteAll('books');
+            });
+
             it('throws an exception', async () => {
               const bookToInsert = paperBookFixture({
                 title: 'Implementing Domain-Driven Design',
                 description: 'Describes Domain-Driven Design in depth',
-                isbn: undefined,
+                isbn: storedBook.isbn, // Duplicated ISBN
               });
 
-              await expect(bookRepository.save(bookToInsert)).rejects.toThrow(
-                ValidationException,
-              );
+              try {
+                await bookRepository.save(bookToInsert);
+              } catch (error) {
+                expect(error).toBeInstanceOf(ValidationException);
+                expect(error.getRequiredFields()).toEqual([]);
+                expect(error.getUniqueFields()).toEqual(['isbn']);
+                expect(error.getInvalidFields()).toEqual(['isbn']);
+              }
             });
           });
 

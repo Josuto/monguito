@@ -136,16 +136,12 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         return await this.update(entity as PartialEntityWithId<S>, options);
       }
     } catch (error) {
-      if (
-        error.message.includes('validation failed') ||
-        error.message.includes('duplicate key error')
-      ) {
+      if (error instanceof mongoose.Error.ValidationError) {
         throw new ValidationException(
           'One or more fields of the given entity do not specify valid values',
           error,
         );
-      }
-      throw error;
+      } else throw error;
     }
   }
 
