@@ -41,7 +41,7 @@ export class UndefinedConstructorException extends Exception {
 /**
  * Models a persistable domain object schema validation rule violation exception.
  * Since there may be several properties of the persistable domain object that are invalid,
- * this exception provides means to retrieve the invalid fields altogeher of by kind.
+ * this exception provides means to retrieve the invalid fields altogeher or by kind.
  */
 export class ValidationException extends Exception {
   override cause: mongoose.Error.ValidationError;
@@ -68,7 +68,7 @@ export class ValidationException extends Exception {
    * Retrieves all the non-specified required field names of the persistable domain object.
    * @returns an array with the names of the required fields that are not specified.
    */
-  getRequiredFields(): string[] {
+  getInvalidRequiredFields(): string[] {
     return this.getInvalidFieldsOfKind('required');
   }
 
@@ -76,7 +76,7 @@ export class ValidationException extends Exception {
    * Retrieves all the duplicated unique field names of the persistable domain object.
    * @returns an array with the names of the unique fields that are duplicated.
    */
-  getUniqueFields(): string[] {
+  getInvalidUniqueFields(): string[] {
     return this.getInvalidFieldsOfKind('unique');
   }
 

@@ -1041,9 +1041,9 @@ describe('Given an instance of book repository', () => {
                   await bookRepository.save(bookToInsert);
                 } catch (error) {
                   expect(error).toBeInstanceOf(ValidationException);
-                  expect(error.getRequiredFields()).toEqual(['title']);
-                  expect(error.getUniqueFields()).toEqual(['isbn']);
                   expect(error.getInvalidFields()).toEqual(['title', 'isbn']);
+                  expect(error.getInvalidRequiredFields()).toEqual(['title']);
+                  expect(error.getInvalidUniqueFields()).toEqual(['isbn']);
                 }
               });
             });
@@ -1091,9 +1091,9 @@ describe('Given an instance of book repository', () => {
                 await bookRepository.save(bookToInsert);
               } catch (error) {
                 expect(error).toBeInstanceOf(ValidationException);
-                expect(error.getRequiredFields()).toEqual([]);
-                expect(error.getUniqueFields()).toEqual(['isbn']);
                 expect(error.getInvalidFields()).toEqual(['isbn']);
+                expect(error.getInvalidRequiredFields()).toEqual([]);
+                expect(error.getInvalidUniqueFields()).toEqual(['isbn']);
               }
             });
           });
