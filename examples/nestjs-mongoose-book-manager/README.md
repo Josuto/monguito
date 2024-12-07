@@ -15,11 +15,19 @@ A book may be of type `Book` or any of its subtypes i.e., `PaperBook` and `Audio
 
 ## Installation
 
-Assuming that you have already [installed NestJS](https://docs.nestjs.com/first-steps) in your local machine, first you
-need to install of the project dependencies by running the following command:
+This example depends on NestJS and the `monguito` package included in the root folder of the Monguito repository. Hence, before
+installing any dependency, (1) make sure that you have [NestJS installed in your machine](https://docs.nestjs.com/first-steps)
+and (2) build `monguito` from the root folder of your local repository:
 
 ```bash
-$ yarn install
+$ yarn build
+```
+
+Then, you can install of the NestJS sample project dependencies by running the following command (from
+`/examples/nestjs-mongoose-book-manager`):
+
+```bash
+$ yarn install --force
 ```
 
 ## Execution
