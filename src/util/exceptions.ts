@@ -25,6 +25,20 @@ export class IllegalArgumentException extends Exception {
 }
 
 /**
+ * Models an entity instantiation exception.
+ */
+export class InstantiationException extends Exception {
+  /**
+   * Creates an `InstantiationException`, optionally wrapping an error.
+   * @param {string} message the message of the exception.
+   * @param {Error} cause (optional) the wrapped error.
+   */
+  constructor(message: string, cause?: Error) {
+    super(message, cause);
+  }
+}
+
+/**
  * Models an undefined persistable domain object constructor exception.
  */
 export class UndefinedConstructorException extends Exception {

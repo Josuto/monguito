@@ -12,6 +12,7 @@ import { DomainModel, DomainTree } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
+  InstantiationException,
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
@@ -129,19 +130,10 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       throw new IllegalArgumentException(
         'The given entity cannot be null or undefined',
       );
-    try {
-      if (!entity.id) {
-        return await this.insert(entity as S, options);
-      } else {
-        return await this.update(entity as PartialEntityWithId<S>, options);
-      }
-    } catch (error) {
-      if (error instanceof mongoose.Error.ValidationError) {
-        throw new ValidationException(
-          'One or more fields of the given entity do not specify valid values',
-          error,
-        );
-      } else throw error;
+    if (!entity.id) {
+      return await this.insert(entity as S, options);
+    } else {
+      return await this.update(entity as PartialEntityWithId<S>, options);
     }
   }
 
@@ -160,11 +152,20 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       throw new IllegalArgumentException(
         'The given entity cannot be null or undefined',
       );
-    const document = this.createDocumentForInsertion(entity, options);
-    const insertedDocument = (await document.save({
-      session: options?.session,
-    })) as HydratedDocument<S>;
-    return this.instantiateFrom(insertedDocument) as S;
+    try {
+      const document = this.createDocumentForInsertion(entity, options);
+      const insertedDocument = (await document.save({
+        session: options?.session,
+      })) as HydratedDocument<S>;
+      return this.instantiateFrom(insertedDocument) as S;
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        throw new ValidationException(
+          'One or more fields of the given entity do not specify valid values',
+          error,
+        );
+      } else throw error;
+    }
   }
 
   private createDocumentForInsertion<S extends T>(
@@ -221,12 +222,21 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       .findById<HydratedDocument<S>>(entity.id)
       .session(options?.session ?? null);
     if (document) {
-      document.set(entity);
-      this.setAuditableDataOnDocumentToUpdate(document, options?.userId);
-      const updatedDocument = (await document.save({
-        session: options?.session,
-      })) as HydratedDocument<S>;
-      return this.instantiateFrom(updatedDocument) as S;
+      try {
+        document.set(entity);
+        this.setAuditableDataOnDocumentToUpdate(document, options?.userId);
+        const updatedDocument = (await document.save({
+          session: options?.session,
+        })) as HydratedDocument<S>;
+        return this.instantiateFrom(updatedDocument) as S;
+      } catch (error) {
+        if (error instanceof mongoose.Error.ValidationError) {
+          throw new ValidationException(
+            'One or more fields of the given entity do not specify valid values',
+            error,
+          );
+        } else throw error;
+      }
     }
     throw new IllegalArgumentException(
       `There is no document matching the given ID '${entity.id}'`,
@@ -268,11 +278,19 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
       ? this.domainTree.getSubtypeConstructor(entityKey)
       : this.domainTree.getSupertypeConstructor();
     if (constructor) {
-      // safe instantiation as no abstract class instance can be stored in the first place
-      return new constructor(document.toObject()) as S;
+      try {
+        // safe instantiation as no abstract class instance can be stored in the first place
+        return new constructor(document.toObject()) as S;
+      } catch (error) {
+        // still, the constructor of some entities may throw an error
+        throw new InstantiationException(
+          `An error occurred while instantiating an entity with ID ${document.id}`,
+          error,
+        );
+      }
     }
     throw new UndefinedConstructorException(
-      `There is no registered instance constructor for the document with ID ${document.id} or the constructor is abstract`,
+      `There is no registered instance constructor for the document with ID ${document.id} or the corresponding entity type is abstract`,
     );
   }
 }
