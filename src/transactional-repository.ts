@@ -14,6 +14,8 @@ export interface TransactionalRepository<T extends Entity>
    * @returns {Promise<S[]>} the list of saved entities.
    * @throws {IllegalArgumentException} if any of the given entities is `undefined` or `null` or
    * (when update) specifies an `id` not matching any existing entity.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    * @throws {ValidationException} if any of the given entities specifies a field with some invalid value.
    * @see {@link SaveAllOptions}
    */

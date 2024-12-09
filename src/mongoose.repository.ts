@@ -143,6 +143,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
    * @param {SaveOptions} options (optional) insert operation options.
    * @returns {Promise<S>} the inserted entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null`.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
+   * @throws {ValidationException} if the given entity specifies a field with some invalid value.
    */
   protected async insert<S extends T>(
     entity: S,
@@ -211,6 +214,9 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
    * @param {SaveOptions} options (optional) update operation options.
    * @returns {Promise<S>} the updated entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or specifies an `id` not matching any existing entity.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
+   * @throws {ValidationException} if the given entity specifies a field with some invalid value.
    */
   protected async update<S extends T>(
     entity: PartialEntityWithId<S>,
@@ -267,7 +273,8 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
    * Instantiates a persistable domain object from the given Mongoose Document.
    * @param {HydratedDocument<S> | null} document the given Mongoose Document.
    * @returns {S | null} the resulting persistable domain object instance.
-   * @throws {UndefinedConstructorException} if there is no constructor available.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    */
   protected instantiateFrom<S extends T>(
     document: HydratedDocument<S> | null,

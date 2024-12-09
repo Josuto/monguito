@@ -27,6 +27,8 @@ export interface Repository<T extends Entity> {
    * @param {FindByIdOptions} options (optional) search operation options.
    * @returns {Promise<Optional<S>>} the entity or `null`.
    * @throws {IllegalArgumentException} if the given `id` is `undefined` or `null`.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    * @see {@link FindByIdOptions}
    */
   findById: <S extends T>(
@@ -39,6 +41,8 @@ export interface Repository<T extends Entity> {
    * @param {FindOneOptions} options (optional) search operation options.
    * @returns {Promise<Optional<S>>} the entity or `null`. If no `option.filters` is specified,
    * an arbitrary entity is returned.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    * @see {@link FindOneOptions}
    */
   findOne: <S extends T>(options?: FindOneOptions<S>) => Promise<Optional<S>>;
@@ -48,6 +52,8 @@ export interface Repository<T extends Entity> {
    * @param {FindAllOptions} options (optional) search operation options.
    * @returns {Promise<S[]>} all entities.
    * @throws {IllegalArgumentException} if the given `options` specifies an invalid parameter.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    * @see {@link FindAllOptions}
    */
   findAll: <S extends T>(options?: FindAllOptions<S>) => Promise<S[]>;
@@ -59,6 +65,8 @@ export interface Repository<T extends Entity> {
    * @returns {Promise<S>} the saved entity.
    * @throws {IllegalArgumentException} if the given entity is `undefined` or `null` or
    * (when update) specifies an `id` not matching any existing entity.
+   * @throws {InstantiationException} if the entity constructor throws an exception.
+   * @throws {UndefinedConstructorException} if there is no available entity constructor.
    * @throws {ValidationException} if the given entity specifies a field with some invalid value.
    * @see {@link SaveOptions}
    */
