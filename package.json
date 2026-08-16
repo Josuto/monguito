@@ -74,7 +74,7 @@
     "typescript-optional": "3.0.0-alpha.3"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/mongoose-unique-validator": "^1.0.9",
     "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
@@ -84,7 +84,7 @@
     "eslint-plugin-no-only-or-skip-tests": "^2.6.2",
     "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.7",
-    "jest": "^29.7.0",
+    "jest": "^30.4.2",
     "lint-staged": "^15.2.10",
     "microbundle": "^0.15.1",
     "mongodb-memory-server": "^10.1.2",
@@ -92,7 +92,7 @@
     "mongoose-unique-validator": "^4.0.1",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
