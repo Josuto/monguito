@@ -1,6 +1,5 @@
 import mongoose, {
   Connection,
-  FilterQuery,
   HydratedDocument,
   Model,
   UpdateQuery,
@@ -106,7 +105,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const pageNumber = options?.pageable?.pageNumber ?? 0;
     try {
       const documents = await this.entityModel
-        .find(options?.filters as FilterQuery<S>)
+        .find(options?.filters || {})
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
