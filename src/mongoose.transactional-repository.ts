@@ -15,8 +15,8 @@ import { runInTransaction } from './util/transaction';
  * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
  */
 export abstract class MongooseTransactionalRepository<
-    T extends Entity & UpdateQuery<T>,
-  >
+  T extends Entity & UpdateQuery<T>,
+>
   extends MongooseRepository<T>
   implements TransactionalRepository<T>
 {

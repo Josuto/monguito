@@ -26,9 +26,9 @@ import {
 /**
  * Abstract Mongoose-based implementation of the {@link Repository} interface.
  */
-export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
-  implements Repository<T>
-{
+export abstract class MongooseRepository<
+  T extends Entity & UpdateQuery<T>,
+> implements Repository<T> {
   private readonly domainTree: DomainTree<T>;
   protected readonly entityModel: Model<T>;
 
