@@ -115,7 +115,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     } catch (error) {
       throw new IllegalArgumentException(
         'The given optional parameters must be valid',
-        error,
+        error as Error | undefined,
       );
     }
   }
@@ -284,7 +284,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         // still, the constructor of some entities may throw an error
         throw new InstantiationException(
           `An error occurred while instantiating an entity with ID ${document.id}`,
-          error,
+          error as Error | undefined,
         );
       }
     }

@@ -1041,9 +1041,17 @@ describe('Given an instance of book repository', () => {
                   await bookRepository.save(bookToInsert);
                 } catch (error) {
                   expect(error).toBeInstanceOf(ValidationException);
-                  expect(error.getInvalidFields()).toEqual(['title', 'isbn']);
-                  expect(error.getInvalidRequiredFields()).toEqual(['title']);
-                  expect(error.getInvalidUniqueFields()).toEqual(['isbn']);
+                  const validationError = error as ValidationException;
+                  expect(validationError.getInvalidFields()).toEqual([
+                    'title',
+                    'isbn',
+                  ]);
+                  expect(validationError.getInvalidRequiredFields()).toEqual([
+                    'title',
+                  ]);
+                  expect(validationError.getInvalidUniqueFields()).toEqual([
+                    'isbn',
+                  ]);
                 }
               });
             });
@@ -1091,9 +1099,12 @@ describe('Given an instance of book repository', () => {
                 await bookRepository.save(bookToInsert);
               } catch (error) {
                 expect(error).toBeInstanceOf(ValidationException);
-                expect(error.getInvalidFields()).toEqual(['isbn']);
-                expect(error.getInvalidRequiredFields()).toEqual([]);
-                expect(error.getInvalidUniqueFields()).toEqual(['isbn']);
+                const validationError = error as ValidationException;
+                expect(validationError.getInvalidFields()).toEqual(['isbn']);
+                expect(validationError.getInvalidRequiredFields()).toEqual([]);
+                expect(validationError.getInvalidUniqueFields()).toEqual([
+                  'isbn',
+                ]);
               }
             });
           });

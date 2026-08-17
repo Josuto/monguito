@@ -1,4 +1,3 @@
-import { FilterQuery } from 'mongoose';
 import { IllegalArgumentException } from './exceptions';
 import { TransactionOptions } from './transaction';
 
@@ -52,13 +51,13 @@ export interface SortOrder {
 
 /**
  * Specifies options for the `findAll` operation.
- * @property {FilterQuery} filters (optional) - MongoDB search filters.
+ * @property {any} filters (optional) - MongoDB search filters.
  * @property {string|SortOrder} sortBy (optional) - the sorting criteria for the search.
  * @property {Pageable} pageable (optional) - paging configuration.
  * @see {@link TransactionOptions}
  */
 export interface FindAllOptions<T> extends TransactionOptions {
-  filters?: FilterQuery<T>;
+  filters?: any;
   sortBy?: string | SortOrder;
   pageable?: Pageable;
 }
@@ -71,11 +70,11 @@ export interface FindByIdOptions extends TransactionOptions {}
 
 /**
  * Specifies options for the `findOne` operation;
- * @property {FilterQuery} filters (optional) - MongoDB search filters.
+ * @property {any} filters (optional) - MongoDB search filters.
  * @see {@link TransactionOptions}
  */
 export interface FindOneOptions<T> extends TransactionOptions {
-  filters?: FilterQuery<T>;
+  filters?: any;
 }
 
 /**
@@ -94,11 +93,11 @@ export interface SaveAllOptions extends AuditOptions, TransactionOptions {}
 
 /**
  * Specifies options for the `deleteAll` operation.
- * @property {FilterQuery} filters (optional) - MongoDB search filters.
+ * @property {any} filters (optional) - MongoDB search filters.
  * @see {@link TransactionOptions}
  */
 export interface DeleteAllOptions<T> extends TransactionOptions {
-  filters?: FilterQuery<T>;
+  filters?: any;
 }
 
 /**

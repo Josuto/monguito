@@ -3,7 +3,7 @@
   "rootDir": "test",
   "testRegex": ".*\\.test\\.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.test.json" }]
   },
   "transformIgnorePatterns": ["node_modules/(?!(mongoose-unique-validator)/)"],
   "collectCoverageFrom": ["**/*.(t|j)s"],

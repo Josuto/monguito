@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": false,
@@ -19,6 +21,6 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
