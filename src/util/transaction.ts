@@ -1,5 +1,6 @@
 import mongoose, { ClientSession, Connection } from 'mongoose';
-import { MongoServerError } from 'mongodb';
+
+const { MongoServerError } = mongoose.mongo;
 
 /**
  * Models a callback function that writes to and reads from the database using a session.

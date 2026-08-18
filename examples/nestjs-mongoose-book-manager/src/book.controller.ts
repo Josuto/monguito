@@ -10,7 +10,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { TransactionalRepository } from '../../../dist';
+import { TransactionalRepository } from 'monguito';
 import { AudioBook, Book, PaperBook } from './book';
 
 type PartialBook = { id: string } & Partial<Book>;
@@ -24,6 +24,9 @@ function deserialiseAll<T extends Book>(plainBooks: any[]): T[] {
 }
 
 function deserialise<T extends Book>(plainBook: any): T {
+  if (!plainBook) {
+    throw new BadRequestException('A book must be provided');
+  }
   let book = null;
   if (plainBook.edition) {
     book = new PaperBook(plainBook);
