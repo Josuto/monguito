@@ -41,7 +41,7 @@ export class MongooseBookRepository
   ): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
-      .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
+      .findByIdAndUpdate(id, { isDeleted: true }, { returnDocument: 'after' })
       .session(options?.session)
       .exec()
       .then((book) => !!book);
