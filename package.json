@@ -1,6 +1,6 @@
 {
   "name": "monguito",
-  "version": "6.1.4",
+  "version": "7.0.0",
   "description": "MongoDB Abstract Repository implementation for Node.js",
   "author": "Josu Martinez <josu.martinez@gmail.com>",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "email": "josu.martinez@gmail.com"
   },
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=24.19.0"
   },
   "keywords": [
     "node",
@@ -68,7 +68,7 @@
     "prepare": "husky"
   },
   "peerDependencies": {
-    "mongoose": ">= 9.0.0"
+    "mongoose": ">=9.9.3"
   },
   "dependencies": {
     "typescript-optional": "3.0.0-alpha.3"
