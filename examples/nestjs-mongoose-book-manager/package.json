@@ -5,6 +5,10 @@
   "author": "Josu Martinez",
   "private": true,
   "license": "MIT",
+  "resolutions": {
+    "**/fork-ts-checker-webpack-plugin/minimatch/brace-expansion": "^1.1.18",
+    "**/test-exclude/minimatch/brace-expansion": "^1.1.18"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
