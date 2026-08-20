@@ -13,7 +13,8 @@
     "**/test-exclude/glob/minimatch": "^3.1.5",
     "**/test-exclude/glob/minimatch/brace-expansion": "^1.1.18",
     "**/cosmiconfig/**/js-yaml": "^4.3.1",
-    "**/@istanbuljs/load-nyc-config/**/js-yaml": "^3.15.1"
+    "**/@istanbuljs/load-nyc-config/**/js-yaml": "^3.15.1",
+    "**/anymatch/**/picomatch": "^2.3.2"
   },
   "scripts": {
     "prebuild": "rimraf dist",

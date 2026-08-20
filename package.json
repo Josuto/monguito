@@ -79,7 +79,11 @@
     "**/test-exclude/**/minimatch": "^3.1.5",
     "**/test-exclude/**/minimatch/brace-expansion": "^1.1.18",
     "**/@rollup/plugin-commonjs/**/minimatch": "^3.1.5",
-    "**/@rollup/plugin-commonjs/**/minimatch/brace-expansion": "^1.1.18"
+    "**/@rollup/plugin-commonjs/**/minimatch/brace-expansion": "^1.1.18",
+    "**/rollup-plugin-visualizer/**/picomatch": "^2.3.2",
+    "**/anymatch/**/picomatch": "^2.3.2",
+    "**/microbundle/**/rollup-plugin-typescript2": "^0.37.0",
+    "**/@rollup/pluginutils/**/picomatch": "^2.3.2"
   },
   "dependencies": {
     "typescript-optional": "3.0.0-alpha.3"
