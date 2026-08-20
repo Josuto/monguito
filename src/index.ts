@@ -7,6 +7,7 @@ import { DomainModel } from './util/domain-model';
 import { Entity } from './util/entity';
 import {
   IllegalArgumentException,
+  InstantiationException,
   UndefinedConstructorException,
   ValidationException,
 } from './util/exceptions';
@@ -45,6 +46,7 @@ export {
   FindByIdOptions,
   FindOneOptions,
   IllegalArgumentException,
+  InstantiationException,
   isAuditable,
   MongooseRepository,
   MongooseTransactionalRepository,
