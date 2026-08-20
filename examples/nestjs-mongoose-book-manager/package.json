@@ -6,8 +6,12 @@
   "private": true,
   "license": "MIT",
   "resolutions": {
+    "**/fork-ts-checker-webpack-plugin/minimatch": "^3.1.5",
     "**/fork-ts-checker-webpack-plugin/minimatch/brace-expansion": "^1.1.18",
-    "**/test-exclude/minimatch/brace-expansion": "^1.1.18"
+    "**/test-exclude/minimatch": "^3.1.5",
+    "**/test-exclude/minimatch/brace-expansion": "^1.1.18",
+    "**/test-exclude/glob/minimatch": "^3.1.5",
+    "**/test-exclude/glob/minimatch/brace-expansion": "^1.1.18"
   },
   "scripts": {
     "prebuild": "rimraf dist",

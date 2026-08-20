@@ -72,10 +72,14 @@
   },
   "resolutions": {
     "serialize-javascript": "^7.1.0",
+    "**/jake/minimatch": "^3.1.5",
     "**/jake/minimatch/brace-expansion": "^1.1.18",
+    "**/jake/filelist/minimatch": "^5.1.9",
     "**/jake/filelist/minimatch/brace-expansion": "^2.0.2",
-    "**/test-exclude/minimatch/brace-expansion": "^1.1.18",
-    "**/@rollup/plugin-commonjs/glob/minimatch/brace-expansion": "^1.1.18"
+    "**/test-exclude/**/minimatch": "^3.1.5",
+    "**/test-exclude/**/minimatch/brace-expansion": "^1.1.18",
+    "**/@rollup/plugin-commonjs/**/minimatch": "^3.1.5",
+    "**/@rollup/plugin-commonjs/**/minimatch/brace-expansion": "^1.1.18"
   },
   "dependencies": {
     "typescript-optional": "3.0.0-alpha.3"
