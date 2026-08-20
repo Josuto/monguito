@@ -73,6 +73,7 @@
   "resolutions": {
     "serialize-javascript": "^7.1.0",
     "**/jake/minimatch/brace-expansion": "^1.1.18",
+    "**/jake/filelist/minimatch/brace-expansion": "^2.0.2",
     "**/test-exclude/minimatch/brace-expansion": "^1.1.18",
     "**/@rollup/plugin-commonjs/glob/minimatch/brace-expansion": "^1.1.18"
   },
