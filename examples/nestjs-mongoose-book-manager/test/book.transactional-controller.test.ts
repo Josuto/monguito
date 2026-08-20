@@ -1,7 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import * as request from 'supertest';
-import { TransactionalRepository } from '../../../dist';
+import request from 'supertest';
+import { TransactionalRepository } from 'monguito';
 import { AppModule } from '../src/app.module';
 import { AudioBook, Book, PaperBook } from '../src/book';
 import { MongooseBookRepository } from '../src/book.repository';

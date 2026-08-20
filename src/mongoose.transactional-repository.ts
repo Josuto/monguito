@@ -15,8 +15,8 @@ import { runInTransaction } from './util/transaction';
  * Abstract Mongoose-based implementation of the {@link TransactionalRepository} interface.
  */
 export abstract class MongooseTransactionalRepository<
-    T extends Entity & UpdateQuery<T>,
-  >
+  T extends Entity & UpdateQuery<T>,
+>
   extends MongooseRepository<T>
   implements TransactionalRepository<T>
 {
@@ -35,16 +35,19 @@ export abstract class MongooseTransactionalRepository<
     options?: SaveAllOptions,
   ): Promise<S[]> {
     return await runInTransaction(
-      async (session: ClientSession) =>
-        await Promise.all(
-          entities.map(
-            async (entity) =>
-              await this.save(entity, {
-                userId: options?.userId,
-                session,
-              }),
-          ),
-        ),
+      async (session: ClientSession) => {
+        const results: S[] = [];
+        for (const entity of entities) {
+          results.push(
+            await this.save(entity, {
+              userId: options?.userId,
+              session,
+            }),
+          );
+        }
+
+        return results;
+      },
       { ...options, connection: this.connection },
     );
   }
@@ -53,7 +56,7 @@ export abstract class MongooseTransactionalRepository<
   async deleteAll<S extends T>(options?: DeleteAllOptions<S>): Promise<number> {
     return await runInTransaction(
       async (session: ClientSession) =>
-        (await this.entityModel.deleteMany(options?.filters, { session }))
+        (await this.entityModel.deleteMany(options?.filters || {}, { session }))
           .deletedCount,
       { ...options, connection: this.connection },
     );

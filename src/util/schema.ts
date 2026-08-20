@@ -51,15 +51,14 @@ export const AuditableSchema = extendSchema(
 
 // Mongoose plugin definition
 function setUserAuditData(schema: Schema) {
-  schema.pre('save', function (next) {
-    if (this.$locals.userId) {
+  schema.pre('save', function (this: any) {
+    if (this.$locals?.userId) {
       if (!this.createdBy) {
         this.createdBy = this.$locals.userId;
       }
       this.updatedBy = this.$locals.userId;
     }
-    delete this.$locals.userId;
-    next();
+    delete this.$locals?.userId;
   });
 }
 
@@ -100,10 +99,10 @@ export function extendSchema<T = object, S = object>(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       ...(isExtensionASchema ? extension.options : options),
-    },
+    } as any,
   );
   registerPlugins(newSchema, baseSchema, extension, options);
-  return newSchema;
+  return newSchema as any;
 }
 
 function registerPlugins<T = object, S = object>(

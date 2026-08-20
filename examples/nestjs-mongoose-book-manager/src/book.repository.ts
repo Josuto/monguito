@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { ClientSession, Connection } from 'mongoose';
 import {
+  AuditOptions,
   DeleteAllOptions,
   DeleteByIdOptions,
   IllegalArgumentException,
@@ -9,7 +10,6 @@ import {
   TransactionalRepository,
   runInTransaction,
 } from 'monguito';
-import { AuditOptions } from '../../../dist/util/operation-options';
 import { AudioBook, Book, PaperBook } from './book';
 import { AudioBookSchema, BookSchema, PaperBookSchema } from './book.schemas';
 
@@ -41,7 +41,7 @@ export class MongooseBookRepository
   ): Promise<boolean> {
     if (!id) throw new IllegalArgumentException('The given ID must be valid');
     return this.entityModel
-      .findByIdAndUpdate(id, { isDeleted: true }, { new: true })
+      .findByIdAndUpdate(id, { isDeleted: true }, { returnDocument: 'after' })
       .session(options?.session)
       .exec()
       .then((book) => !!book);

@@ -11,6 +11,7 @@ import {
   ValidationException,
 } from './util/exceptions';
 import {
+  AuditOptions,
   DeleteAllOptions,
   DeleteByIdOptions,
   FindAllOptions,
@@ -33,6 +34,7 @@ export {
   Auditable,
   AuditableClass,
   AuditableSchema,
+  AuditOptions,
   BaseSchema,
   DeleteAllOptions,
   DeleteByIdOptions,

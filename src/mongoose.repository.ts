@@ -1,6 +1,5 @@
 import mongoose, {
   Connection,
-  FilterQuery,
   HydratedDocument,
   Model,
   UpdateQuery,
@@ -27,9 +26,9 @@ import {
 /**
  * Abstract Mongoose-based implementation of the {@link Repository} interface.
  */
-export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
-  implements Repository<T>
-{
+export abstract class MongooseRepository<
+  T extends Entity & UpdateQuery<T>,
+> implements Repository<T> {
   private readonly domainTree: DomainTree<T>;
   protected readonly entityModel: Model<T>;
 
@@ -106,7 +105,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     const pageNumber = options?.pageable?.pageNumber ?? 0;
     try {
       const documents = await this.entityModel
-        .find(options?.filters as FilterQuery<S>)
+        .find(options?.filters || {})
         .skip(pageNumber > 0 ? (pageNumber - 1) * offset : 0)
         .limit(offset)
         .sort(options?.sortBy)
@@ -116,7 +115,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
     } catch (error) {
       throw new IllegalArgumentException(
         'The given optional parameters must be valid',
-        error,
+        error as Error | undefined,
       );
     }
   }
@@ -285,7 +284,7 @@ export abstract class MongooseRepository<T extends Entity & UpdateQuery<T>>
         // still, the constructor of some entities may throw an error
         throw new InstantiationException(
           `An error occurred while instantiating an entity with ID ${document.id}`,
-          error,
+          error as Error | undefined,
         );
       }
     }
