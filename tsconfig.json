@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": false,
@@ -10,6 +12,7 @@
     "target": "es2022",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,

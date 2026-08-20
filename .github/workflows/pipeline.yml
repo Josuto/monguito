@@ -6,6 +6,10 @@ on:
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   library:
     name: Library Validation
@@ -13,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [22.x, 23.x]
+        node-version: [24.x, 26.x]
     steps:
       - name: Checkout Code 🛎️
         uses: actions/checkout@v4
@@ -33,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node-version: [22.x, 23.x]
+        node-version: [24.x, 26.x]
     steps:
       - name: Checkout Code 🛎️
         uses: actions/checkout@v4

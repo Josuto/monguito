@@ -1,5 +1,7 @@
 import mongoose, { ClientSession, Connection } from 'mongoose';
 
+const { MongoServerError } = mongoose.mongo;
+
 /**
  * Models a callback function that writes to and reads from the database using a session.
  */
@@ -48,7 +50,7 @@ async function recursiveRunIntransaction<T>(
     }
     throw error;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 }
 
@@ -62,5 +64,8 @@ async function startSession(connection?: Connection): Promise<ClientSession> {
 
 // Transient transaction errors can be safely retried.
 function isTransientTransactionError(error: any): boolean {
-  return error.message.includes('does not match any in-progress transactions');
+  return (
+    error instanceof MongoServerError &&
+    error.hasErrorLabel('TransientTransactionError')
+  );
 }

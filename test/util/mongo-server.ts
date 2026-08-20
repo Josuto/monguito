@@ -52,11 +52,33 @@ export const setupConnection = async (
       mongoServer = await MongoMemoryServer.create({
         instance: { dbName },
       });
+      await mongoose.connect(mongoServer.getUri(), { dbName });
     } else {
       mongoServer = await MongoMemoryReplSet.create({
         replSet: { dbName, count: 1 },
       });
+      const uri = mongoServer.getUri();
+      await mongoose.connect(uri, { dbName });
+      // Wait for replica set to be fully initialized for transactions
+      const maxWaitTime = 10000;
+      const startTime = Date.now();
+      while (Date.now() - startTime < maxWaitTime) {
+        try {
+          const adminDb = mongoose.connection.db?.admin();
+          const status = await adminDb?.command({ replSetGetStatus: 1 });
+          if (
+            status &&
+            status.members?.length > 0 &&
+            status.members[0].state === 1
+          ) {
+            // Replica set is ready (PRIMARY)
+            break;
+          }
+        } catch {
+          // Still initializing, wait and retry
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
-    await mongoose.connect(mongoServer.getUri(), { dbName });
   }
 };
