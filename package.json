@@ -71,7 +71,10 @@
     "mongoose": ">=9.9.3"
   },
   "resolutions": {
-    "serialize-javascript": "^7.1.0"
+    "serialize-javascript": "^7.1.0",
+    "**/jake/minimatch/brace-expansion": "^1.1.18",
+    "**/test-exclude/minimatch/brace-expansion": "^1.1.18",
+    "**/@rollup/plugin-commonjs/glob/minimatch/brace-expansion": "^1.1.18"
   },
   "dependencies": {
     "typescript-optional": "3.0.0-alpha.3"
