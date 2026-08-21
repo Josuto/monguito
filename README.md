@@ -8,9 +8,9 @@
 
 <div align="center">
 
-![Min code size](https://img.shields.io/bundlephobia/minzip/monguito)
+![npm package size](https://img.shields.io/npm/unpacked-size/monguito)
 [![CI](https://github.com/josuto/monguito/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/josuto/monguito/actions/workflows/pipeline.yml)
-[![NPM](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
+[![npm](https://img.shields.io/npm/v/monguito)](https://www.npmjs.com/package/monguito)
 [![Downloads stat](https://img.shields.io/npm/dt/monguito)](http://www.npmtrends.com/monguito)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](https://makeapullrequest.com)
 
@@ -194,8 +194,9 @@ Deletes an entity which `id` field value matches the given `id`. When it does, t
 Let's now explore the definition of `TransactionalRepository`, an interface that defines transactional CRUD operations. This interface is an extension of `Repository`, thus includes all the basic CRUD operations. Futhermore, `MongooseTransactionalRepository` is the class that implements `TransactionalRepository`.
 
 ```typescript
-export interface TransactionalRepository<T extends Entity>
-  extends Repository<T> {
+export interface TransactionalRepository<
+  T extends Entity,
+> extends Repository<T> {
   saveAll: <S extends T>(
     entities: (S | PartialEntityWithId<S>)[],
     options?: SaveAllOptions,
