@@ -6,9 +6,10 @@
 #   ./scripts/publish-release.sh [--dry-run] <patch|minor|major>
 #
 # --dry-run prints the commands that would run instead of executing them
-# (npm version, git push, gh release create), uses npm publish's own
-# --dry-run for real pack validation, and relaxes the 'on main' / 'synced
-# with origin' preconditions to warnings so it can be run from any branch.
+# (npm version, git push, npm publish, gh release create) and relaxes the
+# 'on main' / 'synced with origin' preconditions to warnings so it can be
+# run from any branch. Package contents are still validated for real via
+# `npm pack --dry-run` in the validation step.
 #
 # This script encodes every step documented in docs/new-version-publication.md:
 #   1. Precondition checks  (.npmrc, branch, clean tree, npm auth, gh auth)
@@ -84,7 +85,6 @@ Automates the Monguito release process:
   major  — breaking change      (e.g. 7.0.0 → 8.0.0)
 
   --dry-run  Print the commands that would run instead of executing them.
-             Uses 'npm publish --dry-run' for real pack validation.
              Relaxes the 'on main' / 'synced with origin' checks to warnings.
 
 See docs/new-version-publication.md for the full manual procedure.
@@ -278,13 +278,8 @@ echo
 # ═══════════════════════════════════════════════════════════════════════════
 info "Step 5/7 — Publishing to npm…"
 
-if $DRY_RUN; then
-  npm publish --dry-run
-  success "(dry-run) npm publish --dry-run completed — nothing was actually published"
-else
-  npm publish
-  success "Published to npm"
-fi
+run npm publish
+done_msg "Published to npm"
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
