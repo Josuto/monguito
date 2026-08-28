@@ -3,7 +3,12 @@
 # publish-release.sh — Automates the Monguito release process.
 #
 # Usage:
-#   ./scripts/publish-release.sh <patch|minor|major>
+#   ./scripts/publish-release.sh [--dry-run] <patch|minor|major>
+#
+# --dry-run prints the commands that would run instead of executing them
+# (npm version, git push, gh release create), uses npm publish's own
+# --dry-run for real pack validation, and relaxes the 'on main' / 'synced
+# with origin' preconditions to warnings so it can be run from any branch.
 #
 # This script encodes every step documented in docs/new-version-publication.md:
 #   1. Precondition checks  (.npmrc, branch, clean tree, npm auth, gh auth)
@@ -35,17 +40,52 @@ success() { echo -e "${GREEN}✔ ${NC}$*"; }
 warn()    { echo -e "${YELLOW}⚠ ${NC}$*"; }
 error()   { echo -e "${RED}✖ ${NC}$*" >&2; }
 
+# run CMD... — executes CMD normally, or just prints it when --dry-run is set.
+run() {
+  if $DRY_RUN; then
+    echo -e "${YELLOW}[dry-run]${NC} $*"
+  else
+    "$@"
+  fi
+}
+
+# done_msg MSG — like success(), but prefixes MSG to signal nothing actually
+# happened when --dry-run is set.
+done_msg() {
+  if $DRY_RUN; then
+    success "(dry-run) $*"
+  else
+    success "$*"
+  fi
+}
+
+# bump_version X.Y.Z <patch|minor|major> — pure-bash semver bump, used in
+# --dry-run mode instead of actually invoking `npm version`.
+bump_version() {
+  local version="$1" type="$2" major minor patch
+  IFS='.' read -r major minor patch <<< "$version"
+  case "$type" in
+    major) echo "$((major + 1)).0.0" ;;
+    minor) echo "${major}.$((minor + 1)).0" ;;
+    patch) echo "${major}.${minor}.$((patch + 1))" ;;
+  esac
+}
+
 # ---------------------------------------------------------------------------
 # Usage
 # ---------------------------------------------------------------------------
 usage() {
   cat <<EOF
-Usage: $0 <patch|minor|major>
+Usage: $0 [--dry-run] <patch|minor|major>
 
 Automates the Monguito release process:
   patch  — bug-fix release      (e.g. 7.0.0 → 7.0.1)
   minor  — new feature release  (e.g. 7.0.0 → 7.1.0)
   major  — breaking change      (e.g. 7.0.0 → 8.0.0)
+
+  --dry-run  Print the commands that would run instead of executing them.
+             Uses 'npm publish --dry-run' for real pack validation.
+             Relaxes the 'on main' / 'synced with origin' checks to warnings.
 
 See docs/new-version-publication.md for the full manual procedure.
 EOF
@@ -55,22 +95,30 @@ EOF
 # ---------------------------------------------------------------------------
 # Argument validation
 # ---------------------------------------------------------------------------
-BUMP_TYPE="${1:-}"
+DRY_RUN=false
+BUMP_TYPE=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    patch|minor|major) BUMP_TYPE="$arg" ;;
+    *)
+      error "Unknown argument: '$arg'"
+      usage
+      ;;
+  esac
+done
 
 if [[ -z "$BUMP_TYPE" ]]; then
   error "Missing version bump type."
   usage
 fi
 
-case "$BUMP_TYPE" in
-  patch|minor|major) ;;
-  *)
-    error "Invalid version bump type: '$BUMP_TYPE'"
-    usage
-    ;;
-esac
-
-info "Starting Monguito release — bump type: ${BOLD}${BUMP_TYPE}${NC}"
+if $DRY_RUN; then
+  info "Starting Monguito release — bump type: ${BOLD}${BUMP_TYPE}${NC} ${YELLOW}[DRY RUN]${NC}"
+else
+  info "Starting Monguito release — bump type: ${BOLD}${BUMP_TYPE}${NC}"
+fi
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -92,21 +140,31 @@ fi
 # 1b. Must be on main
 CURRENT_BRANCH="$(git branch --show-current)"
 if [[ "$CURRENT_BRANCH" != "main" ]]; then
-  error "You must be on the 'main' branch (currently on '${CURRENT_BRANCH}')."
-  exit 1
+  if $DRY_RUN; then
+    warn "Not on 'main' (currently on '${CURRENT_BRANCH}') — continuing because --dry-run is set."
+  else
+    error "You must be on the 'main' branch (currently on '${CURRENT_BRANCH}')."
+    exit 1
+  fi
+else
+  success "On branch 'main'"
 fi
-success "On branch 'main'"
 
 # 1c. Up to date with origin/main
 git fetch origin main --quiet
 LOCAL_SHA="$(git rev-parse HEAD)"
 REMOTE_SHA="$(git rev-parse origin/main)"
 if [[ "$LOCAL_SHA" != "$REMOTE_SHA" ]]; then
-  error "Local 'main' (${LOCAL_SHA:0:7}) is not up to date with origin/main (${REMOTE_SHA:0:7})."
-  error "Run 'git pull origin main' first."
-  exit 1
+  if $DRY_RUN; then
+    warn "Local HEAD (${LOCAL_SHA:0:7}) differs from origin/main (${REMOTE_SHA:0:7}) — continuing because --dry-run is set."
+  else
+    error "Local 'main' (${LOCAL_SHA:0:7}) is not up to date with origin/main (${REMOTE_SHA:0:7})."
+    error "Run 'git pull origin main' first."
+    exit 1
+  fi
+else
+  success "Up to date with origin/main"
 fi
-success "Up to date with origin/main"
 
 # 1d. Clean working tree (tracked changes + untracked files)
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -165,7 +223,9 @@ echo "---"
 success "Package contents listed above — review before continuing"
 echo
 
-read -r -p "$(echo -e "${YELLOW}⚠${NC} Proceed with version bump, push, npm publish, and GitHub release? [y/N] ")" CONFIRM
+CONFIRM_SUFFIX=""
+$DRY_RUN && CONFIRM_SUFFIX=" [DRY RUN — no changes will be made]"
+read -r -p "$(echo -e "${YELLOW}⚠${NC} Proceed with version bump, push, npm publish, and GitHub release?${CONFIRM_SUFFIX} [y/N] ")" CONFIRM
 case "$CONFIRM" in
   y|Y|yes|YES) ;;
   *)
@@ -183,9 +243,13 @@ info "Step 3/7 — Bumping version (${BUMP_TYPE})…"
 PREV_VERSION="$(npm pkg get version | tr -d '"')"
 info "Current version: ${PREV_VERSION}"
 
-npm version "$BUMP_TYPE"
+run npm version "$BUMP_TYPE"
 
-NEW_TAG="$(git describe --tags --abbrev=0)"
+if $DRY_RUN; then
+  NEW_TAG="$(bump_version "$PREV_VERSION" "$BUMP_TYPE")"
+else
+  NEW_TAG="$(git describe --tags --abbrev=0)"
+fi
 info "New tag: ${NEW_TAG}"
 
 # Verify no v prefix
@@ -194,7 +258,7 @@ if [[ "$NEW_TAG" == v* ]]; then
   error "See the 'Prerequisite: configure npm tags' section in docs/new-version-publication.md."
   exit 1
 fi
-success "Version bumped: ${PREV_VERSION} → ${NEW_TAG} (no 'v' prefix)"
+done_msg "Version bumped: ${PREV_VERSION} → ${NEW_TAG} (no 'v' prefix)"
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -202,11 +266,11 @@ echo
 # ═══════════════════════════════════════════════════════════════════════════
 info "Step 4/7 — Pushing to GitHub…"
 
-git push origin main
-success "Pushed version commit to origin/main"
+run git push origin main
+done_msg "Pushed version commit to origin/main"
 
-git push origin "$NEW_TAG"
-success "Pushed tag '${NEW_TAG}' to origin"
+run git push origin "$NEW_TAG"
+done_msg "Pushed tag '${NEW_TAG}' to origin"
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -214,8 +278,13 @@ echo
 # ═══════════════════════════════════════════════════════════════════════════
 info "Step 5/7 — Publishing to npm…"
 
-npm publish
-success "Published to npm"
+if $DRY_RUN; then
+  npm publish --dry-run
+  success "(dry-run) npm publish --dry-run completed — nothing was actually published"
+else
+  npm publish
+  success "Published to npm"
+fi
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -223,8 +292,8 @@ echo
 # ═══════════════════════════════════════════════════════════════════════════
 info "Step 6/7 — Creating GitHub release…"
 
-gh release create "$NEW_TAG" --title "$NEW_TAG" --generate-notes
-success "GitHub release '${NEW_TAG}' created"
+run gh release create "$NEW_TAG" --title "$NEW_TAG" --generate-notes
+done_msg "GitHub release '${NEW_TAG}' created"
 echo
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -232,31 +301,47 @@ echo
 # ═══════════════════════════════════════════════════════════════════════════
 info "Step 7/7 — Verifying release…"
 
-PUBLISHED_VERSION="$(npm view monguito version)"
-if [[ "$PUBLISHED_VERSION" != "$NEW_TAG" ]]; then
-  warn "npm reports version '${PUBLISHED_VERSION}', expected '${NEW_TAG}'."
-  warn "It may take a moment for the registry to update. Check again shortly."
+if $DRY_RUN; then
+  PUBLISHED_VERSION="(skipped — dry run)"
+  warn "Skipping npm registry verification — dry run, nothing was published."
 else
-  success "npm version matches: ${PUBLISHED_VERSION}"
+  PUBLISHED_VERSION="$(npm view monguito version)"
+  if [[ "$PUBLISHED_VERSION" != "$NEW_TAG" ]]; then
+    warn "npm reports version '${PUBLISHED_VERSION}', expected '${NEW_TAG}'."
+    warn "It may take a moment for the registry to update. Check again shortly."
+  else
+    success "npm version matches: ${PUBLISHED_VERSION}"
+  fi
 fi
 
 echo
-echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  Release ${BOLD}${NEW_TAG}${NC}${GREEN} completed successfully!${NC}"
-echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+if $DRY_RUN; then
+  echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+  echo -e "${YELLOW}  Dry run of release ${BOLD}${NEW_TAG}${NC}${YELLOW} completed — nothing was changed.${NC}"
+  echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+else
+  echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+  echo -e "${GREEN}  Release ${BOLD}${NEW_TAG}${NC}${GREEN} completed successfully!${NC}"
+  echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+fi
 echo
+if $DRY_RUN; then
+  CHECK="${YELLOW}○${NC}"
+else
+  CHECK="${GREEN}✔${NC}"
+fi
 echo "  Release checklist:"
-echo -e "    ${GREEN}✔${NC} .npmrc contains tag-version-prefix="
-echo -e "    ${GREEN}✔${NC} main is up to date"
-echo -e "    ${GREEN}✔${NC} yarn test passed"
-echo -e "    ${GREEN}✔${NC} yarn build passed"
-echo -e "    ${GREEN}✔${NC} npm pack --dry-run reviewed"
-echo -e "    ${GREEN}✔${NC} npm version executed (${NEW_TAG})"
-echo -e "    ${GREEN}✔${NC} Git tag has no 'v' prefix"
-echo -e "    ${GREEN}✔${NC} Version commit pushed to main"
-echo -e "    ${GREEN}✔${NC} Release tag pushed to GitHub"
-echo -e "    ${GREEN}✔${NC} npm whoami succeeds (${NPM_USER})"
-echo -e "    ${GREEN}✔${NC} npm publish succeeded"
-echo -e "    ${GREEN}✔${NC} npm reports version ${PUBLISHED_VERSION}"
-echo -e "    ${GREEN}✔${NC} GitHub release created"
+echo -e "    ${CHECK} .npmrc contains tag-version-prefix="
+echo -e "    ${CHECK} main is up to date"
+echo -e "    ${CHECK} yarn test passed"
+echo -e "    ${CHECK} yarn build passed"
+echo -e "    ${CHECK} npm pack --dry-run reviewed"
+echo -e "    ${CHECK} npm version executed (${NEW_TAG})"
+echo -e "    ${CHECK} Git tag has no 'v' prefix"
+echo -e "    ${CHECK} Version commit pushed to main"
+echo -e "    ${CHECK} Release tag pushed to GitHub"
+echo -e "    ${CHECK} npm whoami succeeds (${NPM_USER})"
+echo -e "    ${CHECK} npm publish succeeded"
+echo -e "    ${CHECK} npm reports version ${PUBLISHED_VERSION}"
+echo -e "    ${CHECK} GitHub release created"
 echo
