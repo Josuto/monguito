@@ -165,6 +165,16 @@ echo "---"
 success "Package contents listed above — review before continuing"
 echo
 
+read -r -p "$(echo -e "${YELLOW}⚠${NC} Proceed with version bump, push, npm publish, and GitHub release? [y/N] ")" CONFIRM
+case "$CONFIRM" in
+  y|Y|yes|YES) ;;
+  *)
+    error "Aborted by user. No changes were made."
+    exit 1
+    ;;
+esac
+echo
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Step 3 — Version bump
 # ═══════════════════════════════════════════════════════════════════════════
