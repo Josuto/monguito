@@ -39,7 +39,7 @@
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.2.1",
     "class-transformer": "^0.5.1",
-    "mongoose": "^9.9.3",
+    "mongoose": "^9.11.4",
     "monguito": "link:../../",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
